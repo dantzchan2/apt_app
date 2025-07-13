@@ -16,7 +16,7 @@ interface DashboardHeaderProps {
   title: string;
   currentPage: string;
   showPoints?: boolean;
-  customUserInfo?: string;
+  customUserInfo?: React.ReactNode;
 }
 
 export default function DashboardHeader({ 
