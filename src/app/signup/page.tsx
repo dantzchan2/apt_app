@@ -8,12 +8,18 @@ export default function SignUp() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+
+  const sanitizePhoneNumber = (phone: string): string => {
+    // Remove all non-digit characters except leading +
+    return phone.replace(/[^\d+]/g, '').replace(/^\+/, '0');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,10 +38,24 @@ export default function SignUp() {
       return;
     }
 
+    if (!formData.phone.trim()) {
+      setError('Phone number is required');
+      setIsLoading(false);
+      return;
+    }
+
+    const sanitizedPhone = sanitizePhoneNumber(formData.phone);
+    if (sanitizedPhone.length < 10) {
+      setError('Please enter a valid phone number');
+      setIsLoading(false);
+      return;
+    }
+
     // Demo sign-up - in a real app, this would call an API
     const userData = {
       name: formData.name,
       email: formData.email,
+      phone: sanitizedPhone,
       role: 'user' as const,
       points: 0,
       id: Date.now().toString()
@@ -100,6 +120,21 @@ export default function SignUp() {
                 onChange={handleChange}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 placeholder="Enter your email"
+              />
+            </div>
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Phone Number
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                placeholder="Enter your phone number (e.g., 0123456789)"
               />
             </div>
             <div>

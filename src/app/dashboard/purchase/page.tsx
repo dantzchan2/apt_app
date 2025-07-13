@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import DashboardHeader from '../../../components/DashboardHeader';
 
 interface UserData {
   name: string;
   email: string;
-  role: 'user' | 'trainer';
+  phone: string;
+  role: 'user' | 'trainer' | 'admin';
   points?: number;
   id: string;
 }
@@ -17,6 +18,17 @@ interface PurchaseOption {
   points: number;
   price: number;
   popular?: boolean;
+}
+
+interface PurchaseLog {
+  purchase_id: string;
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  purchase_item_id: string;
+  datetime: string;
+  price: number;
+  points: number;
 }
 
 const purchaseOptions: PurchaseOption[] = [
@@ -42,7 +54,7 @@ export default function Purchase() {
     }
     
     const parsedUserData = JSON.parse(storedUserData);
-    if (parsedUserData.role !== 'user') {
+    if (parsedUserData.role !== 'user' && parsedUserData.role !== 'admin') {
       router.push('/dashboard');
       return;
     }
@@ -67,6 +79,33 @@ export default function Purchase() {
 
     localStorage.setItem('userData', JSON.stringify(updatedUserData));
     setUserData(updatedUserData);
+    
+    // Also update the user in the allUsers list if it exists
+    const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
+    const updatedAllUsers = allUsers.map((user: UserData) => 
+      user.id === userData.id ? updatedUserData : user
+    );
+    if (updatedAllUsers.some((user: UserData) => user.id === userData.id)) {
+      localStorage.setItem('allUsers', JSON.stringify(updatedAllUsers));
+    }
+    
+    // Log the purchase
+    const purchaseLog: PurchaseLog = {
+      purchase_id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      user_id: userData.id,
+      user_name: userData.name,
+      user_email: userData.email,
+      purchase_item_id: option.id,
+      datetime: new Date().toISOString(),
+      price: option.price,
+      points: option.points
+    };
+
+    // Save to purchase logs
+    const existingLogs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
+    existingLogs.push(purchaseLog);
+    localStorage.setItem('purchaseLogs', JSON.stringify(existingLogs));
+    
     setIsLoading(false);
     setSelectedOption(null);
     
@@ -87,26 +126,19 @@ export default function Purchase() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
-              <Link href="/dashboard" className="text-blue-600 hover:text-blue-500">
-                ← Back to Dashboard
-              </Link>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Purchase Points</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700 dark:text-gray-300">
-                Current Points: 
-                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                  {userData.points || 0}
-                </span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <DashboardHeader 
+        userData={userData} 
+        title="Purchase Points" 
+        currentPage="/dashboard/purchase" 
+        customUserInfo={
+          <>
+            Current Points: 
+            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+              {userData.points || 0}
+            </span>
+          </>
+        }
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-8">

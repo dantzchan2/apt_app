@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import DashboardHeader from '../../../components/DashboardHeader';
 
 interface UserData {
   name: string;
   email: string;
-  role: 'user' | 'trainer';
+  phone: string;
+  role: 'user' | 'trainer' | 'admin';
   points?: number;
   id: string;
 }
@@ -67,16 +69,6 @@ export default function Schedule() {
     }
   }, []);
 
-  const generateTimeSlots = () => {
-    const slots = [];
-    for (let hour = 6; hour < 22; hour++) {
-      for (let minute = 0; minute < 60; minute += 10) {
-        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        slots.push(time);
-      }
-    }
-    return slots;
-  };
 
   const generateHours = () => {
     const hours = [];
@@ -161,6 +153,15 @@ export default function Schedule() {
     };
     setUserData(updatedUserData);
     localStorage.setItem('userData', JSON.stringify(updatedUserData));
+    
+    // Also update the user in the allUsers list if it exists
+    const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
+    const updatedAllUsers = allUsers.map((user: UserData) => 
+      user.id === userData.id ? updatedUserData : user
+    );
+    if (updatedAllUsers.some((user: UserData) => user.id === userData.id)) {
+      localStorage.setItem('allUsers', JSON.stringify(updatedAllUsers));
+    }
 
     setIsBooking(false);
     setSelectedDate('');
@@ -176,14 +177,6 @@ export default function Schedule() {
     return appointments.filter(apt => apt.userId === userData.id);
   };
 
-  const getAvailableSlots = () => {
-    if (!selectedDate || !selectedTrainer) return [];
-    
-    const timeSlots = generateTimeSlots();
-    return timeSlots.filter(time => 
-      isTimeSlotAvailable(selectedDate, time, selectedTrainer)
-    );
-  };
 
   const getAvailableHours = () => {
     if (!selectedDate || !selectedTrainer) return generateHours();
@@ -269,6 +262,15 @@ export default function Schedule() {
       };
       setUserData(updatedUserData);
       localStorage.setItem('userData', JSON.stringify(updatedUserData));
+      
+      // Also update the user in the allUsers list if it exists
+      const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
+      const updatedAllUsers = allUsers.map((user: UserData) => 
+        user.id === userData.id ? updatedUserData : user
+      );
+      if (updatedAllUsers.some((user: UserData) => user.id === userData.id)) {
+        localStorage.setItem('allUsers', JSON.stringify(updatedAllUsers));
+      }
     }
 
     alert('Appointment cancelled successfully. Your point has been refunded.');
@@ -287,26 +289,19 @@ export default function Schedule() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
-              <Link href="/dashboard" className="text-blue-600 hover:text-blue-500">
-                ← Back to Dashboard
-              </Link>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Schedule</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700 dark:text-gray-300">
-                Points: 
-                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                  {userData.points || 0}
-                </span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <DashboardHeader 
+        userData={userData} 
+        title="Schedule" 
+        currentPage="/dashboard/schedule" 
+        customUserInfo={
+          <>
+            Points: 
+            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+              {userData.points || 0}
+            </span>
+          </>
+        }
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 flex space-x-4">

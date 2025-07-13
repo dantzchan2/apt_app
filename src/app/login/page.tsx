@@ -17,14 +17,34 @@ export default function Login() {
     setError('');
 
     // Demo authentication - in a real app, this would call an API
+    let userData = null;
+    
     if (email === 'admin@aptapp.com' && password === 'password') {
-      const userData = {
+      userData = {
         name: 'Admin User',
         email: 'admin@aptapp.com',
-        role: 'user' as const,
-        points: 10,
+        role: 'admin' as const,
+        points: 100,
         id: 'admin123'
       };
+    } else if (email === 'trainer@aptapp.com' && password === 'password') {
+      userData = {
+        name: 'Sarah Johnson',
+        email: 'trainer@aptapp.com',
+        role: 'trainer' as const,
+        id: 'trainer1'
+      };
+    } else if (email === 'user@aptapp.com' && password === 'password') {
+      userData = {
+        name: 'Regular User',
+        email: 'user@aptapp.com',
+        role: 'user' as const,
+        points: 10,
+        id: 'user123'
+      };
+    }
+    
+    if (userData) {
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('userData', JSON.stringify(userData));
       router.push('/dashboard');
@@ -46,7 +66,7 @@ export default function Login() {
             Sign in to your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Demo credentials: admin@aptapp.com / password
+            Try different user types with demo credentials below
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -103,7 +123,7 @@ export default function Login() {
 
           <div className="text-center space-y-2">
             <Link href="/signup" className="text-sm text-blue-600 hover:text-blue-500">
-              Don't have an account? Sign up
+              Don&apos;t have an account? Sign up
             </Link>
             <div>
               <Link href="/" className="text-sm text-gray-600 hover:text-gray-500">
@@ -114,10 +134,20 @@ export default function Login() {
         </form>
         
         <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Demo Credentials:</h3>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            <p><strong>Email:</strong> admin@aptapp.com</p>
-            <p><strong>Password:</strong> password</p>
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Demo Credentials:</h3>
+          <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+            <div className="border-l-4 border-red-500 pl-3">
+              <p><strong>Admin:</strong> admin@aptapp.com / password</p>
+              <p className="text-xs">Can purchase points, book appointments, manage training sessions, and manage all users</p>
+            </div>
+            <div className="border-l-4 border-orange-500 pl-3">
+              <p><strong>Trainer:</strong> trainer@aptapp.com / password</p>
+              <p className="text-xs">Can view and cancel their training appointments</p>
+            </div>
+            <div className="border-l-4 border-blue-500 pl-3">
+              <p><strong>User:</strong> user@aptapp.com / password</p>
+              <p className="text-xs">Can purchase points and book appointments</p>
+            </div>
           </div>
         </div>
       </div>
