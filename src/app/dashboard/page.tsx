@@ -5,12 +5,21 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardHeader from '../../components/DashboardHeader';
 
+interface PointBatch {
+  id: string;
+  points: number;
+  purchaseDate: string;
+  expiryDate: string;
+  originalPoints: number;
+}
+
 interface UserData {
   name: string;
   email: string;
   phone: string;
   role: 'user' | 'trainer' | 'admin';
   points?: number;
+  pointBatches?: PointBatch[];
   id: string;
 }
 
@@ -47,6 +56,41 @@ export default function Dashboard() {
         try {
           const parsedData = JSON.parse(storedUserData);
           console.log('Dashboard - parsed user data:', parsedData);
+          
+          // Initialize point batches if user doesn't have them yet (only for true legacy users)
+          if (!parsedData.pointBatches && parsedData.points && typeof parsedData.points === 'number') {
+            // Convert existing points to a single batch (for backward compatibility)
+            const purchaseDate = new Date().toISOString();
+            const expiryDate = new Date();
+            expiryDate.setMonth(expiryDate.getMonth() + 6);
+            
+            const legacyBatch: PointBatch = {
+              id: 'legacy-' + Date.now(),
+              points: parsedData.points,
+              purchaseDate: purchaseDate,
+              expiryDate: expiryDate.toISOString(),
+              originalPoints: parsedData.points
+            };
+            
+            parsedData.pointBatches = [legacyBatch];
+          }
+          
+          // Clean up expired batches and recalculate points
+          if (parsedData.pointBatches) {
+            const now = new Date();
+            const validBatches = parsedData.pointBatches.filter((batch: PointBatch) => 
+              new Date(batch.expiryDate) > now
+            );
+            
+            const totalPoints = validBatches.reduce((sum: number, batch: PointBatch) => sum + batch.points, 0);
+            
+            parsedData.pointBatches = validBatches;
+            parsedData.points = totalPoints;
+            
+            // Update localStorage with cleaned data
+            localStorage.setItem('userData', JSON.stringify(parsedData));
+          }
+          
           setUserData(parsedData);
 
           // Load appointments
@@ -253,24 +297,6 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {(userData.role === 'user' || userData.role === 'admin') && (
-            <Link href="/dashboard/purchase" className="block">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">$</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Purchase Points</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Buy points to schedule appointments</p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          )}
-          
-          {(userData.role === 'user' || userData.role === 'admin') && (
             <Link href="/dashboard/schedule" className="block">
               <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">
@@ -282,6 +308,24 @@ export default function Dashboard() {
                   <div className="ml-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Schedule Appointments</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Book appointments with trainers</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {(userData.role === 'user' || userData.role === 'admin') && (
+            <Link href="/dashboard/purchase" className="block">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">$</span>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Purchase Points</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Buy points to schedule appointments</p>
                   </div>
                 </div>
               </div>

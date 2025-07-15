@@ -5,12 +5,21 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardHeader from '../../../components/DashboardHeader';
 
+interface PointBatch {
+  id: string;
+  points: number;
+  purchaseDate: string;
+  expiryDate: string;
+  originalPoints: number;
+}
+
 interface UserData {
   name: string;
   email: string;
   phone: string;
   role: 'user' | 'trainer' | 'admin';
   points?: number;
+  pointBatches?: PointBatch[];
   id: string;
 }
 
@@ -60,6 +69,41 @@ export default function Schedule() {
     }
     
     const parsedUserData = JSON.parse(storedUserData);
+    
+    // Initialize point batches if user doesn't have them yet
+    if (!parsedUserData.pointBatches && parsedUserData.points) {
+      // Convert existing points to a single batch (for backward compatibility)
+      const purchaseDate = new Date().toISOString();
+      const expiryDate = new Date();
+      expiryDate.setMonth(expiryDate.getMonth() + 6);
+      
+      const legacyBatch: PointBatch = {
+        id: 'legacy-' + Date.now(),
+        points: parsedUserData.points,
+        purchaseDate: purchaseDate,
+        expiryDate: expiryDate.toISOString(),
+        originalPoints: parsedUserData.points
+      };
+      
+      parsedUserData.pointBatches = [legacyBatch];
+    }
+    
+    // Clean up expired batches and recalculate points
+    if (parsedUserData.pointBatches) {
+      const now = new Date();
+      const validBatches = parsedUserData.pointBatches.filter((batch: PointBatch) => 
+        new Date(batch.expiryDate) > now
+      );
+      
+      const totalPoints = validBatches.reduce((sum: number, batch: PointBatch) => sum + batch.points, 0);
+      
+      parsedUserData.pointBatches = validBatches;
+      parsedUserData.points = totalPoints;
+      
+      // Update localStorage with cleaned data
+      localStorage.setItem('userData', JSON.stringify(parsedUserData));
+    }
+    
     setUserData(parsedUserData);
     
     // Load appointments from localStorage
@@ -68,6 +112,72 @@ export default function Schedule() {
       setAppointments(JSON.parse(storedAppointments));
     }
   }, []);
+
+  // Helper function to deduct points using FIFO (oldest first)
+  const deductPointFromBatches = (batches: PointBatch[], pointsToDeduct: number): PointBatch[] => {
+    const sortedBatches = [...batches].sort((a, b) => 
+      new Date(a.purchaseDate).getTime() - new Date(b.purchaseDate).getTime()
+    );
+    
+    let remaining = pointsToDeduct;
+    const updatedBatches: PointBatch[] = [];
+    
+    for (const batch of sortedBatches) {
+      if (remaining <= 0) {
+        updatedBatches.push(batch);
+        continue;
+      }
+      
+      if (batch.points <= remaining) {
+        // Use entire batch
+        remaining -= batch.points;
+        // Don't add this batch as it's completely used
+      } else {
+        // Use partial batch
+        updatedBatches.push({
+          ...batch,
+          points: batch.points - remaining
+        });
+        remaining = 0;
+      }
+    }
+    
+    return updatedBatches;
+  };
+
+  // Helper function to refund points to the most recent valid batch
+  const refundPointToBatches = (batches: PointBatch[]): PointBatch[] => {
+    const now = new Date();
+    const validBatches = batches.filter(batch => new Date(batch.expiryDate) > now);
+    
+    if (validBatches.length === 0) {
+      // Create a new batch if no valid batches exist
+      const refundDate = new Date().toISOString();
+      const expiryDate = new Date();
+      expiryDate.setMonth(expiryDate.getMonth() + 6);
+      
+      return [...batches, {
+        id: 'refund-' + Date.now(),
+        points: 1,
+        purchaseDate: refundDate,
+        expiryDate: expiryDate.toISOString(),
+        originalPoints: 1
+      }];
+    }
+    
+    // Add to most recent valid batch
+    const sortedBatches = [...validBatches].sort((a, b) => 
+      new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime()
+    );
+    
+    const mostRecentBatch = sortedBatches[0];
+    
+    return batches.map(batch => 
+      batch.id === mostRecentBatch.id 
+        ? { ...batch, points: batch.points + 1 }
+        : batch
+    );
+  };
 
 
   const generateHours = () => {
@@ -146,10 +256,14 @@ export default function Schedule() {
     setAppointments(updatedAppointments);
     localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
 
-    // Deduct point
+    // Deduct point using FIFO (oldest first)
+    const updatedBatches = deductPointFromBatches(userData.pointBatches || [], 1);
+    const totalPoints = updatedBatches.reduce((sum, batch) => sum + batch.points, 0);
+    
     const updatedUserData = {
       ...userData,
-      points: (userData.points || 0) - 1
+      pointBatches: updatedBatches,
+      points: totalPoints
     };
     setUserData(updatedUserData);
     localStorage.setItem('userData', JSON.stringify(updatedUserData));
@@ -254,11 +368,15 @@ export default function Schedule() {
     setAppointments(updatedAppointments);
     localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
 
-    // Refund the point
+    // Refund the point - add to most recent batch that hasn't expired
     if (userData) {
+      const refundedBatches = refundPointToBatches(userData.pointBatches || []);
+      const totalPoints = refundedBatches.reduce((sum, batch) => sum + batch.points, 0);
+      
       const updatedUserData = {
         ...userData,
-        points: (userData.points || 0) + 1
+        pointBatches: refundedBatches,
+        points: totalPoints
       };
       setUserData(updatedUserData);
       localStorage.setItem('userData', JSON.stringify(updatedUserData));

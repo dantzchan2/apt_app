@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardHeader from '../../../components/DashboardHeader';
+import * as XLSX from 'xlsx';
 
 interface UserData {
   name: string;
@@ -42,6 +43,8 @@ export default function Purchase() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [purchaseLogs, setPurchaseLogs] = useState<PurchaseLog[]>([]);
+  const [showLogs, setShowLogs] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -60,6 +63,10 @@ export default function Purchase() {
     }
     
     setUserData(parsedUserData);
+    
+    // Load purchase logs
+    const logs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
+    setPurchaseLogs(logs);
   }, []);
 
   const handlePurchase = async (option: PurchaseOption) => {
@@ -111,6 +118,132 @@ export default function Purchase() {
     
     // Show success message (in a real app, you might use a toast notification)
     alert(`Successfully purchased ${option.points} points!`);
+    
+    // Refresh purchase logs
+    const updatedLogs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
+    setPurchaseLogs(updatedLogs);
+  };
+
+  const downloadPurchaseLogs = () => {
+    if (purchaseLogs.length === 0) {
+      alert('No purchase logs found.');
+      return;
+    }
+
+    const formattedLogs = purchaseLogs.map(log => ({
+      'Purchase ID': log.purchase_id,
+      'User ID': log.user_id,
+      'User Name': log.user_name,
+      'User Email': log.user_email,
+      'Package': log.purchase_item_id,
+      'Date & Time': new Date(log.datetime).toLocaleString(),
+      'Price ($)': log.price,
+      'Points': log.points
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(formattedLogs);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Purchase Logs');
+    
+    const fileName = `purchase_logs_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  };
+
+  const getUserPurchaseLogs = () => {
+    if (!userData) return [];
+    return purchaseLogs.filter(log => log.user_id === userData.id).sort((a, b) => 
+      new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
+    );
+  };
+
+  const formatDateTime = (dateTime: string) => {
+    return new Date(dateTime).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleDebugPurchase = async () => {
+    if (!userData) return;
+    
+    setIsLoading(true);
+
+    // Create debug point batch that expires tomorrow
+    const purchaseDate = new Date().toISOString();
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 1); // Expires tomorrow
+    
+    const debugPointBatch: PointBatch = {
+      id: 'debug-' + Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      points: 3,
+      purchaseDate: purchaseDate,
+      expiryDate: expiryDate.toISOString(),
+      originalPoints: 3
+    };
+
+    // Update user data with new point batch
+    const currentBatches = userData.pointBatches || [];
+    const updatedBatches = [...currentBatches, debugPointBatch];
+    
+    // Remove expired batches
+    const now = new Date();
+    const validBatches = updatedBatches.filter(batch => new Date(batch.expiryDate) > now);
+    
+    // Calculate total points
+    const totalPoints = validBatches.reduce((sum, batch) => sum + batch.points, 0);
+    
+    const updatedUserData = {
+      ...userData,
+      pointBatches: validBatches,
+      points: totalPoints
+    };
+
+    localStorage.setItem('userData', JSON.stringify(updatedUserData));
+    setUserData(updatedUserData);
+    
+    // Also update the user in the allUsers list if it exists
+    const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
+    const updatedAllUsers = allUsers.map((user: UserData) => {
+      if (user.id === userData.id) {
+        return {
+          ...user,
+          pointBatches: validBatches,
+          points: totalPoints
+        };
+      }
+      return user;
+    });
+    if (updatedAllUsers.some((user: UserData) => user.id === userData.id)) {
+      localStorage.setItem('allUsers', JSON.stringify(updatedAllUsers));
+    }
+    
+    // Log the debug purchase
+    const purchaseLog: PurchaseLog = {
+      purchase_id: 'debug-' + Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      user_id: userData.id,
+      user_name: userData.name,
+      user_email: userData.email,
+      purchase_item_id: 'debug-expiring',
+      datetime: new Date().toISOString(),
+      price: 0,
+      points: 3
+    };
+
+    // Save to purchase logs
+    const existingLogs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
+    existingLogs.push(purchaseLog);
+    localStorage.setItem('purchaseLogs', JSON.stringify(existingLogs));
+    
+    setIsLoading(false);
+    
+    // Refresh purchase logs
+    const updatedLogs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
+    setPurchaseLogs(updatedLogs);
+    
+    alert('Debug purchase successful! Added 3 points that expire tomorrow.');
   };
 
   if (!userData) {
@@ -148,6 +281,26 @@ export default function Purchase() {
           <p className="text-lg text-gray-600 dark:text-gray-400">
             Each point allows you to book one hour-long appointment with a trainer
           </p>
+          <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
+            ⚠️ Points expire after 6 months from purchase date
+          </p>
+          
+          {/* Debug Purchase Button */}
+          <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <h3 className="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
+              🐛 Debug: Test Expiry Warning
+            </h3>
+            <button
+              onClick={handleDebugPurchase}
+              disabled={isLoading}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
+            >
+              {isLoading ? 'Adding...' : 'Add 3 Points Expiring Tomorrow'}
+            </button>
+            <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+              This will add points that expire tomorrow to test the warning system
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -212,8 +365,12 @@ export default function Purchase() {
               <p>Each point allows you to book one 1-hour appointment</p>
             </div>
             <div className="flex items-start space-x-3">
+              <div className="w-2 h-2 bg-amber-500 rounded-full mt-2"></div>
+              <p>Points expire 6 months after purchase date</p>
+            </div>
+            <div className="flex items-start space-x-3">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-              <p>Points never expire</p>
+              <p>Oldest points are used first when booking appointments</p>
             </div>
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
@@ -224,6 +381,74 @@ export default function Purchase() {
               <p>Cancel appointments up to 24 hours before to get your point back</p>
             </div>
           </div>
+        </div>
+
+        {/* Purchase History Section */}
+        <div className="mt-12 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Your Purchase History ({getUserPurchaseLogs().length} purchases)
+              </h3>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setShowLogs(!showLogs)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm font-medium"
+                >
+                  {showLogs ? 'Hide' : 'Show'} Purchase History
+                </button>
+                {getUserPurchaseLogs().length > 0 && (
+                  <button
+                    onClick={downloadPurchaseLogs}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                  >
+                    💰 Download Purchase Logs
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {showLogs && (
+            <div className="p-6">
+              {getUserPurchaseLogs().length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                  No purchase history found. Start by purchasing some points!
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {getUserPurchaseLogs().map((log) => (
+                    <div key={log.purchase_id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-lg">$</span>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900 dark:text-white capitalize">
+                            {log.purchase_item_id} Package
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {formatDateTime(log.datetime)}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            ID: {log.purchase_id}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-600">
+                          ${log.price}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          +{log.points} points
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
     </div>
