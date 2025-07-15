@@ -34,6 +34,23 @@ interface Appointment {
   status: 'scheduled' | 'completed' | 'cancelled';
 }
 
+interface AppointmentLog {
+  id: string;
+  appointmentId: string;
+  action: 'booked' | 'cancelled';
+  actionBy: string; // user ID who performed the action
+  actionByName: string; // name of who performed the action
+  actionByRole: 'user' | 'trainer' | 'admin';
+  timestamp: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  trainerId: string;
+  trainerName: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+}
+
 interface Trainer {
   id: string;
   name: string;
@@ -256,6 +273,29 @@ export default function Schedule() {
     setAppointments(updatedAppointments);
     localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
 
+    // Log the appointment booking
+    const appointmentLog: AppointmentLog = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      appointmentId: newAppointment.id,
+      action: 'booked',
+      actionBy: userData.id,
+      actionByName: userData.name,
+      actionByRole: userData.role,
+      timestamp: new Date().toISOString(),
+      appointmentDate: selectedDate,
+      appointmentTime: selectedTime,
+      trainerId: selectedTrainer,
+      trainerName: trainer?.name || 'Unknown',
+      userId: userData.id,
+      userName: userData.name,
+      userEmail: userData.email
+    };
+
+    // Save to appointment logs
+    const existingLogs = JSON.parse(localStorage.getItem('appointmentLogs') || '[]');
+    existingLogs.push(appointmentLog);
+    localStorage.setItem('appointmentLogs', JSON.stringify(existingLogs));
+
     // Deduct point using FIFO (oldest first)
     const updatedBatches = deductPointFromBatches(userData.pointBatches || [], 1);
     const totalPoints = updatedBatches.reduce((sum, batch) => sum + batch.points, 0);
@@ -368,6 +408,29 @@ export default function Schedule() {
     setAppointments(updatedAppointments);
     localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
 
+    // Log the appointment cancellation
+    const appointmentLog: AppointmentLog = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      appointmentId: appointmentId,
+      action: 'cancelled',
+      actionBy: userData.id,
+      actionByName: userData.name,
+      actionByRole: userData.role,
+      timestamp: new Date().toISOString(),
+      appointmentDate: appointment.date,
+      appointmentTime: appointment.time,
+      trainerId: appointment.trainerId,
+      trainerName: appointment.trainerName,
+      userId: appointment.userId,
+      userName: appointment.userName,
+      userEmail: userData.email
+    };
+
+    // Save to appointment logs
+    const existingLogs = JSON.parse(localStorage.getItem('appointmentLogs') || '[]');
+    existingLogs.push(appointmentLog);
+    localStorage.setItem('appointmentLogs', JSON.stringify(existingLogs));
+
     // Refund the point - add to most recent batch that hasn't expired
     if (userData) {
       const refundedBatches = refundPointToBatches(userData.pointBatches || []);
@@ -462,7 +525,7 @@ export default function Schedule() {
                   .map((appointment) => (
                   <div
                     key={appointment.id}
-                    className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                    className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg gap-3"
                   >
                     <div className="flex-1">
                       <p className="font-medium text-gray-900 dark:text-white">
@@ -472,7 +535,7 @@ export default function Schedule() {
                         {new Date(appointment.date).toLocaleDateString()} at {appointment.time}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-between sm:justify-end space-x-3">
                       <span className={`px-3 py-1 text-xs font-medium rounded-full ${
                         appointment.status === 'scheduled' 
                           ? 'bg-green-100 text-green-800'
@@ -541,7 +604,7 @@ export default function Schedule() {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Select Time
                   </label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
                         Hour

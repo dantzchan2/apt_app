@@ -61,8 +61,8 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
       roles: ['admin'],
     },
     {
-      name: 'Purchase Logs',
-      href: '/dashboard/purchases',
+      name: 'Appointment Logs',
+      href: '/dashboard/appointments',
       icon: '📋',
       roles: ['admin'],
     },

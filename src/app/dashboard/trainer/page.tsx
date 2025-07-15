@@ -24,6 +24,23 @@ interface Appointment {
   status: 'scheduled' | 'completed' | 'cancelled';
 }
 
+interface AppointmentLog {
+  id: string;
+  appointmentId: string;
+  action: 'booked' | 'cancelled';
+  actionBy: string;
+  actionByName: string;
+  actionByRole: 'user' | 'trainer' | 'admin';
+  timestamp: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  trainerId: string;
+  trainerName: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+}
+
 export default function TrainerDashboard() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -86,6 +103,29 @@ export default function TrainerDashboard() {
     
     setAppointments(updatedAppointments);
     localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+
+    // Log the appointment cancellation by trainer
+    const appointmentLog: AppointmentLog = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      appointmentId: appointmentId,
+      action: 'cancelled',
+      actionBy: userData.id,
+      actionByName: userData.name,
+      actionByRole: userData.role,
+      timestamp: new Date().toISOString(),
+      appointmentDate: appointment.date,
+      appointmentTime: appointment.time,
+      trainerId: appointment.trainerId,
+      trainerName: appointment.trainerName,
+      userId: appointment.userId,
+      userName: appointment.userName,
+      userEmail: appointment.userEmail || 'unknown@example.com'
+    };
+
+    // Save to appointment logs
+    const existingLogs = JSON.parse(localStorage.getItem('appointmentLogs') || '[]');
+    existingLogs.push(appointmentLog);
+    localStorage.setItem('appointmentLogs', JSON.stringify(existingLogs));
 
     // Refund the point to the user
     const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');

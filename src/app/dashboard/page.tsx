@@ -201,7 +201,7 @@ export default function Dashboard() {
                 ) : (
                   <div className="space-y-4">
                     {getUserAppointments().slice(0, 5).map((appointment) => (
-                      <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div key={appointment.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg gap-3">
                         <div className="flex items-center space-x-4">
                           <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
                             <span className="text-white font-bold text-lg">📅</span>
@@ -259,7 +259,7 @@ export default function Dashboard() {
                 ) : (
                   <div className="space-y-4">
                     {getUpcomingAppointments().slice(0, 10).map((appointment) => (
-                      <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div key={appointment.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg gap-3">
                         <div className="flex items-center space-x-4">
                           <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
                             <span className="text-white font-bold text-lg">📅</span>
@@ -295,7 +295,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
           {(userData.role === 'user' || userData.role === 'admin') && (
             <Link href="/dashboard/schedule" className="block">
               <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
@@ -362,6 +362,24 @@ export default function Dashboard() {
                   <div className="ml-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Manage Users</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">View all users and assign trainer roles</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {userData.role === 'admin' && (
+            <Link href="/dashboard/appointments" className="block">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">📋</span>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Appointment Logs</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">View all appointment bookings and cancellations</p>
                   </div>
                 </div>
               </div>

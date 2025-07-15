@@ -62,27 +62,34 @@ export default function DashboardHeader({
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 gap-4">
           <div className="flex items-center space-x-4">
             <NavDrawer userData={userData} currentPage={currentPage} />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h1>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             {expiringWarning && (
               <div className="flex items-center space-x-2 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs">
                 <span>⚠️</span>
-                <span>
+                <span className="hidden sm:inline">
                   {expiringWarning.points} points expiring {new Date(expiringWarning.earliestExpiry).toLocaleDateString()}
+                </span>
+                <span className="sm:hidden">
+                  {expiringWarning.points} pts exp {new Date(expiringWarning.earliestExpiry).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </span>
               </div>
             )}
             <span className="text-gray-700 dark:text-gray-300">
               {customUserInfo || (
                 <>
-                  {currentPage === '/dashboard' ? `Welcome ${userData.name}!` : userData.name}
+                  <span className="hidden sm:inline">
+                    Welcome, {userData.name}!
+                  </span>
+                  <span className="sm:hidden">
+                    Welcome, {userData.name.split(' ')[0]}!
+                  </span>
                   {showPoints && (userData.role === 'user' || userData.role === 'admin') && (
                     <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                      {userData.points || 0} points
+                      {userData.points || 0} pts
                     </span>
                   )}
                 </>
