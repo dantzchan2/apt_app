@@ -30,7 +30,6 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ 
   userData, 
-  title, 
   currentPage, 
   showPoints = false,
   customUserInfo 

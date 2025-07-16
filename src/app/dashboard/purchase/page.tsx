@@ -5,12 +5,21 @@ import { useRouter } from 'next/navigation';
 import DashboardHeader from '../../../components/DashboardHeader';
 import * as XLSX from 'xlsx';
 
+interface PointBatch {
+  id: string;
+  points: number;
+  purchaseDate: string;
+  expiryDate: string;
+  originalPoints: number;
+}
+
 interface UserData {
   name: string;
   email: string;
   phone: string;
   role: 'user' | 'trainer' | 'admin';
   points?: number;
+  pointBatches?: PointBatch[];
   id: string;
 }
 
@@ -98,7 +107,7 @@ export default function Purchase() {
     
     // Log the purchase
     const purchaseLog: PurchaseLog = {
-      purchase_id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      purchase_id: Date.now().toString() + Math.random().toString(36).substring(2, 11),
       user_id: userData.id,
       user_name: userData.name,
       user_email: userData.email,
@@ -177,7 +186,7 @@ export default function Purchase() {
     expiryDate.setDate(expiryDate.getDate() + 1); // Expires tomorrow
     
     const debugPointBatch: PointBatch = {
-      id: 'debug-' + Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      id: 'debug-' + Date.now().toString() + Math.random().toString(36).substring(2, 11),
       points: 3,
       purchaseDate: purchaseDate,
       expiryDate: expiryDate.toISOString(),
@@ -222,7 +231,7 @@ export default function Purchase() {
     
     // Log the debug purchase
     const purchaseLog: PurchaseLog = {
-      purchase_id: 'debug-' + Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      purchase_id: 'debug-' + Date.now().toString() + Math.random().toString(36).substring(2, 11),
       user_id: userData.id,
       user_name: userData.name,
       user_email: userData.email,

@@ -31,6 +31,7 @@ interface Appointment {
   trainerName: string;
   userId: string;
   userName: string;
+  userEmail?: string;
   status: 'scheduled' | 'completed' | 'cancelled';
 }
 
@@ -275,7 +276,7 @@ export default function Schedule() {
 
     // Log the appointment booking
     const appointmentLog: AppointmentLog = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      id: Date.now().toString() + Math.random().toString(36).substring(2, 11),
       appointmentId: newAppointment.id,
       action: 'booked',
       actionBy: userData.id,
@@ -408,31 +409,30 @@ export default function Schedule() {
     setAppointments(updatedAppointments);
     localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
 
-    // Log the appointment cancellation
-    const appointmentLog: AppointmentLog = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      appointmentId: appointmentId,
-      action: 'cancelled',
-      actionBy: userData.id,
-      actionByName: userData.name,
-      actionByRole: userData.role,
-      timestamp: new Date().toISOString(),
-      appointmentDate: appointment.date,
-      appointmentTime: appointment.time,
-      trainerId: appointment.trainerId,
-      trainerName: appointment.trainerName,
-      userId: appointment.userId,
-      userName: appointment.userName,
-      userEmail: userData.email
-    };
-
-    // Save to appointment logs
-    const existingLogs = JSON.parse(localStorage.getItem('appointmentLogs') || '[]');
-    existingLogs.push(appointmentLog);
-    localStorage.setItem('appointmentLogs', JSON.stringify(existingLogs));
-
     // Refund the point - add to most recent batch that hasn't expired
     if (userData) {
+      // Log the appointment cancellation
+      const appointmentLog: AppointmentLog = {
+        id: Date.now().toString() + Math.random().toString(36).substring(2, 11),
+        appointmentId: appointmentId,
+        action: 'cancelled',
+        actionBy: userData.id,
+        actionByName: userData.name,
+        actionByRole: userData.role,
+        timestamp: new Date().toISOString(),
+        appointmentDate: appointment.date,
+        appointmentTime: appointment.time,
+        trainerId: appointment.trainerId,
+        trainerName: appointment.trainerName,
+        userId: appointment.userId,
+        userName: appointment.userName,
+        userEmail: userData.email
+      };
+
+      // Save to appointment logs
+      const existingLogs = JSON.parse(localStorage.getItem('appointmentLogs') || '[]');
+      existingLogs.push(appointmentLog);
+      localStorage.setItem('appointmentLogs', JSON.stringify(existingLogs));
       const refundedBatches = refundPointToBatches(userData.pointBatches || []);
       const totalPoints = refundedBatches.reduce((sum, batch) => sum + batch.points, 0);
       

@@ -21,6 +21,7 @@ interface Appointment {
   trainerName: string;
   userId: string;
   userName: string;
+  userEmail?: string;
   status: 'scheduled' | 'completed' | 'cancelled';
 }
 
@@ -92,7 +93,7 @@ export default function TrainerDashboard() {
     }
 
     const appointment = appointments.find(apt => apt.id === appointmentId);
-    if (!appointment) return;
+    if (!appointment || !userData) return;
 
     // Update appointment status to cancelled
     const updatedAppointments = appointments.map(apt => 
@@ -106,7 +107,7 @@ export default function TrainerDashboard() {
 
     // Log the appointment cancellation by trainer
     const appointmentLog: AppointmentLog = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      id: Date.now().toString() + Math.random().toString(36).substring(2, 11),
       appointmentId: appointmentId,
       action: 'cancelled',
       actionBy: userData.id,

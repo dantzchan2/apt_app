@@ -27,7 +27,7 @@ interface Appointment {
   id: string;
   userId: string;
   userName: string;
-  userEmail: string;
+  userEmail?: string;
   trainerId: string;
   trainerName: string;
   date: string;
