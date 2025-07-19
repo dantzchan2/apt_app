@@ -77,7 +77,7 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
       {/* Hamburger Menu Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="p-2 rounded-md text-black hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
         aria-label="Open navigation menu"
       >
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,17 +95,17 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 left-0 h-full w-80 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed top-0 left-0 h-full w-80 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Navigation</h2>
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-black">Navigation</h2>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 rounded-md text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
               aria-label="Close navigation menu"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,22 +115,22 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
           </div>
 
           {/* User Info */}
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="p-6 border-b border-gray-200">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-lg">
                   {userData.name.split(' ').map(n => n[0]).join('')}
                 </span>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{userData.name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{userData.email}</p>
+                <p className="text-sm font-medium text-black">{userData.name}</p>
+                <p className="text-xs text-gray-500">{userData.email}</p>
                 <div className="flex items-center space-x-2 mt-1">
                   <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs capitalize">
                     {userData.role}
                   </span>
                   {(userData.role === 'user' || userData.role === 'admin') && (
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                    <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
                       {userData.points || 0} points
                     </span>
                   )}
@@ -149,8 +149,8 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
                     onClick={() => setIsOpen(false)}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                       currentPage === item.href
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        ? 'bg-orange-100 text-orange-800'
+                        : 'text-black hover:bg-gray-100'
                     }`}
                   >
                     <span className="text-lg">{item.icon}</span>
@@ -162,10 +162,10 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
           </nav>
 
           {/* Logout Button */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-t border-gray-200">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
             >
               <span className="text-lg">🚪</span>
               <span>Logout</span>

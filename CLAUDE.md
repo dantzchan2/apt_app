@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Next.js 15 React application called "ScheduleApp" - a point-based appointment scheduling system for fitness trainers. The app uses TypeScript, Tailwind CSS, and follows Next.js App Router architecture.
+This is a Next.js 15 React application called "Studio Vit" - a point-based appointment scheduling system for fitness trainers. The app uses TypeScript, Tailwind CSS, and follows Next.js App Router architecture.
 
 ## Key Commands
 

@@ -349,7 +349,7 @@ export default function UsersManagement() {
       case 'trainer':
         return 'bg-orange-100 text-orange-800';
       case 'user':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -363,8 +363,8 @@ export default function UsersManagement() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-black">Loading...</p>
         </div>
       </div>
     );
@@ -375,7 +375,7 @@ export default function UsersManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <DashboardHeader 
         userData={currentUser} 
         title="User Management" 
@@ -385,7 +385,7 @@ export default function UsersManagement() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Statistics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
@@ -393,13 +393,13 @@ export default function UsersManagement() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Regular Users</h3>
-                <p className="text-2xl font-bold text-blue-600">{getRoleCount('user')}</p>
+                <h3 className="text-lg font-semibold text-black">Regular Users</h3>
+                <p className="text-2xl font-bold text-orange-600">{getRoleCount('user')}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
@@ -407,13 +407,13 @@ export default function UsersManagement() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Trainers</h3>
+                <h3 className="text-lg font-semibold text-black">Trainers</h3>
                 <p className="text-2xl font-bold text-orange-600">{getRoleCount('trainer')}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
@@ -421,7 +421,7 @@ export default function UsersManagement() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Admins</h3>
+                <h3 className="text-lg font-semibold text-black">Admins</h3>
                 <p className="text-2xl font-bold text-red-600">{getRoleCount('admin')}</p>
               </div>
             </div>
@@ -429,10 +429,10 @@ export default function UsersManagement() {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-semibold text-black">
                 All Users ({filteredUsers.length} of {allUsers.length})
               </h2>
               
@@ -456,7 +456,7 @@ export default function UsersManagement() {
                     placeholder="Search by name, email, or phone..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full sm:w-64 px-4 py-2 pl-10 pr-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full sm:w-64 px-4 py-2 pl-10 pr-4 border border-gray-300  rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
                   />
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -469,7 +469,7 @@ export default function UsersManagement() {
                 <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value as 'all' | 'user' | 'trainer' | 'admin')}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="px-4 py-2 border border-gray-300  rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
                 >
                   <option value="all">All Roles</option>
                   <option value="user">Users</option>
@@ -481,53 +481,53 @@ export default function UsersManagement() {
           </div>
           
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     Phone
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     Role
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     Points
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody className="bg-white divide-y divide-gray-200">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={6} className="px-6 py-8 text-center text-black">
                       No users found matching your search criteria.
                     </td>
                   </tr>
                 ) : (
                   filteredUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <tr key={user.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                            <span className="text-sm font-medium text-black">
                               {user.name.split(' ').map(n => n[0]).join('')}
                             </span>
                           </div>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          <div className="text-sm font-medium text-black">
                             <button
                               onClick={() => handleUserClick(user)}
-                              className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                              className="text-orange-600 hover:text-orange-800 hover:underline transition-colors"
                             >
                               {user.name}
                             </button>
@@ -538,10 +538,10 @@ export default function UsersManagement() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                       {user.email}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                       {user.phone}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -549,7 +549,7 @@ export default function UsersManagement() {
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                       {user.role === 'trainer' ? 'N/A' : (user.points || 0)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -557,7 +557,7 @@ export default function UsersManagement() {
                         value={user.role}
                         onChange={(e) => handleRoleChange(user.id, e.target.value as 'user' | 'trainer' | 'admin')}
                         disabled={user.id === currentUser.id}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300  rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500  disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <option value="user">User</option>
                         <option value="trainer">Trainer</option>
@@ -585,11 +585,11 @@ export default function UsersManagement() {
             </ul>
           </div>
           
-          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+          <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+            <h3 className="text-sm font-medium text-orange-800 mb-2">
               Export Features:
             </h3>
-            <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+            <ul className="text-sm text-orange-700 space-y-1">
               <li>• <strong>User Data</strong> includes names, emails, roles, points, and memos</li>
               <li>• Files are downloaded as Excel (.xlsx) format</li>
               <li>• Filenames include current date for easy organization</li>
@@ -602,23 +602,23 @@ export default function UsersManagement() {
       {/* Memo Popup */}
       {showMemoPopup && selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-black">
                 Memo for {selectedUser.name}
               </h3>
             </div>
             
             <div className="p-6">
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   Notes:
                 </label>
                 <textarea
                   value={memoText}
                   onChange={(e) => setMemoText(e.target.value)}
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-none"
+                  className="w-full px-3 py-2 border border-gray-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500  resize-none"
                   placeholder="Enter notes about this user..."
                 />
               </div>
@@ -626,13 +626,13 @@ export default function UsersManagement() {
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={handleMemoCancel}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-black bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleMemoSave}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 transition-colors"
                 >
                   Save
                 </button>

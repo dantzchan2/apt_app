@@ -259,15 +259,15 @@ export default function Purchase() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-black">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <DashboardHeader 
         userData={userData} 
         title="Purchase Points" 
@@ -275,7 +275,7 @@ export default function Purchase() {
         customUserInfo={
           <>
             Current Points: 
-            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+            <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
               {userData.points || 0}
             </span>
           </>
@@ -284,19 +284,19 @@ export default function Purchase() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-3xl font-bold text-black mb-4">
             Choose Your Point Package
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-lg text-black">
             Each point allows you to book one hour-long appointment with a trainer
           </p>
-          <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
+          <p className="text-sm text-amber-600 mt-2">
             ⚠️ Points expire after 6 months from purchase date
           </p>
           
           {/* Debug Purchase Button */}
-          <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <h3 className="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
+          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <h3 className="text-sm font-medium text-red-800 mb-2">
               🐛 Debug: Test Expiry Warning
             </h3>
             <button
@@ -306,7 +306,7 @@ export default function Purchase() {
             >
               {isLoading ? 'Adding...' : 'Add 3 Points Expiring Tomorrow'}
             </button>
-            <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+            <p className="text-xs text-red-600 mt-1">
               This will add points that expire tomorrow to test the warning system
             </p>
           </div>
@@ -316,31 +316,31 @@ export default function Purchase() {
           {purchaseOptions.map((option) => (
             <div
               key={option.id}
-              className={`relative bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 ${
-                option.popular ? 'ring-2 ring-blue-500' : ''
+              className={`relative bg-white rounded-lg shadow-md p-6 ${
+                option.popular ? 'ring-2 ring-orange-500' : ''
               }`}
             >
               {option.popular && (
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium">
                     Most Popular
                   </span>
                 </div>
               )}
               
               <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 capitalize">
+                <h3 className="text-lg font-semibold text-black mb-2 capitalize">
                   {option.id}
                 </h3>
                 <div className="mb-4">
-                  <span className="text-3xl font-bold text-gray-900 dark:text-white">
+                  <span className="text-3xl font-bold text-black">
                     {option.points}
                   </span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-1">points</span>
+                  <span className="text-black ml-1">points</span>
                 </div>
                 <div className="mb-6">
                   <span className="text-2xl font-bold text-green-600">${option.price}</span>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <div className="text-sm text-black mt-1">
                     ${(option.price / option.points).toFixed(2)} per point
                   </div>
                 </div>
@@ -350,8 +350,8 @@ export default function Purchase() {
                   disabled={isLoading && selectedOption === option.id}
                   className={`w-full py-3 px-4 rounded-md font-medium text-sm transition-colors ${
                     option.popular
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-gray-200 hover:bg-gray-300 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white'
+                      ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                      : 'bg-gray-200 hover:bg-gray-300 text-black'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {isLoading && selectedOption === option.id 
@@ -364,13 +364,13 @@ export default function Purchase() {
           ))}
         </div>
 
-        <div className="mt-12 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="mt-12 bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-semibold text-black mb-4">
             How Points Work
           </h3>
-          <div className="space-y-3 text-gray-600 dark:text-gray-400">
+          <div className="space-y-3 text-black">
             <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
               <p>Each point allows you to book one 1-hour appointment</p>
             </div>
             <div className="flex items-start space-x-3">
@@ -378,25 +378,25 @@ export default function Purchase() {
               <p>Points expire 6 months after purchase date</p>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
               <p>Oldest points are used first when booking appointments</p>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
               <p>Appointments can be scheduled at 10-minute intervals</p>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
               <p>Cancel appointments up to 24 hours before to get your point back</p>
             </div>
           </div>
         </div>
 
         {/* Purchase History Section */}
-        <div className="mt-12 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="mt-12 bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-black">
                 Your Purchase History ({getUserPurchaseLogs().length} purchases)
               </h3>
               <div className="flex flex-col sm:flex-row gap-3">
@@ -409,7 +409,7 @@ export default function Purchase() {
                 {getUserPurchaseLogs().length > 0 && (
                   <button
                     onClick={downloadPurchaseLogs}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                    className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors text-sm font-medium"
                   >
                     💰 Download Purchase Logs
                   </button>
@@ -421,25 +421,25 @@ export default function Purchase() {
           {showLogs && (
             <div className="p-6">
               {getUserPurchaseLogs().length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                <p className="text-black text-center py-8">
                   No purchase history found. Start by purchasing some points!
                 </p>
               ) : (
                 <div className="space-y-4">
                   {getUserPurchaseLogs().map((log) => (
-                    <div key={log.purchase_id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div key={log.purchase_id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-bold text-lg">$</span>
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900 dark:text-white capitalize">
+                          <h4 className="font-semibold text-black capitalize">
                             {log.purchase_item_id} Package
                           </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="text-sm text-black">
                             {formatDateTime(log.datetime)}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-black">
                             ID: {log.purchase_id}
                           </p>
                         </div>
@@ -448,7 +448,7 @@ export default function Purchase() {
                         <div className="text-lg font-bold text-green-600">
                           ${log.price}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                        <div className="text-sm text-black">
                           +{log.points} points
                         </div>
                       </div>

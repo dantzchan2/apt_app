@@ -59,7 +59,7 @@ export default function DashboardHeader({
   const expiringWarning = getExpiringPointsWarning();
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-sm">
+    <nav className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 gap-4">
           <div className="flex items-center space-x-4">
@@ -77,7 +77,7 @@ export default function DashboardHeader({
                 </span>
               </div>
             )}
-            <span className="text-gray-700 dark:text-gray-300">
+            <span className="text-black">
               {customUserInfo || (
                 <>
                   <span className="hidden sm:inline">
@@ -87,7 +87,7 @@ export default function DashboardHeader({
                     Welcome, {userData.name.split(' ')[0]}!
                   </span>
                   {showPoints && (userData.role === 'user' || userData.role === 'admin') && (
-                    <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                    <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
                       {userData.points || 0} pts
                     </span>
                   )}

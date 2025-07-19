@@ -461,15 +461,15 @@ export default function Schedule() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-black">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <DashboardHeader 
         userData={userData} 
         title="Schedule" 
@@ -477,7 +477,7 @@ export default function Schedule() {
         customUserInfo={
           <>
             Points: 
-            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+            <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
               {userData.points || 0}
             </span>
           </>
@@ -490,8 +490,8 @@ export default function Schedule() {
             onClick={() => setView('my-appointments')}
             className={`px-4 py-2 rounded-md font-medium ${
               view === 'my-appointments'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                ? 'bg-orange-600 text-white'
+                : 'bg-gray-200 text-black'
             }`}
           >
             My Appointments
@@ -500,8 +500,8 @@ export default function Schedule() {
             onClick={() => setView('book')}
             className={`px-4 py-2 rounded-md font-medium ${
               view === 'book'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                ? 'bg-orange-600 text-white'
+                : 'bg-gray-200 text-black'
             }`}
           >
             Book Appointment
@@ -509,13 +509,13 @@ export default function Schedule() {
         </div>
 
         {view === 'my-appointments' && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-black mb-4">
               My Appointments
             </h2>
             
             {getMyAppointments().length === 0 ? (
-              <p className="text-gray-600 dark:text-gray-400 text-center py-8">
+              <p className="text-black text-center py-8">
                 No appointments scheduled yet.
               </p>
             ) : (
@@ -525,13 +525,13 @@ export default function Schedule() {
                   .map((appointment) => (
                   <div
                     key={appointment.id}
-                    className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg gap-3"
+                    className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 bg-gray-50 rounded-lg gap-3"
                   >
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-black">
                         Training with {appointment.trainerName}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-black">
                         {new Date(appointment.date).toLocaleDateString()} at {appointment.time}
                       </p>
                     </div>
@@ -540,7 +540,7 @@ export default function Schedule() {
                         appointment.status === 'scheduled' 
                           ? 'bg-green-100 text-green-800'
                           : appointment.status === 'completed'
-                          ? 'bg-blue-100 text-blue-800'
+                          ? 'bg-orange-100 text-orange-800'
                           : 'bg-red-100 text-red-800'
                       }`}>
                         {appointment.status}
@@ -562,20 +562,20 @@ export default function Schedule() {
         )}
 
         {view === 'book' && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-black mb-4">
               Book New Appointment
             </h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   Select Trainer
                 </label>
                 <select
                   value={selectedTrainer}
                   onChange={(e) => setSelectedTrainer(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300  rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 "
                 >
                   <option value="">Choose a trainer...</option>
                   {trainers.map(trainer => (
@@ -587,7 +587,7 @@ export default function Schedule() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   Select Date
                 </label>
                 <input
@@ -595,24 +595,24 @@ export default function Schedule() {
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300  rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 "
                 />
               </div>
 
               {selectedDate && selectedTrainer && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-black mb-2">
                     Select Time
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      <label className="block text-xs text-black mb-1">
                         Hour
                       </label>
                       <select
                         value={selectedHour}
                         onChange={(e) => handleHourChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300  rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 "
                       >
                         <option value="">--</option>
                         {getAvailableHours().map(hour => (
@@ -623,14 +623,14 @@ export default function Schedule() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      <label className="block text-xs text-black mb-1">
                         Minute
                       </label>
                       <select
                         value={selectedMinute}
                         onChange={(e) => handleMinuteChange(e.target.value)}
                         disabled={!selectedHour}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-3 py-2 border border-gray-300  rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500  disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <option value="">--</option>
                         {selectedHour && getAvailableMinutes().map(minute => (
@@ -642,12 +642,12 @@ export default function Schedule() {
                     </div>
                   </div>
                   {selectedHour && getAvailableMinutes().length === 0 && (
-                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                    <p className="mt-2 text-sm text-red-600">
                       No available time slots for {selectedHour}:00 hour.
                     </p>
                   )}
                   {getAvailableHours().length === 0 && (
-                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                    <p className="mt-2 text-sm text-red-600">
                       No available time slots for this date and trainer.
                     </p>
                   )}
@@ -658,12 +658,12 @@ export default function Schedule() {
                 <button
                   onClick={handleBookAppointment}
                   disabled={!selectedDate || !selectedTime || !selectedTrainer || isBooking || (userData.points || 0) < 1}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-md"
+                  className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-md"
                 >
                   {isBooking ? 'Booking...' : `Book Appointment (1 point)${selectedTime ? ` - ${selectedTime}` : ''}`}
                 </button>
                 {(userData.points || 0) < 1 && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  <p className="mt-2 text-sm text-red-600">
                     You need at least 1 point to book an appointment. 
                     <Link href="/dashboard/purchase" className="ml-1 underline">
                       Purchase points here

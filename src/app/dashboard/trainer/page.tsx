@@ -167,8 +167,8 @@ export default function TrainerDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-black">Loading...</p>
         </div>
       </div>
     );
@@ -190,7 +190,7 @@ export default function TrainerDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <DashboardHeader 
         userData={userData} 
         title="My Training Sessions" 
@@ -200,14 +200,14 @@ export default function TrainerDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
           {/* Upcoming Appointments */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-black mb-4 flex items-center">
               <span className="w-3 h-3 bg-green-500 rounded-full mr-3"></span>
               Upcoming Sessions ({upcomingAppointments.length})
             </h2>
             
             {upcomingAppointments.length === 0 ? (
-              <p className="text-gray-600 dark:text-gray-400 text-center py-8">
+              <p className="text-black dark:text-gray-400 text-center py-8">
                 No upcoming training sessions.
               </p>
             ) : (
@@ -217,13 +217,13 @@ export default function TrainerDashboard() {
                   .map((appointment) => (
                   <div
                     key={appointment.id}
-                    className="flex justify-between items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
+                    className="flex justify-between items-center p-4 bg-green-50 rounded-lg border border-green-200"
                   >
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-black">
                         Training with {appointment.userName}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-black dark:text-gray-400">
                         {new Date(appointment.date).toLocaleDateString('en-US', { 
                           weekday: 'long', 
                           year: 'numeric', 
@@ -247,7 +247,7 @@ export default function TrainerDashboard() {
                       {new Date(`${appointment.date}T${appointment.time}:00`) <= new Date() && appointment.status === 'scheduled' && (
                         <button
                           onClick={() => markAsCompleted(appointment.id)}
-                          className="px-3 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
+                          className="px-3 py-1 text-xs font-medium text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-md transition-colors"
                         >
                           Mark Complete
                         </button>
@@ -260,14 +260,14 @@ export default function TrainerDashboard() {
           </div>
 
           {/* Past Appointments */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-black mb-4 flex items-center">
               <span className="w-3 h-3 bg-gray-500 rounded-full mr-3"></span>
               Past Sessions ({pastAppointments.length})
             </h2>
             
             {pastAppointments.length === 0 ? (
-              <p className="text-gray-600 dark:text-gray-400 text-center py-8">
+              <p className="text-black dark:text-gray-400 text-center py-8">
                 No past training sessions.
               </p>
             ) : (
@@ -277,13 +277,13 @@ export default function TrainerDashboard() {
                   .map((appointment) => (
                   <div
                     key={appointment.id}
-                    className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                    className="flex justify-between items-center p-4 bg-gray-50 rounded-lg"
                   >
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-black">
                         Training with {appointment.userName}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-black dark:text-gray-400">
                         {new Date(appointment.date).toLocaleDateString('en-US', { 
                           weekday: 'long', 
                           year: 'numeric', 
@@ -295,7 +295,7 @@ export default function TrainerDashboard() {
                     <div className="flex items-center space-x-3">
                       <span className={`px-3 py-1 text-xs font-medium rounded-full ${
                         appointment.status === 'completed' 
-                          ? 'bg-blue-100 text-blue-800'
+                          ? 'bg-orange-100 text-orange-800'
                           : appointment.status === 'cancelled'
                           ? 'bg-red-100 text-red-800'
                           : 'bg-yellow-100 text-yellow-800'

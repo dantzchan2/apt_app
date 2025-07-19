@@ -163,8 +163,8 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-black">Loading...</p>
         </div>
       </div>
     );
@@ -175,7 +175,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900" suppressHydrationWarning>
+    <div className="min-h-screen bg-white" suppressHydrationWarning>
       <DashboardHeader 
         userData={userData} 
         title="Dashboard" 
@@ -187,34 +187,34 @@ export default function Dashboard() {
         {/* Upcoming Appointments Section for Users and Trainers */}
         {(userData.role === 'user' || userData.role === 'trainer') && (
           <div className="mb-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-black">
                   {userData.role === 'user' ? 'Your Upcoming Appointments' : 'Your Upcoming Training Sessions'}
                 </h2>
               </div>
               <div className="p-6">
                 {getUserAppointments().length === 0 ? (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                  <p className="text-gray-500 text-center py-8">
                     No upcoming {userData.role === 'user' ? 'appointments' : 'training sessions'} scheduled.
                   </p>
                 ) : (
                   <div className="space-y-4">
                     {getUserAppointments().slice(0, 5).map((appointment) => (
-                      <div key={appointment.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg gap-3">
+                      <div key={appointment.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-lg gap-3">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                          <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
                             <span className="text-white font-bold text-lg">📅</span>
                           </div>
                           <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                            <h3 className="font-semibold text-black">
                               {userData.role === 'user' ? `Training with ${appointment.trainerName}` : `Session with ${appointment.userName}`}
                             </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <p className="text-sm text-gray-600">
                               {formatDateTime(appointment.date, appointment.time)}
                             </p>
                             {userData.role === 'user' && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                              <p className="text-xs text-gray-500">
                                 {appointment.userEmail}
                               </p>
                             )}
@@ -229,7 +229,7 @@ export default function Dashboard() {
                       <div className="text-center pt-4">
                         <Link
                           href={userData.role === 'user' ? '/dashboard/schedule' : '/dashboard/trainer'}
-                          className="text-blue-600 hover:text-blue-500 text-sm font-medium"
+                          className="text-orange-600 hover:text-red-600 text-sm font-medium"
                         >
                           View all {getUserAppointments().length} {userData.role === 'user' ? 'appointments' : 'sessions'}
                         </Link>
@@ -245,33 +245,33 @@ export default function Dashboard() {
         {/* All Appointments Section for Admins */}
         {userData.role === 'admin' && (
           <div className="mb-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-black">
                   All Scheduled Appointments ({getUpcomingAppointments().length})
                 </h2>
               </div>
               <div className="p-6">
                 {getUpcomingAppointments().length === 0 ? (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                  <p className="text-gray-500 text-center py-8">
                     No upcoming appointments scheduled.
                   </p>
                 ) : (
                   <div className="space-y-4">
                     {getUpcomingAppointments().slice(0, 10).map((appointment) => (
-                      <div key={appointment.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg gap-3">
+                      <div key={appointment.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-lg gap-3">
                         <div className="flex items-center space-x-4">
                           <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
                             <span className="text-white font-bold text-lg">📅</span>
                           </div>
                           <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                            <h3 className="font-semibold text-black">
                               {appointment.userName} → {appointment.trainerName}
                             </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <p className="text-sm text-gray-600">
                               {formatDateTime(appointment.date, appointment.time)}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <p className="text-xs text-gray-500">
                               {appointment.userEmail}
                             </p>
                           </div>
@@ -283,7 +283,7 @@ export default function Dashboard() {
                     ))}
                     {getUpcomingAppointments().length > 10 && (
                       <div className="text-center pt-4">
-                        <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        <p className="text-gray-500 text-sm">
                           Showing 10 of {getUpcomingAppointments().length} upcoming appointments
                         </p>
                       </div>
@@ -298,16 +298,16 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
           {(userData.role === 'user' || userData.role === 'admin') && (
             <Link href="/dashboard/schedule" className="block">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                    <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
                       <span className="text-white font-bold text-lg">📅</span>
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Schedule Appointments</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Book appointments with trainers</p>
+                    <h3 className="text-lg font-semibold text-black">Schedule Appointments</h3>
+                    <p className="text-sm text-gray-600">Book appointments with trainers</p>
                   </div>
                 </div>
               </div>
@@ -316,7 +316,7 @@ export default function Dashboard() {
 
           {(userData.role === 'user' || userData.role === 'admin') && (
             <Link href="/dashboard/purchase" className="block">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
@@ -324,8 +324,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Purchase Points</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Buy points to schedule appointments</p>
+                    <h3 className="text-lg font-semibold text-black">Purchase Points</h3>
+                    <p className="text-sm text-gray-600">Buy points to schedule appointments</p>
                   </div>
                 </div>
               </div>
@@ -334,7 +334,7 @@ export default function Dashboard() {
 
           {(userData.role === 'trainer' || userData.role === 'admin') && (
             <Link href="/dashboard/trainer" className="block">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
@@ -342,8 +342,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">My Training Sessions</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">View and manage your appointments</p>
+                    <h3 className="text-lg font-semibold text-black">My Training Sessions</h3>
+                    <p className="text-sm text-gray-600">View and manage your appointments</p>
                   </div>
                 </div>
               </div>
@@ -352,7 +352,7 @@ export default function Dashboard() {
 
           {userData.role === 'admin' && (
             <Link href="/dashboard/users" className="block">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
@@ -360,8 +360,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Manage Users</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">View all users and assign trainer roles</p>
+                    <h3 className="text-lg font-semibold text-black">Manage Users</h3>
+                    <p className="text-sm text-gray-600">View all users and assign trainer roles</p>
                   </div>
                 </div>
               </div>
@@ -370,7 +370,7 @@ export default function Dashboard() {
 
           {userData.role === 'admin' && (
             <Link href="/dashboard/appointments" className="block">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
@@ -378,8 +378,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Appointment Logs</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">View all appointment bookings and cancellations</p>
+                    <h3 className="text-lg font-semibold text-black">Appointment Logs</h3>
+                    <p className="text-sm text-gray-600">View all appointment bookings and cancellations</p>
                   </div>
                 </div>
               </div>

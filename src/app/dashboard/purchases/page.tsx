@@ -141,8 +141,8 @@ export default function PurchaseLogsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-black">Loading...</p>
         </div>
       </div>
     );
@@ -153,7 +153,7 @@ export default function PurchaseLogsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <DashboardHeader 
         userData={currentUser} 
         title="Purchase Logs" 
@@ -163,7 +163,7 @@ export default function PurchaseLogsPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
@@ -171,13 +171,13 @@ export default function PurchaseLogsPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Total Revenue</h3>
+                <h3 className="text-lg font-semibold text-black">Total Revenue</h3>
                 <p className="text-2xl font-bold text-green-600">{formatPrice(getTotalRevenue())}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
@@ -185,13 +185,13 @@ export default function PurchaseLogsPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Total Purchases</h3>
-                <p className="text-2xl font-bold text-blue-600">{filteredLogs.length}</p>
+                <h3 className="text-lg font-semibold text-black">Total Purchases</h3>
+                <p className="text-2xl font-bold text-orange-600">{filteredLogs.length}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
@@ -199,7 +199,7 @@ export default function PurchaseLogsPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Unique Customers</h3>
+                <h3 className="text-lg font-semibold text-black">Unique Customers</h3>
                 <p className="text-2xl font-bold text-purple-600">{getUniqueUsers().length}</p>
               </div>
             </div>
@@ -207,9 +207,9 @@ export default function PurchaseLogsPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-6">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-black">
               Purchase Logs ({filteredLogs.length} of {purchaseLogs.length})
             </h2>
           </div>
@@ -218,7 +218,7 @@ export default function PurchaseLogsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {/* Search */}
               <div className="lg:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   Search
                 </label>
                 <input
@@ -226,19 +226,19 @@ export default function PurchaseLogsPage() {
                   placeholder="Search by user, email, or purchase ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300  rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
                 />
               </div>
 
               {/* User Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   User
                 </label>
                 <select
                   value={userFilter}
                   onChange={(e) => setUserFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300  rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
                 >
                   <option value="all">All Users</option>
                   {getUniqueUsers().map((user) => (
@@ -249,13 +249,13 @@ export default function PurchaseLogsPage() {
 
               {/* Item Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   Package
                 </label>
                 <select
                   value={itemFilter}
                   onChange={(e) => setItemFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300  rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
                 >
                   <option value="all">All Packages</option>
                   {getUniqueItems().map((item) => (
@@ -266,7 +266,7 @@ export default function PurchaseLogsPage() {
 
               {/* Date Range */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   Date Range
                 </label>
                 <div className="space-y-2">
@@ -274,14 +274,14 @@ export default function PurchaseLogsPage() {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-sm"
+                    className="w-full px-3 py-2 border border-gray-300  rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500  text-sm"
                     placeholder="Start date"
                   />
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-sm"
+                    className="w-full px-3 py-2 border border-gray-300  rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500  text-sm"
                     placeholder="End date"
                   />
                 </div>
@@ -291,9 +291,9 @@ export default function PurchaseLogsPage() {
         </div>
 
         {/* Purchase Logs Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -316,41 +316,41 @@ export default function PurchaseLogsPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody className="bg-white divide-y divide-gray-200">
                 {filteredLogs.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={6} className="px-6 py-8 text-center text-black">
                       No purchase logs found matching your criteria.
                     </td>
                   </tr>
                 ) : (
                   filteredLogs.map((log) => (
-                    <tr key={log.purchase_id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
+                    <tr key={log.purchase_id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-black">
                         {log.purchase_id.substring(0, 12)}...
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          <div className="text-sm font-medium text-black">
                             {log.user_name}
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                          <div className="text-sm text-black">
                             {log.user_email}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 capitalize">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800 capitalize">
                           {log.purchase_item_id}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                         {log.points}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
                         {formatPrice(log.price)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                         {formatDateTime(log.datetime)}
                       </td>
                     </tr>
