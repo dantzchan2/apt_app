@@ -385,6 +385,24 @@ export default function Dashboard() {
               </div>
             </Link>
           )}
+
+          {userData.role === 'admin' && (
+            <Link href="/dashboard/settlement" className="block">
+              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">📊</span>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-semibold text-black">Monthly Settlement</h3>
+                    <p className="text-sm text-gray-600">View trainer performance and monthly statistics</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          )}
         </div>
       </div>
 

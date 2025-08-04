@@ -1,0 +1,312 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import DashboardHeader from '../../../components/DashboardHeader';
+
+interface UserData {
+  name: string;
+  email: string;
+  phone: string;
+  role: 'user' | 'trainer' | 'admin';
+  points?: number;
+  id: string;
+}
+
+interface Appointment {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail?: string;
+  trainerId: string;
+  trainerName: string;
+  date: string;
+  time: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
+}
+
+interface TrainerStats {
+  trainerId: string;
+  trainerName: string;
+  totalAppointments: number;
+  fulfilledAppointments: number;
+  cancelledAppointments: number;
+}
+
+const TRAINER_LIST = [
+  { id: 'trainer1', name: 'Sarah Johnson', specialization: 'Strength & Conditioning' },
+  { id: 'trainer2', name: 'Mike Chen', specialization: 'Cardio & Endurance' },
+  { id: 'trainer3', name: 'Emma Rodriguez', specialization: 'Yoga & Flexibility' },
+  { id: 'trainer4', name: 'Alex Thompson', specialization: 'CrossFit' },
+  { id: 'trainer5', name: 'Lisa Park', specialization: 'Pilates' }
+];
+
+export default function MonthlySettlement() {
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [trainerStats, setTrainerStats] = useState<TrainerStats[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
+  const loadCSVData = async () => {
+    try {
+      const response = await fetch('/data/appointments.csv');
+      const csvText = await response.text();
+      
+      // Parse CSV
+      const lines = csvText.trim().split('\n');
+      
+      const csvAppointments = lines.slice(1).map(line => {
+        const values = line.split(',');
+        const appointment: Appointment = {
+          id: values[0],
+          userId: values[1],
+          userName: values[2],
+          userEmail: values[3],
+          trainerId: values[4],
+          trainerName: values[5],
+          date: values[6],
+          time: values[7],
+          status: values[8] as 'scheduled' | 'completed' | 'cancelled'
+        };
+        return appointment;
+      });
+      
+      setAppointments(csvAppointments);
+    } catch (error) {
+      console.error('Error loading CSV data:', error);
+      // Fallback to localStorage if CSV fails
+      const storedAppointments = localStorage.getItem('appointments');
+      if (storedAppointments) {
+        setAppointments(JSON.parse(storedAppointments));
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const authStatus = localStorage.getItem('isAuthenticated');
+    const storedUserData = localStorage.getItem('userData');
+    
+    if (authStatus === 'true' && storedUserData) {
+      try {
+        const parsedData = JSON.parse(storedUserData);
+        
+        // Check if user is admin
+        if (parsedData.role !== 'admin') {
+          router.replace('/dashboard');
+          return;
+        }
+        
+        setUserData(parsedData);
+
+        // Load appointments from CSV
+        loadCSVData();
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('userData');
+        router.replace('/login');
+      }
+    } else {
+      setIsLoading(false);
+      router.replace('/login');
+    }
+  }, [router]);
+
+  useEffect(() => {
+    calculateTrainerStats();
+  }, [appointments, currentDate]);
+
+  const calculateTrainerStats = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // Filter appointments for the current month
+    const monthlyAppointments = appointments.filter(appointment => {
+      const appointmentDate = new Date(appointment.date);
+      return appointmentDate.getFullYear() === year && appointmentDate.getMonth() === month;
+    });
+
+    // Calculate stats for each trainer
+    const stats = TRAINER_LIST.map(trainer => {
+      const trainerAppointments = monthlyAppointments.filter(
+        appointment => appointment.trainerId === trainer.id
+      );
+
+      const totalAppointments = trainerAppointments.length;
+      const fulfilledAppointments = trainerAppointments.filter(
+        appointment => appointment.status === 'completed'
+      ).length;
+      const cancelledAppointments = trainerAppointments.filter(
+        appointment => appointment.status === 'cancelled'
+      ).length;
+
+      return {
+        trainerId: trainer.id,
+        trainerName: trainer.name,
+        totalAppointments,
+        fulfilledAppointments,
+        cancelledAppointments
+      };
+    });
+
+    setTrainerStats(stats);
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prevDate => {
+      const newDate = new Date(prevDate);
+      if (direction === 'prev') {
+        newDate.setMonth(newDate.getMonth() - 1);
+      } else {
+        newDate.setMonth(newDate.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
+  const formatMonthYear = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      month: 'long', 
+      year: 'numeric' 
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-black">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userData || userData.role !== 'admin') {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      <DashboardHeader 
+        userData={userData} 
+        title="Monthly Settlement" 
+        currentPage="/dashboard/settlement" 
+        showPoints={false}
+      />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Month Navigation */}
+        <div className="flex items-center justify-between mb-8">
+          <button
+            onClick={() => navigateMonth('prev')}
+            className="flex items-center px-4 py-2 text-sm font-medium text-orange-600 bg-white border border-orange-600 rounded-md hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+            ←
+          </button>
+          
+          <h1 className="text-2xl font-bold text-black">
+            {formatMonthYear(currentDate)}
+          </h1>
+          
+          <button
+            onClick={() => navigateMonth('next')}
+            className="flex items-center px-4 py-2 text-sm font-medium text-orange-600 bg-white border border-orange-600 rounded-md hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+            →
+          </button>
+        </div>
+
+
+        {/* Trainer Statistics Table */}
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Trainer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total Appointments
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Fulfilled
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Cancelled
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Success Rate
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {trainerStats.map((stat) => {
+                  const successRate = stat.totalAppointments > 0 
+                    ? ((stat.fulfilledAppointments / stat.totalAppointments) * 100).toFixed(1)
+                    : '0.0';
+
+                  return (
+                    <tr key={stat.trainerId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              {stat.trainerName.split(' ').map(n => n[0]).join('')}
+                            </span>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-black">
+                              {stat.trainerName}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                        {stat.totalAppointments}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
+                        {stat.fulfilledAppointments}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
+                        {stat.cancelledAppointments}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          parseFloat(successRate) >= 80 
+                            ? 'bg-green-100 text-green-800'
+                            : parseFloat(successRate) >= 60
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {successRate}%
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {trainerStats.every(stat => stat.totalAppointments === 0) && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">
+              No appointments found for {formatMonthYear(currentDate)}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

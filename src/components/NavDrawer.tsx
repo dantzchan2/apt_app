@@ -66,6 +66,12 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
       icon: '📋',
       roles: ['admin'],
     },
+    {
+      name: 'Monthly Settlement',
+      href: '/dashboard/settlement',
+      icon: '📊',
+      roles: ['admin'],
+    },
   ];
 
   const filteredNavItems = navigationItems.filter(item =>
