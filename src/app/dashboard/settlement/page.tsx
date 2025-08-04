@@ -170,6 +170,48 @@ export default function MonthlySettlement() {
     });
   };
 
+  const handleMonthChange = (month: number) => {
+    setCurrentDate(prevDate => {
+      const newDate = new Date(prevDate);
+      newDate.setMonth(month);
+      return newDate;
+    });
+  };
+
+  const handleYearChange = (year: number) => {
+    setCurrentDate(prevDate => {
+      const newDate = new Date(prevDate);
+      newDate.setFullYear(year);
+      return newDate;
+    });
+  };
+
+  const getAvailableMonths = () => {
+    return [
+      { value: 0, label: 'January' },
+      { value: 1, label: 'February' },
+      { value: 2, label: 'March' },
+      { value: 3, label: 'April' },
+      { value: 4, label: 'May' },
+      { value: 5, label: 'June' },
+      { value: 6, label: 'July' },
+      { value: 7, label: 'August' },
+      { value: 8, label: 'September' },
+      { value: 9, label: 'October' },
+      { value: 10, label: 'November' },
+      { value: 11, label: 'December' }
+    ];
+  };
+
+  const getAvailableYears = () => {
+    // Generate years from 2024 to 2026 (can adjust range as needed)
+    const years = [];
+    for (let year = 2024; year <= 2026; year++) {
+      years.push({ value: year, label: year.toString() });
+    }
+    return years;
+  };
+
   const formatMonthYear = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
       month: 'long', 
@@ -202,110 +244,193 @@ export default function MonthlySettlement() {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Month Navigation */}
-        <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => navigateMonth('prev')}
-            className="flex items-center px-4 py-2 text-sm font-medium text-orange-600 bg-white border border-orange-600 rounded-md hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          >
-            ←
-          </button>
-          
-          <h1 className="text-2xl font-bold text-black">
-            {formatMonthYear(currentDate)}
-          </h1>
-          
-          <button
-            onClick={() => navigateMonth('next')}
-            className="flex items-center px-4 py-2 text-sm font-medium text-orange-600 bg-white border border-orange-600 rounded-md hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          >
-            →
-          </button>
-        </div>
+        {/* Month and Year Selection */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 className="text-2xl font-bold text-black">
+              Monthly Settlement
+            </h1>
 
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              {/* Month Dropdown */}
+              <div className="flex items-center space-x-2">
+                <label htmlFor="month-select" className="text-sm font-medium text-black">
+                  Month:
+                </label>
+                <select
+                  id="month-select"
+                  value={currentDate.getMonth()}
+                  onChange={(e) => handleMonthChange(parseInt(e.target.value))}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                >
+                  {getAvailableMonths().map((month) => (
+                    <option key={month.value} value={month.value}>
+                      {month.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-        {/* Trainer Statistics Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trainer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total Appointments
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fulfilled
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cancelled
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Success Rate
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {trainerStats.map((stat) => {
-                  const successRate = stat.totalAppointments > 0 
-                    ? ((stat.fulfilledAppointments / stat.totalAppointments) * 100).toFixed(1)
-                    : '0.0';
+              {/* Year Dropdown */}
+              <div className="flex items-center space-x-2">
+                <label htmlFor="year-select" className="text-sm font-medium text-black">
+                  Year:
+                </label>
+                <select
+                  id="year-select"
+                  value={currentDate.getFullYear()}
+                  onChange={(e) => handleYearChange(parseInt(e.target.value))}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                >
+                  {getAvailableYears().map((year) => (
+                    <option key={year.value} value={year.value}>
+                      {year.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                  return (
-                    <tr key={stat.trainerId} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">
-                              {stat.trainerName.split(' ').map(n => n[0]).join('')}
-                            </span>
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-black">
-                              {stat.trainerName}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                        {stat.totalAppointments}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
-                        {stat.fulfilledAppointments}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
-                        {stat.cancelledAppointments}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          parseFloat(successRate) >= 80 
-                            ? 'bg-green-100 text-green-800'
-                            : parseFloat(successRate) >= 60
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {successRate}%
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+              {/* Navigation Buttons */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => navigateMonth('prev')}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-orange-600 bg-white border border-orange-600 rounded-md hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  title="Previous Month"
+                >
+                  ←
+                </button>
+
+                <button
+                  onClick={() => navigateMonth('next')}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-orange-600 bg-white border border-orange-600 rounded-md hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  title="Next Month"
+                >
+                  →
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        {trainerStats.every(stat => stat.totalAppointments === 0) && (
+        {trainerStats.every(stat => stat.totalAppointments === 0) ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              No appointments found for {formatMonthYear(currentDate)}
-            </p>
+            <div className="max-w-md mx-auto">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-gray-400 text-2xl">📊</span>
+              </div>
+              <h3 className="text-lg font-medium text-black mb-2">No Data Available</h3>
+              <p className="text-gray-500">
+                No appointments found for {formatMonthYear(currentDate)}
+              </p>
+              <p className="text-sm text-gray-400 mt-2">
+                Try selecting a different month or year to view settlement data
+              </p>
+            </div>
           </div>
+        ) : (
+          <>
+            {/* Statistics Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white p-6 rounded-lg shadow-md border">
+                <h3 className="text-lg font-semibold text-black mb-2">Total Appointments</h3>
+                <p className="text-3xl font-bold text-orange-600">
+                  {trainerStats.reduce((sum, stat) => sum + stat.totalAppointments, 0)}
+                </p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-md border">
+                <h3 className="text-lg font-semibold text-black mb-2">Fulfilled Appointments</h3>
+                <p className="text-3xl font-bold text-green-600">
+                  {trainerStats.reduce((sum, stat) => sum + stat.fulfilledAppointments, 0)}
+                </p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-md border">
+                <h3 className="text-lg font-semibold text-black mb-2">Cancelled Appointments</h3>
+                <p className="text-3xl font-bold text-red-600">
+                  {trainerStats.reduce((sum, stat) => sum + stat.cancelledAppointments, 0)}
+                </p>
+              </div>
+            </div>
+
+              {/* Trainer Statistics Table */}
+              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-xl font-semibold text-black">
+                    Trainer Performance - {formatMonthYear(currentDate)}
+                  </h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Trainer
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Total Appointments
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Fulfilled
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Cancelled
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Success Rate
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {trainerStats.map((stat) => {
+                        const successRate = stat.totalAppointments > 0
+                          ? ((stat.fulfilledAppointments / stat.totalAppointments) * 100).toFixed(1)
+                          : '0.0';
+
+                      return (
+                        <tr key={stat.trainerId} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                                <span className="text-white font-bold text-sm">
+                                  {stat.trainerName.split(' ').map(n => n[0]).join('')}
+                                </span>
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-black">
+                                  {stat.trainerName}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                            {stat.totalAppointments}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
+                            {stat.fulfilledAppointments}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
+                            {stat.cancelledAppointments}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${parseFloat(successRate) >= 80
+                                ? 'bg-green-100 text-green-800'
+                                : parseFloat(successRate) >= 60
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                              {successRate}%
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
         )}
+
+
       </div>
     </div>
   );
