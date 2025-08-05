@@ -88,7 +88,7 @@ export default function TrainerDashboard() {
   };
 
   const handleCancelAppointment = async (appointmentId: string) => {
-    if (!confirm('Are you sure you want to cancel this appointment? The client will be refunded their point.')) {
+    if (!confirm('정말로 이 예약을 취소하시겠습니까? 고객에게 포인트가 환불됩니다.')) {
       return;
     }
 
@@ -147,7 +147,7 @@ export default function TrainerDashboard() {
       localStorage.setItem('userData', JSON.stringify(updatedUserData));
     }
 
-    alert('Appointment cancelled successfully. The client has been refunded their point.');
+    alert('예약이 성공적으로 취소되었습니다. 고객에게 포인트가 환불되었습니다.');
   };
 
   const markAsCompleted = (appointmentId: string) => {
@@ -160,7 +160,7 @@ export default function TrainerDashboard() {
     setAppointments(updatedAppointments);
     localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
     
-    alert('Appointment marked as completed!');
+    alert('예약이 완료로 처리되었습니다!');
   };
 
   if (isLoading) {
@@ -168,7 +168,7 @@ export default function TrainerDashboard() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-black">Loading...</p>
+          <p className="mt-4 text-black">로딩 중...</p>
         </div>
       </div>
     );
@@ -193,7 +193,7 @@ export default function TrainerDashboard() {
     <div className="min-h-screen bg-white">
       <DashboardHeader 
         userData={userData} 
-        title="My Training Sessions" 
+        title="내 트레이닝 세션" 
         currentPage="/dashboard/trainer" 
       />
 
@@ -203,12 +203,12 @@ export default function TrainerDashboard() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-black mb-4 flex items-center">
               <span className="w-3 h-3 bg-green-500 rounded-full mr-3"></span>
-              Upcoming Sessions ({upcomingAppointments.length})
+              예정된 세션 ({upcomingAppointments.length}건)
             </h2>
             
             {upcomingAppointments.length === 0 ? (
               <p className="text-black dark:text-gray-400 text-center py-8">
-                No upcoming training sessions.
+                예정된 트레이닝 세션이 없습니다.
               </p>
             ) : (
               <div className="space-y-4">
@@ -221,27 +221,27 @@ export default function TrainerDashboard() {
                   >
                     <div className="flex-1">
                       <p className="font-medium text-black">
-                        Training with {appointment.userName}
+                        {appointment.userName} 회원과 트레이닝
                       </p>
                       <p className="text-sm text-black dark:text-gray-400">
-                        {new Date(appointment.date).toLocaleDateString('en-US', { 
+                        {new Date(appointment.date).toLocaleDateString('ko-KR', { 
                           weekday: 'long', 
                           year: 'numeric', 
                           month: 'long', 
                           day: 'numeric' 
-                        })} at {appointment.time}
+                        })} {appointment.time}
                       </p>
                     </div>
                     <div className="flex items-center space-x-3">
                       <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                        {appointment.status}
+                        {appointment.status === 'scheduled' ? '예약됨' : appointment.status === 'completed' ? '완료됨' : '취소됨'}
                       </span>
                       {canCancelAppointment(appointment.date, appointment.time) && (
                         <button
                           onClick={() => handleCancelAppointment(appointment.id)}
                           className="px-3 py-1 text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition-colors"
                         >
-                          Cancel
+                          취소
                         </button>
                       )}
                       {new Date(`${appointment.date}T${appointment.time}:00`) <= new Date() && appointment.status === 'scheduled' && (
@@ -249,7 +249,7 @@ export default function TrainerDashboard() {
                           onClick={() => markAsCompleted(appointment.id)}
                           className="px-3 py-1 text-xs font-medium text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-md transition-colors"
                         >
-                          Mark Complete
+                          완료 처리
                         </button>
                       )}
                     </div>
@@ -263,12 +263,12 @@ export default function TrainerDashboard() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-black mb-4 flex items-center">
               <span className="w-3 h-3 bg-gray-500 rounded-full mr-3"></span>
-              Past Sessions ({pastAppointments.length})
+              지난 세션 ({pastAppointments.length}건)
             </h2>
             
             {pastAppointments.length === 0 ? (
               <p className="text-black dark:text-gray-400 text-center py-8">
-                No past training sessions.
+                지난 트레이닝 세션이 없습니다.
               </p>
             ) : (
               <div className="space-y-4">
@@ -281,15 +281,15 @@ export default function TrainerDashboard() {
                   >
                     <div className="flex-1">
                       <p className="font-medium text-black">
-                        Training with {appointment.userName}
+                        {appointment.userName} 회원과 트레이닝
                       </p>
                       <p className="text-sm text-black dark:text-gray-400">
-                        {new Date(appointment.date).toLocaleDateString('en-US', { 
+                        {new Date(appointment.date).toLocaleDateString('ko-KR', { 
                           weekday: 'long', 
                           year: 'numeric', 
                           month: 'long', 
                           day: 'numeric' 
-                        })} at {appointment.time}
+                        })} {appointment.time}
                       </p>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -300,7 +300,7 @@ export default function TrainerDashboard() {
                           ? 'bg-red-100 text-red-800'
                           : 'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {appointment.status === 'scheduled' ? 'missed' : appointment.status}
+                        {appointment.status === 'scheduled' ? '미참석' : appointment.status === 'completed' ? '완료됨' : '취소됨'}
                       </span>
                     </div>
                   </div>

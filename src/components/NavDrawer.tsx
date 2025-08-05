@@ -31,43 +31,43 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
 
   const navigationItems = [
     {
-      name: 'Dashboard',
+      name: '대시보드',
       href: '/dashboard',
       icon: '🏠',
       roles: ['user', 'trainer', 'admin'],
     },
     {
-      name: 'Purchase Points',
+      name: '포인트 구매',
       href: '/dashboard/purchase',
       icon: '$',
       roles: ['user', 'admin'],
     },
     {
-      name: 'Schedule Appointments',
+      name: '예약 스케줄',
       href: '/dashboard/schedule',
       icon: '📅',
       roles: ['user', 'admin'],
     },
     {
-      name: 'My Training Sessions',
+      name: '내 트레이닝 세션',
       href: '/dashboard/trainer',
       icon: '💪',
       roles: ['trainer', 'admin'],
     },
     {
-      name: 'Manage Users',
+      name: '사용자 관리',
       href: '/dashboard/users',
       icon: '👥',
       roles: ['admin'],
     },
     {
-      name: 'Appointment Logs',
+      name: '예약 로그',
       href: '/dashboard/appointments',
       icon: '📋',
       roles: ['admin'],
     },
     {
-      name: 'Monthly Settlement',
+      name: '월별 정산',
       href: '/dashboard/settlement',
       icon: '📊',
       roles: ['admin'],
@@ -84,7 +84,7 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
       <button
         onClick={() => setIsOpen(true)}
         className="p-2 rounded-md text-black hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-        aria-label="Open navigation menu"
+        aria-label="네비게이션 메뉴 열기"
       >
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -108,11 +108,11 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-black">Navigation</h2>
+            <h2 className="text-lg font-semibold text-black">메뉴</h2>
             <button
               onClick={() => setIsOpen(false)}
               className="p-2 rounded-md text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              aria-label="Close navigation menu"
+              aria-label="네비게이션 메뉴 닫기"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -137,7 +137,7 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
                   </span>
                   {(userData.role === 'user' || userData.role === 'admin') && (
                     <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
-                      {userData.points || 0} points
+                      {userData.points || 0} 포인트
                     </span>
                   )}
                 </div>
@@ -174,7 +174,7 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
               className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
             >
               <span className="text-lg">🚪</span>
-              <span>Logout</span>
+              <span>로그아웃</span>
             </button>
           </div>
         </div>

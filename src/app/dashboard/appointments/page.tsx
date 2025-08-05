@@ -106,7 +106,7 @@ export default function AppointmentLogs() {
 
   const downloadAppointmentLogs = () => {
     if (filteredLogs.length === 0) {
-      alert('No appointment logs found.');
+      alert('예약 로그가 없습니다.');
       return;
     }
 
@@ -171,7 +171,7 @@ export default function AppointmentLogs() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-black">Loading...</p>
+          <p className="mt-4 text-black">로딩 중...</p>
         </div>
       </div>
     );
@@ -185,7 +185,7 @@ export default function AppointmentLogs() {
     <div className="min-h-screen bg-white">
       <DashboardHeader 
         userData={currentUser} 
-        title="Appointment Logs" 
+        title="예약 로그" 
         currentPage="/dashboard/appointments" 
       />
 
@@ -200,7 +200,7 @@ export default function AppointmentLogs() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-black">Total Logs</h3>
+                <h3 className="text-lg font-semibold text-black">총 로그</h3>
                 <p className="text-2xl font-bold text-orange-600">{appointmentLogs.length}</p>
               </div>
             </div>
@@ -214,7 +214,7 @@ export default function AppointmentLogs() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-black">Booked</h3>
+                <h3 className="text-lg font-semibold text-black">예약됨</h3>
                 <p className="text-2xl font-bold text-green-600">
                   {appointmentLogs.filter(log => log.action === 'booked').length}
                 </p>
@@ -230,7 +230,7 @@ export default function AppointmentLogs() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-black">Cancelled</h3>
+                <h3 className="text-lg font-semibold text-black">취소됨</h3>
                 <p className="text-2xl font-bold text-red-600">
                   {appointmentLogs.filter(log => log.action === 'cancelled').length}
                 </p>
@@ -246,7 +246,7 @@ export default function AppointmentLogs() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-black">Filtered</h3>
+                <h3 className="text-lg font-semibold text-black">필터링됨</h3>
                 <p className="text-2xl font-bold text-purple-600">{filteredLogs.length}</p>
               </div>
             </div>
@@ -258,7 +258,7 @@ export default function AppointmentLogs() {
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <h2 className="text-xl font-semibold text-black">
-                Appointment Logs ({filteredLogs.length} of {appointmentLogs.length})
+                예약 로그 ({appointmentLogs.length}건 중 {filteredLogs.length}건)
               </h2>
               
               <div className="flex flex-col sm:flex-row gap-3">
@@ -267,7 +267,7 @@ export default function AppointmentLogs() {
                   disabled={filteredLogs.length === 0}
                   className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  📊 Download Logs
+                  📊 로그 다운로드
                 </button>
               </div>
             </div>
@@ -279,7 +279,7 @@ export default function AppointmentLogs() {
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search by name, email..."
+                    placeholder="이름, 이메일로 검색..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full sm:w-64 px-4 py-2 pl-10 pr-4 border border-gray-300  rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
@@ -297,9 +297,9 @@ export default function AppointmentLogs() {
                   onChange={(e) => setActionFilter(e.target.value as 'all' | 'booked' | 'cancelled')}
                   className="px-4 py-2 border border-gray-300  rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
                 >
-                  <option value="all">All Actions</option>
-                  <option value="booked">Booked</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="all">모든 액션</option>
+                  <option value="booked">예약됨</option>
+                  <option value="cancelled">취소됨</option>
                 </select>
 
                 {/* Role Filter */}
@@ -308,10 +308,10 @@ export default function AppointmentLogs() {
                   onChange={(e) => setRoleFilter(e.target.value as 'all' | 'user' | 'trainer' | 'admin')}
                   className="px-4 py-2 border border-gray-300  rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
                 >
-                  <option value="all">All Roles</option>
-                  <option value="user">Users</option>
-                  <option value="trainer">Trainers</option>
-                  <option value="admin">Admins</option>
+                  <option value="all">모든 역할</option>
+                  <option value="user">사용자</option>
+                  <option value="trainer">트레이너</option>
+                  <option value="admin">관리자</option>
                 </select>
               </div>
             </div>
@@ -321,7 +321,7 @@ export default function AppointmentLogs() {
           <div className="block sm:hidden">
             {filteredLogs.length === 0 ? (
               <div className="text-center text-black py-8">
-                No appointment logs found matching your search criteria.
+                검색 조건에 맞는 예약 로그가 없습니다.
               </div>
             ) : (
               <div className="p-4 space-y-4">
@@ -343,7 +343,7 @@ export default function AppointmentLogs() {
                         📅 {log.appointmentDate} at {log.appointmentTime}
                       </div>
                       <div className="text-black dark:text-gray-400">
-                        👤 Action by: {log.actionByName} 
+                        👤 실행자: {log.actionByName} 
                         <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(log.actionByRole)}`}>
                           {log.actionByRole}
                         </span>
@@ -361,16 +361,16 @@ export default function AppointmentLogs() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Action
+                    액션
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Appointment
+                    예약
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Action By
+                    실행자
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Timestamp
+                    시간
                   </th>
                 </tr>
               </thead>
@@ -378,7 +378,7 @@ export default function AppointmentLogs() {
                 {filteredLogs.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-4 py-8 text-center text-black">
-                      No appointment logs found matching your search criteria.
+                      검색 조건에 맞는 예약 로그가 없습니다.
                     </td>
                   </tr>
                 ) : (
@@ -418,13 +418,13 @@ export default function AppointmentLogs() {
 
         <div className="mt-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
           <h3 className="text-sm font-medium text-orange-800 mb-2">
-            Appointment Logging Information:
+            예약 로그 정보:
           </h3>
           <ul className="text-sm text-orange-700 space-y-1">
-            <li>• All appointment bookings and cancellations are automatically logged</li>
-            <li>• Logs show who performed the action (user, trainer, or admin)</li>
-            <li>• Use filters to find specific actions, roles, or search by names</li>
-            <li>• Download logs as Excel files for record keeping</li>
+            <li>• 모든 예약 및 취소가 자동으로 기록됩니다</li>
+            <li>• 누가 액션을 수행했는지 표시됩니다 (사용자, 트레이너, 관리자)</li>
+            <li>• 필터를 사용하여 특정 액션, 역할 또는 이름으로 검색할 수 있습니다</li>
+            <li>• 기록 보관을 위해 엑셀 파일로 로그를 다운로드할 수 있습니다</li>
           </ul>
         </div>
       </main>

@@ -126,7 +126,7 @@ export default function Purchase() {
     setSelectedOption(null);
     
     // Show success message (in a real app, you might use a toast notification)
-    alert(`Successfully purchased ${option.points} points!`);
+    alert(`${option.points} 포인트를 성공적으로 구매했습니다!`);
     
     // Refresh purchase logs
     const updatedLogs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
@@ -135,7 +135,7 @@ export default function Purchase() {
 
   const downloadPurchaseLogs = () => {
     if (purchaseLogs.length === 0) {
-      alert('No purchase logs found.');
+      alert('구매 내역이 없습니다.');
       return;
     }
 
@@ -252,7 +252,7 @@ export default function Purchase() {
     const updatedLogs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
     setPurchaseLogs(updatedLogs);
     
-    alert('Debug purchase successful! Added 3 points that expire tomorrow.');
+    alert('디버그 구매가 완료되었습니다! 내일 만료되는 3포인트가 추가되었습니다.');
   };
 
   if (!userData) {
@@ -260,7 +260,7 @@ export default function Purchase() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-black">Loading...</p>
+          <p className="mt-4 text-black">로딩 중...</p>
         </div>
       </div>
     );
@@ -270,11 +270,11 @@ export default function Purchase() {
     <div className="min-h-screen bg-white">
       <DashboardHeader 
         userData={userData} 
-        title="Purchase Points" 
+        title="포인트 구매" 
         currentPage="/dashboard/purchase" 
         customUserInfo={
           <>
-            Current Points: 
+            보유 포인트: 
             <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
               {userData.points || 0}
             </span>
@@ -285,29 +285,29 @@ export default function Purchase() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-black mb-4">
-            Choose Your Point Package
+            포인트 패키지를 선택하세요
           </h2>
           <p className="text-lg text-black">
-            Each point allows you to book one hour-long appointment with a trainer
+            1 포인트로 트레이너와 1시간 세션을 예약할 수 있습니다
           </p>
           <p className="text-sm text-amber-600 mt-2">
-            ⚠️ Points expire after 6 months from purchase date
+            ⚠️ 포인트는 구매일로부터 6개월 후 만료됩니다
           </p>
           
           {/* Debug Purchase Button */}
           <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <h3 className="text-sm font-medium text-red-800 mb-2">
-              🐛 Debug: Test Expiry Warning
+              🐛 디버그: 만료 경고 테스트
             </h3>
             <button
               onClick={handleDebugPurchase}
               disabled={isLoading}
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
             >
-              {isLoading ? 'Adding...' : 'Add 3 Points Expiring Tomorrow'}
+              {isLoading ? '추가 중...' : '내일 만료되는 3포인트 추가'}
             </button>
             <p className="text-xs text-red-600 mt-1">
-              This will add points that expire tomorrow to test the warning system
+              경고 시스템 테스트를 위해 내일 만료되는 포인트를 추가합니다
             </p>
           </div>
         </div>
@@ -323,7 +323,7 @@ export default function Purchase() {
               {option.popular && (
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                   <span className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                    Most Popular
+                    가장 인기
                   </span>
                 </div>
               )}
@@ -336,12 +336,12 @@ export default function Purchase() {
                   <span className="text-3xl font-bold text-black">
                     {option.points}
                   </span>
-                  <span className="text-black ml-1">points</span>
+                  <span className="text-black ml-1">포인트</span>
                 </div>
                 <div className="mb-6">
                   <span className="text-2xl font-bold text-green-600">${option.price}</span>
                   <div className="text-sm text-black mt-1">
-                    ${(option.price / option.points).toFixed(2)} per point
+                    포인트당 ${(option.price / option.points).toFixed(2)}
                   </div>
                 </div>
                 
@@ -355,8 +355,8 @@ export default function Purchase() {
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {isLoading && selectedOption === option.id 
-                    ? 'Processing...' 
-                    : 'Purchase'
+                    ? '처리 중...' 
+                    : '구매하기'
                   }
                 </button>
               </div>
@@ -366,28 +366,28 @@ export default function Purchase() {
 
         <div className="mt-12 bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-black mb-4">
-            How Points Work
+            포인트 사용 방법
           </h3>
           <div className="space-y-3 text-black">
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-              <p>Each point allows you to book one 1-hour appointment</p>
+              <p>각 포인트로 1시간 세션을 예약할 수 있습니다</p>
             </div>
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 bg-amber-500 rounded-full mt-2"></div>
-              <p>Points expire 6 months after purchase date</p>
+              <p>포인트는 구매일로부터 6개월 후 만료됩니다</p>
             </div>
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-              <p>Oldest points are used first when booking appointments</p>
+              <p>예약 시 가장 오래된 포인트부터 사용됩니다</p>
             </div>
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-              <p>Appointments can be scheduled at 10-minute intervals</p>
+              <p>10분 단위로 예약 시간을 선택할 수 있습니다</p>
             </div>
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-              <p>Cancel appointments up to 24 hours before to get your point back</p>
+              <p>24시간 전까지 취소하면 포인트가 환불됩니다</p>
             </div>
           </div>
         </div>
@@ -397,21 +397,21 @@ export default function Purchase() {
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <h3 className="text-lg font-semibold text-black">
-                Your Purchase History ({getUserPurchaseLogs().length} purchases)
+                구매 내역 ({getUserPurchaseLogs().length}건)
               </h3>
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() => setShowLogs(!showLogs)}
                   className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm font-medium"
                 >
-                  {showLogs ? 'Hide' : 'Show'} Purchase History
+                  구매 내역 {showLogs ? '숨기기' : '보기'}
                 </button>
                 {getUserPurchaseLogs().length > 0 && (
                   <button
                     onClick={downloadPurchaseLogs}
                     className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors text-sm font-medium"
                   >
-                    💰 Download Purchase Logs
+                    💰 구매 내역 다운로드
                   </button>
                 )}
               </div>
@@ -422,7 +422,7 @@ export default function Purchase() {
             <div className="p-6">
               {getUserPurchaseLogs().length === 0 ? (
                 <p className="text-black text-center py-8">
-                  No purchase history found. Start by purchasing some points!
+                  구매 내역이 없습니다. 포인트를 구매해보세요!
                 </p>
               ) : (
                 <div className="space-y-4">
@@ -434,7 +434,7 @@ export default function Purchase() {
                         </div>
                         <div>
                           <h4 className="font-semibold text-black capitalize">
-                            {log.purchase_item_id} Package
+                            {log.purchase_item_id} 패키지
                           </h4>
                           <p className="text-sm text-black">
                             {formatDateTime(log.datetime)}
@@ -449,7 +449,7 @@ export default function Purchase() {
                           ${log.price}
                         </div>
                         <div className="text-sm text-black">
-                          +{log.points} points
+                          +{log.points} 포인트
                         </div>
                       </div>
                     </div>

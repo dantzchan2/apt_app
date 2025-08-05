@@ -237,7 +237,7 @@ export default function Schedule() {
     if (!userData || !selectedDate || !selectedTime || !selectedTrainer) return;
     
     if ((userData.points || 0) < 1) {
-      alert('You need at least 1 point to book an appointment!');
+      alert('예약하려면 최소 1포인트가 필요합니다!');
       return;
     }
 
@@ -247,12 +247,12 @@ export default function Schedule() {
     const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour from now
     
     if (appointmentDateTime <= now) {
-      alert('Cannot book appointments in the past. Please select a future date and time.');
+      alert('과거 시간으로는 예약할 수 없습니다. 미래 날짜와 시간을 선택해주세요.');
       return;
     }
     
     if (appointmentDateTime < oneHourFromNow) {
-      alert('Appointments must be booked at least 1 hour in advance. Please select a later time.');
+      alert('예약은 최소 1시간 전에 해야 합니다. 더 늦은 시간을 선택해주세요.');
       return;
     }
 
@@ -324,7 +324,7 @@ export default function Schedule() {
     setSelectedHour('');
     setSelectedMinute('');
     setSelectedTrainer('');
-    alert('Appointment booked successfully!');
+    alert('예약이 성공적으로 완료되었습니다!');
   };
 
   const getMyAppointments = () => {
@@ -391,7 +391,7 @@ export default function Schedule() {
   };
 
   const handleCancelAppointment = async (appointmentId: string) => {
-    if (!confirm('Are you sure you want to cancel this appointment? You will get your point back.')) {
+    if (!confirm('정말로 이 예약을 취소하시겠습니까? 포인트가 환불됩니다.')) {
       return;
     }
 
@@ -454,7 +454,7 @@ export default function Schedule() {
       }
     }
 
-    alert('Appointment cancelled successfully. Your point has been refunded.');
+    alert('예약이 성공적으로 취소되었습니다. 포인트가 환불되었습니다.');
   };
 
   if (!userData) {
@@ -462,7 +462,7 @@ export default function Schedule() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-black">Loading...</p>
+          <p className="mt-4 text-black">로딩 중...</p>
         </div>
       </div>
     );
@@ -472,11 +472,11 @@ export default function Schedule() {
     <div className="min-h-screen bg-white">
       <DashboardHeader 
         userData={userData} 
-        title="Schedule" 
+        title="예약 관리" 
         currentPage="/dashboard/schedule" 
         customUserInfo={
           <>
-            Points: 
+            포인트: 
             <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
               {userData.points || 0}
             </span>
@@ -494,7 +494,7 @@ export default function Schedule() {
                 : 'bg-gray-200 text-black'
             }`}
           >
-            My Appointments
+            내 예약
           </button>
           <button
             onClick={() => setView('book')}
@@ -504,19 +504,19 @@ export default function Schedule() {
                 : 'bg-gray-200 text-black'
             }`}
           >
-            Book Appointment
+            예약하기
           </button>
         </div>
 
         {view === 'my-appointments' && (
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-black mb-4">
-              My Appointments
+              내 예약 현황
             </h2>
             
             {getMyAppointments().length === 0 ? (
               <p className="text-black text-center py-8">
-                No appointments scheduled yet.
+                예약된 세션이 없습니다.
               </p>
             ) : (
               <div className="space-y-4">
@@ -529,7 +529,7 @@ export default function Schedule() {
                   >
                     <div className="flex-1">
                       <p className="font-medium text-black">
-                        Training with {appointment.trainerName}
+                        {appointment.trainerName} 트레이너와 세션
                       </p>
                       <p className="text-sm text-black">
                         {new Date(appointment.date).toLocaleDateString()} at {appointment.time}
@@ -543,14 +543,14 @@ export default function Schedule() {
                           ? 'bg-orange-100 text-orange-800'
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {appointment.status}
+                        {appointment.status === 'scheduled' ? '예약됨' : appointment.status === 'completed' ? '완료됨' : '취소됨'}
                       </span>
                       {appointment.status === 'scheduled' && canCancelAppointment(appointment.date) && (
                         <button
                           onClick={() => handleCancelAppointment(appointment.id)}
                           className="px-3 py-1 text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition-colors"
                         >
-                          Cancel
+                          취소
                         </button>
                       )}
                     </div>
@@ -564,20 +564,20 @@ export default function Schedule() {
         {view === 'book' && (
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-black mb-4">
-              Book New Appointment
+              새 예약하기
             </h2>
             
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Select Trainer
+                  트레이너 선택
                 </label>
                 <select
                   value={selectedTrainer}
                   onChange={(e) => setSelectedTrainer(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300  rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 "
                 >
-                  <option value="">Choose a trainer...</option>
+                  <option value="">트레이너를 선택해주세요...</option>
                   {trainers.map(trainer => (
                     <option key={trainer.id} value={trainer.id}>
                       {trainer.name} - {trainer.specialization}
@@ -588,7 +588,7 @@ export default function Schedule() {
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Select Date
+                  날짜 선택
                 </label>
                 <input
                   type="date"
@@ -602,12 +602,12 @@ export default function Schedule() {
               {selectedDate && selectedTrainer && (
                 <div>
                   <label className="block text-sm font-medium text-black mb-2">
-                    Select Time
+                    시간 선택
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs text-black mb-1">
-                        Hour
+                        시
                       </label>
                       <select
                         value={selectedHour}
@@ -624,7 +624,7 @@ export default function Schedule() {
                     </div>
                     <div>
                       <label className="block text-xs text-black mb-1">
-                        Minute
+                        분
                       </label>
                       <select
                         value={selectedMinute}
@@ -643,12 +643,12 @@ export default function Schedule() {
                   </div>
                   {selectedHour && getAvailableMinutes().length === 0 && (
                     <p className="mt-2 text-sm text-red-600">
-                      No available time slots for {selectedHour}:00 hour.
+                      {selectedHour}:00 시간대에 예약 가능한 시간이 없습니다.
                     </p>
                   )}
                   {getAvailableHours().length === 0 && (
                     <p className="mt-2 text-sm text-red-600">
-                      No available time slots for this date and trainer.
+                      선택한 날짜와 트레이너에게 예약 가능한 시간이 없습니다.
                     </p>
                   )}
                 </div>
@@ -660,13 +660,13 @@ export default function Schedule() {
                   disabled={!selectedDate || !selectedTime || !selectedTrainer || isBooking || (userData.points || 0) < 1}
                   className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-md"
                 >
-                  {isBooking ? 'Booking...' : `Book Appointment (1 point)${selectedTime ? ` - ${selectedTime}` : ''}`}
+                  {isBooking ? '예약 중...' : `예약하기 (1 포인트)${selectedTime ? ` - ${selectedTime}` : ''}`}
                 </button>
                 {(userData.points || 0) < 1 && (
                   <p className="mt-2 text-sm text-red-600">
-                    You need at least 1 point to book an appointment. 
+                    예약하려면 최소 1포인트가 필요합니다. 
                     <Link href="/dashboard/purchase" className="ml-1 underline">
-                      Purchase points here
+                      포인트 구매하기
                     </Link>
                   </p>
                 )}

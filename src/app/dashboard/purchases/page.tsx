@@ -142,7 +142,7 @@ export default function PurchaseLogsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-black">Loading...</p>
+          <p className="mt-4 text-black">로딩 중...</p>
         </div>
       </div>
     );
@@ -156,7 +156,7 @@ export default function PurchaseLogsPage() {
     <div className="min-h-screen bg-white">
       <DashboardHeader 
         userData={currentUser} 
-        title="Purchase Logs" 
+        title="구매 로그" 
         currentPage="/dashboard/purchases" 
       />
 
@@ -171,7 +171,7 @@ export default function PurchaseLogsPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-black">Total Revenue</h3>
+                <h3 className="text-lg font-semibold text-black">총 매출</h3>
                 <p className="text-2xl font-bold text-green-600">{formatPrice(getTotalRevenue())}</p>
               </div>
             </div>
@@ -185,7 +185,7 @@ export default function PurchaseLogsPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-black">Total Purchases</h3>
+                <h3 className="text-lg font-semibold text-black">총 구매건수</h3>
                 <p className="text-2xl font-bold text-orange-600">{filteredLogs.length}</p>
               </div>
             </div>
@@ -199,7 +199,7 @@ export default function PurchaseLogsPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-black">Unique Customers</h3>
+                <h3 className="text-lg font-semibold text-black">순 고객 수</h3>
                 <p className="text-2xl font-bold text-purple-600">{getUniqueUsers().length}</p>
               </div>
             </div>
@@ -210,7 +210,7 @@ export default function PurchaseLogsPage() {
         <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-black">
-              Purchase Logs ({filteredLogs.length} of {purchaseLogs.length})
+              구매 로그 ({purchaseLogs.length}건 중 {filteredLogs.length}건)
             </h2>
           </div>
           
@@ -219,11 +219,11 @@ export default function PurchaseLogsPage() {
               {/* Search */}
               <div className="lg:col-span-2">
                 <label className="block text-sm font-medium text-black mb-2">
-                  Search
+                  검색
                 </label>
                 <input
                   type="text"
-                  placeholder="Search by user, email, or purchase ID..."
+                  placeholder="사용자, 이메일, 구매 ID로 검색..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300  rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
@@ -233,14 +233,14 @@ export default function PurchaseLogsPage() {
               {/* User Filter */}
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  User
+                  사용자
                 </label>
                 <select
                   value={userFilter}
                   onChange={(e) => setUserFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300  rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
                 >
-                  <option value="all">All Users</option>
+                  <option value="all">모든 사용자</option>
                   {getUniqueUsers().map((user) => (
                     <option key={user.id} value={user.id}>{user.name}</option>
                   ))}
@@ -250,14 +250,14 @@ export default function PurchaseLogsPage() {
               {/* Item Filter */}
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Package
+                  패키지
                 </label>
                 <select
                   value={itemFilter}
                   onChange={(e) => setItemFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300  rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
                 >
-                  <option value="all">All Packages</option>
+                  <option value="all">모든 패키지</option>
                   {getUniqueItems().map((item) => (
                     <option key={item} value={item}>{item.charAt(0).toUpperCase() + item.slice(1)}</option>
                   ))}
@@ -267,7 +267,7 @@ export default function PurchaseLogsPage() {
               {/* Date Range */}
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Date Range
+                  날짜 범위
                 </label>
                 <div className="space-y-2">
                   <input
@@ -275,14 +275,14 @@ export default function PurchaseLogsPage() {
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300  rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500  text-sm"
-                    placeholder="Start date"
+                    placeholder="시작 날짜"
                   />
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300  rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500  text-sm"
-                    placeholder="End date"
+                    placeholder="종료 날짜"
                   />
                 </div>
               </div>
@@ -297,22 +297,22 @@ export default function PurchaseLogsPage() {
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Purchase ID
+                    구매 ID
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    User
+                    사용자
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Package
+                    패키지
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Points
+                    포인트
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Price
+                    가격
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Date & Time
+                    날짜 및 시간
                   </th>
                 </tr>
               </thead>
@@ -320,7 +320,7 @@ export default function PurchaseLogsPage() {
                 {filteredLogs.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-8 text-center text-black">
-                      No purchase logs found matching your criteria.
+                      검색 조건에 맞는 구매 로그가 없습니다.
                     </td>
                   </tr>
                 ) : (

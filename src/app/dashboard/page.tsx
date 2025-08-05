@@ -164,7 +164,7 @@ export default function Dashboard() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-black">Loading...</p>
+          <p className="mt-4 text-black">로딩 중...</p>
         </div>
       </div>
     );
@@ -178,7 +178,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-white" suppressHydrationWarning>
       <DashboardHeader 
         userData={userData} 
-        title="Dashboard" 
+        title="대시보드" 
         currentPage="/dashboard" 
         showPoints={true}
       />
@@ -190,13 +190,13 @@ export default function Dashboard() {
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h2 className="text-xl font-semibold text-black">
-                  {userData.role === 'user' ? 'Your Upcoming Appointments' : 'Your Upcoming Training Sessions'}
+                  {userData.role === 'user' ? '예정된 예약' : '예정된 트레이닝 세션'}
                 </h2>
               </div>
               <div className="p-6">
                 {getUserAppointments().length === 0 ? (
                   <p className="text-gray-500 text-center py-8">
-                    No upcoming {userData.role === 'user' ? 'appointments' : 'training sessions'} scheduled.
+                    예정된 {userData.role === 'user' ? '예약이' : '트레이닝 세션이'} 없습니다.
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -208,7 +208,7 @@ export default function Dashboard() {
                           </div>
                           <div>
                             <h3 className="font-semibold text-black">
-                              {userData.role === 'user' ? `Training with ${appointment.trainerName}` : `Session with ${appointment.userName}`}
+                              {userData.role === 'user' ? `${appointment.trainerName} 트레이너와 PT` : `${appointment.userName}님과 세션`}
                             </h3>
                             <p className="text-sm text-gray-600">
                               {formatDateTime(appointment.date, appointment.time)}
@@ -221,7 +221,7 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                          Scheduled
+                          예약됨
                         </span>
                       </div>
                     ))}
@@ -231,7 +231,7 @@ export default function Dashboard() {
                           href={userData.role === 'user' ? '/dashboard/schedule' : '/dashboard/trainer'}
                           className="text-orange-600 hover:text-red-600 text-sm font-medium"
                         >
-                          View all {getUserAppointments().length} {userData.role === 'user' ? 'appointments' : 'sessions'}
+                          전체 {getUserAppointments().length}개 {userData.role === 'user' ? '예약' : '세션'} 보기
                         </Link>
                       </div>
                     )}
@@ -248,13 +248,13 @@ export default function Dashboard() {
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h2 className="text-xl font-semibold text-black">
-                  All Scheduled Appointments ({getUpcomingAppointments().length})
+                  전체 예약 일정 ({getUpcomingAppointments().length})
                 </h2>
               </div>
               <div className="p-6">
                 {getUpcomingAppointments().length === 0 ? (
                   <p className="text-gray-500 text-center py-8">
-                    No upcoming appointments scheduled.
+                    예정된 예약이 없습니다.
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -277,14 +277,14 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                          Scheduled
+                          예약됨
                         </span>
                       </div>
                     ))}
                     {getUpcomingAppointments().length > 10 && (
                       <div className="text-center pt-4">
                         <p className="text-gray-500 text-sm">
-                          Showing 10 of {getUpcomingAppointments().length} upcoming appointments
+                          전체 {getUpcomingAppointments().length}개 중 10개 표시
                         </p>
                       </div>
                     )}
@@ -306,8 +306,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-black">Schedule Appointments</h3>
-                    <p className="text-sm text-gray-600">Book appointments with trainers</p>
+                    <h3 className="text-lg font-semibold text-black">예약 스케줄</h3>
+                    <p className="text-sm text-gray-600">트레이너와 예약을 잡아보세요</p>
                   </div>
                 </div>
               </div>
@@ -324,8 +324,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-black">Purchase Points</h3>
-                    <p className="text-sm text-gray-600">Buy points to schedule appointments</p>
+                    <h3 className="text-lg font-semibold text-black">포인트 구매</h3>
+                    <p className="text-sm text-gray-600">예약을 위한 포인트를 구매하세요</p>
                   </div>
                 </div>
               </div>
@@ -342,8 +342,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-black">My Training Sessions</h3>
-                    <p className="text-sm text-gray-600">View and manage your appointments</p>
+                    <h3 className="text-lg font-semibold text-black">내 트레이닝 세션</h3>
+                    <p className="text-sm text-gray-600">예약을 확인하고 관리하세요</p>
                   </div>
                 </div>
               </div>
@@ -360,8 +360,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-black">Manage Users</h3>
-                    <p className="text-sm text-gray-600">View all users and assign trainer roles</p>
+                    <h3 className="text-lg font-semibold text-black">사용자 관리</h3>
+                    <p className="text-sm text-gray-600">모든 사용자를 보고 트레이너 권한을 부여하세요</p>
                   </div>
                 </div>
               </div>
@@ -378,8 +378,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-black">Appointment Logs</h3>
-                    <p className="text-sm text-gray-600">View all appointment bookings and cancellations</p>
+                    <h3 className="text-lg font-semibold text-black">예약 로그</h3>
+                    <p className="text-sm text-gray-600">모든 예약과 취소 내역을 확인하세요</p>
                   </div>
                 </div>
               </div>
@@ -396,8 +396,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-black">Monthly Settlement</h3>
-                    <p className="text-sm text-gray-600">View trainer performance and monthly statistics</p>
+                    <h3 className="text-lg font-semibold text-black">월별 정산</h3>
+                    <p className="text-sm text-gray-600">트레이너 실적과 월별 통계를 확인하세요</p>
                   </div>
                 </div>
               </div>

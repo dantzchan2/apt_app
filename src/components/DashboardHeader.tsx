@@ -70,10 +70,10 @@ export default function DashboardHeader({
               <div className="flex items-center space-x-2 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs">
                 <span>⚠️</span>
                 <span className="hidden sm:inline">
-                  {expiringWarning.points} points expiring {new Date(expiringWarning.earliestExpiry).toLocaleDateString()}
+                  {expiringWarning.points}포인트 {new Date(expiringWarning.earliestExpiry).toLocaleDateString()} 만료
                 </span>
                 <span className="sm:hidden">
-                  {expiringWarning.points} pts exp {new Date(expiringWarning.earliestExpiry).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  {expiringWarning.points}pt {new Date(expiringWarning.earliestExpiry).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })} 만료
                 </span>
               </div>
             )}
@@ -81,14 +81,14 @@ export default function DashboardHeader({
               {customUserInfo || (
                 <>
                   <span className="hidden sm:inline">
-                    Welcome, {userData.name}!
+                    안녕하세요, {userData.name}님!
                   </span>
                   <span className="sm:hidden">
-                    Welcome, {userData.name.split(' ')[0]}!
+                    안녕하세요, {userData.name.split(' ')[0]}님!
                   </span>
                   {showPoints && (userData.role === 'user' || userData.role === 'admin') && (
                     <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
-                      {userData.points || 0} pts
+                      {userData.points || 0}pt
                     </span>
                   )}
                 </>

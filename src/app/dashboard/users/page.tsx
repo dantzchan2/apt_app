@@ -260,7 +260,7 @@ export default function UsersManagement() {
 
   const handleRoleChange = (userId: string, newRole: 'user' | 'trainer' | 'admin') => {
     if (userId === currentUser?.id && newRole !== 'admin') {
-      alert('You cannot change your own admin role!');
+      alert('자신의 관리자 역할은 변경할 수 없습니다!');
       return;
     }
 
@@ -280,7 +280,7 @@ export default function UsersManagement() {
       localStorage.setItem('userData', JSON.stringify(updatedCurrentUser));
     }
     
-    alert(`User role updated to ${newRole} successfully!`);
+    alert(`사용자 역할이 ${newRole === 'user' ? '사용자' : newRole === 'trainer' ? '트레이너' : '관리자'}로 성공적으로 변경되었습니다!`);
   };
 
   const handleUserClick = (user: UserData) => {
@@ -314,7 +314,7 @@ export default function UsersManagement() {
     setSelectedUser(null);
     setMemoText('');
     
-    alert('Memo saved successfully!');
+    alert('메모가 성공적으로 저장되었습니다!');
   };
 
   const handleMemoCancel = () => {
@@ -364,7 +364,7 @@ export default function UsersManagement() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-black">Loading...</p>
+          <p className="mt-4 text-black">로딩 중...</p>
         </div>
       </div>
     );
@@ -378,7 +378,7 @@ export default function UsersManagement() {
     <div className="min-h-screen bg-white">
       <DashboardHeader 
         userData={currentUser} 
-        title="User Management" 
+        title="사용자 관리" 
         currentPage="/dashboard/users" 
       />
 
@@ -393,7 +393,7 @@ export default function UsersManagement() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-black">Regular Users</h3>
+                <h3 className="text-lg font-semibold text-black">일반 사용자</h3>
                 <p className="text-2xl font-bold text-orange-600">{getRoleCount('user')}</p>
               </div>
             </div>
@@ -407,7 +407,7 @@ export default function UsersManagement() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-black">Trainers</h3>
+                <h3 className="text-lg font-semibold text-black">트레이너</h3>
                 <p className="text-2xl font-bold text-orange-600">{getRoleCount('trainer')}</p>
               </div>
             </div>
@@ -421,7 +421,7 @@ export default function UsersManagement() {
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-black">Admins</h3>
+                <h3 className="text-lg font-semibold text-black">관리자</h3>
                 <p className="text-2xl font-bold text-red-600">{getRoleCount('admin')}</p>
               </div>
             </div>
@@ -433,7 +433,7 @@ export default function UsersManagement() {
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <h2 className="text-xl font-semibold text-black">
-                All Users ({filteredUsers.length} of {allUsers.length})
+                전체 사용자 ({allUsers.length}명 중 {filteredUsers.length}명)
               </h2>
               
               <div className="flex flex-col sm:flex-row gap-3">
@@ -441,7 +441,7 @@ export default function UsersManagement() {
                   onClick={downloadUserData}
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
                 >
-                  📊 Download User Data
+                  📊 사용자 데이터 다운로드
                 </button>
               </div>
             </div>
@@ -453,7 +453,7 @@ export default function UsersManagement() {
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search by name, email, or phone..."
+                    placeholder="이름, 이메일, 전화번호로 검색..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full sm:w-64 px-4 py-2 pl-10 pr-4 border border-gray-300  rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
@@ -471,10 +471,10 @@ export default function UsersManagement() {
                   onChange={(e) => setRoleFilter(e.target.value as 'all' | 'user' | 'trainer' | 'admin')}
                   className="px-4 py-2 border border-gray-300  rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
                 >
-                  <option value="all">All Roles</option>
-                  <option value="user">Users</option>
-                  <option value="trainer">Trainers</option>
-                  <option value="admin">Admins</option>
+                  <option value="all">모든 역할</option>
+                  <option value="user">사용자</option>
+                  <option value="trainer">트레이너</option>
+                  <option value="admin">관리자</option>
                 </select>
               </div>
             </div>
@@ -485,22 +485,22 @@ export default function UsersManagement() {
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                    User
+                    사용자
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                    Email
+                    이메일
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                    Phone
+                    전화번호
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                    Role
+                    역할
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                    Points
+                    포인트
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
-                    Actions
+                    액션
                   </th>
                 </tr>
               </thead>
@@ -508,7 +508,7 @@ export default function UsersManagement() {
                 {filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-8 text-center text-black">
-                      No users found matching your search criteria.
+                      검색 조건에 맞는 사용자가 없습니다.
                     </td>
                   </tr>
                 ) : (
@@ -532,7 +532,7 @@ export default function UsersManagement() {
                               {user.name}
                             </button>
                             {user.id === currentUser.id && (
-                              <span className="ml-2 text-xs text-gray-500">(You)</span>
+                              <span className="ml-2 text-xs text-gray-500">(본인)</span>
                             )}
                           </div>
                         </div>
@@ -559,9 +559,9 @@ export default function UsersManagement() {
                         disabled={user.id === currentUser.id}
                         className="mt-1 block w-full px-3 py-2 border border-gray-300  rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500  disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <option value="user">User</option>
-                        <option value="trainer">Trainer</option>
-                        <option value="admin">Admin</option>
+                        <option value="user">사용자</option>
+                        <option value="trainer">트레이너</option>
+                        <option value="admin">관리자</option>
                       </select>
                     </td>
                   </tr>
@@ -575,25 +575,25 @@ export default function UsersManagement() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
             <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-2">
-              Role Management Notes:
+              역할 관리 안내:
             </h3>
             <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
-              <li>• <strong>Users</strong> can purchase points and book appointments</li>
-              <li>• <strong>Trainers</strong> can view and cancel their training sessions (no points needed)</li>
-              <li>• <strong>Admins</strong> have all permissions including user management</li>
-              <li>• You cannot change your own admin role for security reasons</li>
+              <li>• <strong>사용자</strong>는 포인트를 구매하고 예약할 수 있습니다</li>
+              <li>• <strong>트레이너</strong>는 자신의 트레이닝 세션을 보고 취소할 수 있습니다 (포인트 불필요)</li>
+              <li>• <strong>관리자</strong>는 사용자 관리를 포함한 모든 권한을 가집니다</li>
+              <li>• 보안상의 이유로 자신의 관리자 역할은 변경할 수 없습니다</li>
             </ul>
           </div>
           
           <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
             <h3 className="text-sm font-medium text-orange-800 mb-2">
-              Export Features:
+              내보내기 기능:
             </h3>
             <ul className="text-sm text-orange-700 space-y-1">
-              <li>• <strong>User Data</strong> includes names, emails, roles, points, and memos</li>
-              <li>• Files are downloaded as Excel (.xlsx) format</li>
-              <li>• Filenames include current date for easy organization</li>
-              <li>• Purchase logs can be downloaded from the Purchase Points page</li>
+              <li>• <strong>사용자 데이터</strong>는 이름, 이메일, 역할, 포인트, 메모를 포함합니다</li>
+              <li>• 파일은 엑셀 (.xlsx) 형식으로 다운로드됩니다</li>
+              <li>• 파일명에 현재 날짜가 포함되어 쉽게 정리할 수 있습니다</li>
+              <li>• 구매 로그는 포인트 구매 페이지에서 다운로드할 수 있습니다</li>
             </ul>
           </div>
         </div>
@@ -605,21 +605,21 @@ export default function UsersManagement() {
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-black">
-                Memo for {selectedUser.name}
+                {selectedUser.name} 메모
               </h3>
             </div>
             
             <div className="p-6">
               <div className="mb-4">
                 <label className="block text-sm font-medium text-black mb-2">
-                  Notes:
+                  메모:
                 </label>
                 <textarea
                   value={memoText}
                   onChange={(e) => setMemoText(e.target.value)}
                   rows={6}
                   className="w-full px-3 py-2 border border-gray-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500  resize-none"
-                  placeholder="Enter notes about this user..."
+                  placeholder="이 사용자에 대한 메모를 입력하세요..."
                 />
               </div>
               
@@ -628,13 +628,13 @@ export default function UsersManagement() {
                   onClick={handleMemoCancel}
                   className="px-4 py-2 text-sm font-medium text-black bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
                 >
-                  Cancel
+                  취소
                 </button>
                 <button
                   onClick={handleMemoSave}
                   className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 transition-colors"
                 >
-                  Save
+                  저장
                 </button>
               </div>
             </div>

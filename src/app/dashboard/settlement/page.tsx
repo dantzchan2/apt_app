@@ -188,18 +188,18 @@ export default function MonthlySettlement() {
 
   const getAvailableMonths = () => {
     return [
-      { value: 0, label: 'January' },
-      { value: 1, label: 'February' },
-      { value: 2, label: 'March' },
-      { value: 3, label: 'April' },
-      { value: 4, label: 'May' },
-      { value: 5, label: 'June' },
-      { value: 6, label: 'July' },
-      { value: 7, label: 'August' },
-      { value: 8, label: 'September' },
-      { value: 9, label: 'October' },
-      { value: 10, label: 'November' },
-      { value: 11, label: 'December' }
+      { value: 0, label: '1월' },
+      { value: 1, label: '2월' },
+      { value: 2, label: '3월' },
+      { value: 3, label: '4월' },
+      { value: 4, label: '5월' },
+      { value: 5, label: '6월' },
+      { value: 6, label: '7월' },
+      { value: 7, label: '8월' },
+      { value: 8, label: '9월' },
+      { value: 9, label: '10월' },
+      { value: 10, label: '11월' },
+      { value: 11, label: '12월' }
     ];
   };
 
@@ -213,10 +213,8 @@ export default function MonthlySettlement() {
   };
 
   const formatMonthYear = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
-      month: 'long', 
-      year: 'numeric' 
-    });
+    const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+    return `${date.getFullYear()}년 ${monthNames[date.getMonth()]}`;
   };
 
   if (isLoading) {
@@ -224,7 +222,7 @@ export default function MonthlySettlement() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-black">Loading...</p>
+          <p className="mt-4 text-black">로딩 중...</p>
         </div>
       </div>
     );
@@ -238,7 +236,7 @@ export default function MonthlySettlement() {
     <div className="min-h-screen bg-white">
       <DashboardHeader 
         userData={userData} 
-        title="Monthly Settlement" 
+        title="월별 정산" 
         currentPage="/dashboard/settlement" 
         showPoints={false}
       />
@@ -248,14 +246,14 @@ export default function MonthlySettlement() {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h1 className="text-2xl font-bold text-black">
-              Monthly Settlement
+              월별 정산
             </h1>
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
               {/* Month Dropdown */}
               <div className="flex items-center space-x-2">
                 <label htmlFor="month-select" className="text-sm font-medium text-black">
-                  Month:
+                  월:
                 </label>
                 <select
                   id="month-select"
@@ -274,7 +272,7 @@ export default function MonthlySettlement() {
               {/* Year Dropdown */}
               <div className="flex items-center space-x-2">
                 <label htmlFor="year-select" className="text-sm font-medium text-black">
-                  Year:
+                  년:
                 </label>
                 <select
                   id="year-select"
@@ -295,7 +293,7 @@ export default function MonthlySettlement() {
                 <button
                   onClick={() => navigateMonth('prev')}
                   className="flex items-center px-3 py-2 text-sm font-medium text-orange-600 bg-white border border-orange-600 rounded-md hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  title="Previous Month"
+                  title="이전 달"
                 >
                   ←
                 </button>
@@ -303,7 +301,7 @@ export default function MonthlySettlement() {
                 <button
                   onClick={() => navigateMonth('next')}
                   className="flex items-center px-3 py-2 text-sm font-medium text-orange-600 bg-white border border-orange-600 rounded-md hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  title="Next Month"
+                  title="다음 달"
                 >
                   →
                 </button>
@@ -318,12 +316,12 @@ export default function MonthlySettlement() {
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-gray-400 text-2xl">📊</span>
               </div>
-              <h3 className="text-lg font-medium text-black mb-2">No Data Available</h3>
+              <h3 className="text-lg font-medium text-black mb-2">데이터 없음</h3>
               <p className="text-gray-500">
-                No appointments found for {formatMonthYear(currentDate)}
+                {formatMonthYear(currentDate)}에 대한 예약이 없습니다
               </p>
               <p className="text-sm text-gray-400 mt-2">
-                Try selecting a different month or year to view settlement data
+                정산 데이터를 보려면 다른 월 또는 연도를 선택해보세요
               </p>
             </div>
           </div>
@@ -332,19 +330,19 @@ export default function MonthlySettlement() {
             {/* Statistics Summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-white p-6 rounded-lg shadow-md border">
-                <h3 className="text-lg font-semibold text-black mb-2">Total Appointments</h3>
+                <h3 className="text-lg font-semibold text-black mb-2">총 예약</h3>
                 <p className="text-3xl font-bold text-orange-600">
                   {trainerStats.reduce((sum, stat) => sum + stat.totalAppointments, 0)}
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border">
-                <h3 className="text-lg font-semibold text-black mb-2">Fulfilled Appointments</h3>
+                <h3 className="text-lg font-semibold text-black mb-2">완료된 예약</h3>
                 <p className="text-3xl font-bold text-green-600">
                   {trainerStats.reduce((sum, stat) => sum + stat.fulfilledAppointments, 0)}
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border">
-                <h3 className="text-lg font-semibold text-black mb-2">Cancelled Appointments</h3>
+                <h3 className="text-lg font-semibold text-black mb-2">취소된 예약</h3>
                 <p className="text-3xl font-bold text-red-600">
                   {trainerStats.reduce((sum, stat) => sum + stat.cancelledAppointments, 0)}
                 </p>
@@ -355,7 +353,7 @@ export default function MonthlySettlement() {
               <div className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
                   <h2 className="text-xl font-semibold text-black">
-                    Trainer Performance - {formatMonthYear(currentDate)}
+                    트레이너 성과 - {formatMonthYear(currentDate)}
                   </h2>
                 </div>
                 <div className="overflow-x-auto">
@@ -363,19 +361,19 @@ export default function MonthlySettlement() {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Trainer
+                          트레이너
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Total Appointments
+                          총 예약
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Fulfilled
+                          완료
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Cancelled
+                          취소
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Success Rate
+                          성공률
                         </th>
                       </tr>
                     </thead>

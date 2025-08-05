@@ -49,7 +49,7 @@ export default function Login() {
       localStorage.setItem('userData', JSON.stringify(userData));
       router.push('/dashboard');
     } else {
-      setError('Invalid email or password');
+      setError('잘못된 이메일 또는 비밀번호입니다');
     }
     
     setIsLoading(false);
@@ -63,17 +63,17 @@ export default function Login() {
             <h1 className="text-3xl font-bold text-black">Studio Vit</h1>
           </Link>
           <h2 className="mt-6 text-center text-3xl font-bold text-black">
-            Sign in to your account
+            계정에 로그인
           </h2>
           <p className="mt-2 text-center text-sm text-black">
-            Try different user types with demo credentials below
+            아래 데모 계정으로 다양한 사용자 유형을 체험해보세요
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-black">
-                Email address
+                이메일 주소
               </label>
               <input
                 id="email"
@@ -84,12 +84,12 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 bg-white text-black"
-                placeholder="Enter your email"
+                placeholder="이메일을 입력하세요"
               />
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-black">
-                Password
+                비밀번호
               </label>
               <input
                 id="password"
@@ -100,7 +100,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 bg-white text-black"
-                placeholder="Enter your password"
+                placeholder="비밀번호를 입력하세요"
               />
             </div>
           </div>
@@ -117,36 +117,36 @@ export default function Login() {
               disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? '로그인 중...' : '로그인'}
             </button>
           </div>
 
           <div className="text-center space-y-2">
             <Link href="/signup" className="text-sm text-orange-600 hover:text-orange-500">
-              Don&apos;t have an account? Sign up
+              계정이 없으신가요? 회원가입
             </Link>
             <div>
               <Link href="/" className="text-sm text-black hover:text-gray-700">
-                Back to home
+                홈으로 돌아가기
               </Link>
             </div>
           </div>
         </form>
         
         <div className="mt-6 p-4 bg-orange-50 rounded-lg">
-          <h3 className="text-sm font-medium text-black mb-3">Demo Credentials:</h3>
+          <h3 className="text-sm font-medium text-black mb-3">데모 계정:</h3>
           <div className="space-y-3 text-sm text-black">
             <div className="border-l-4 border-red-500 pl-3">
-              <p><strong>Admin:</strong> admin@aptapp.com / password</p>
-              <p className="text-xs">Can purchase points, book appointments, manage training sessions, and manage all users</p>
+              <p><strong>관리자:</strong> admin@aptapp.com / password</p>
+              <p className="text-xs">포인트 구매, 예약, 트레이닝 세션 관리, 모든 사용자 관리 가능</p>
             </div>
             <div className="border-l-4 border-orange-500 pl-3">
-              <p><strong>Trainer:</strong> trainer@aptapp.com / password</p>
-              <p className="text-xs">Can view and cancel their training appointments</p>
+              <p><strong>트레이너:</strong> trainer@aptapp.com / password</p>
+              <p className="text-xs">자신의 트레이닝 예약을 조회하고 취소할 수 있음</p>
             </div>
             <div className="border-l-4 border-orange-500 pl-3">
-              <p><strong>User:</strong> user@aptapp.com / password</p>
-              <p className="text-xs">Can purchase points and book appointments</p>
+              <p><strong>사용자:</strong> user@aptapp.com / password</p>
+              <p className="text-xs">포인트 구매 및 예약 가능</p>
             </div>
           </div>
         </div>

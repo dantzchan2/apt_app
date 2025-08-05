@@ -15,13 +15,13 @@ export default function Home() {
                 href="/login"
                 className="text-gray-700 hover:text-black px-3 py-2 rounded-md text-sm font-medium"
               >
-                Login
+                로그인
               </Link>
               <Link
                 href="/login"
                 className="bg-orange-600 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium"
               >
-                Get Started
+                시작하기
               </Link>
             </nav>
           </div>
@@ -33,8 +33,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-black sm:text-5xl md:text-6xl mb-8">
-              Welcome to{" "}
-              <span className="text-orange-600">Studio Vit</span>
+              <span className="text-orange-600">PT Studio Vit</span>에
+              오신 것을 환영합니다
             </h1>
             
             <div className="relative w-full mb-8">
@@ -54,7 +54,7 @@ export default function Home() {
                   href="/login"
                   className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-orange-600 hover:bg-red-600 md:py-4 md:text-lg md:px-10"
                 >
-                  Get Started
+                  시작하기
                 </Link>
               </div>
               <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
@@ -62,7 +62,7 @@ export default function Home() {
                   href="#features"
                   className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-orange-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
                 >
-                  Learn More
+                  더 알아보기
                 </Link>
               </div>
             </div>
@@ -73,35 +73,35 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-black sm:text-4xl">
-                Features
+                기능
               </h2>
               <p className="mt-4 text-lg text-gray-600">
-                Everything you need to book and manage your training sessions
+                트레이닝 세션 예약과 관리에 필요한 모든 것
               </p>
             </div>
             <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h3 className="text-lg font-semibold text-black mb-3">
-                  Professional Trainers
+                  전문 트레이너
                 </h3>
                 <p className="text-gray-600">
-                  Book sessions with certified trainers across various specializations
+                  다양한 전문 분야의 인증된 트레이너와 세션을 예약하세요
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h3 className="text-lg font-semibold text-black mb-3">
-                  Point-Based System
+                  포인트 기반 시스템
                 </h3>
                 <p className="text-gray-600">
-                  Purchase points to book appointments - flexible and convenient
+                  포인트를 구매하여 예약하는 유연하고 편리한 시스템
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h3 className="text-lg font-semibold text-black mb-3">
-                  Flexible Scheduling
+                  유연한 스케줄링
                 </h3>
                 <p className="text-gray-600">
-                  Book appointments at 10-minute intervals that fit your schedule
+                  당신의 일정에 맞는 10분 단위 예약 시스템
                 </p>
               </div>
             </div>
@@ -113,10 +113,10 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-black sm:text-4xl">
-                Meet Our Expert Trainers
+                전문 트레이너를 만나보세요
               </h2>
               <p className="mt-4 text-lg text-gray-600">
-                Professional certified trainers ready to help you achieve your fitness goals
+                당신의 피트니스 목표 달성을 도와줄 전문 인증 트레이너들
               </p>
             </div>
             <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -131,8 +131,8 @@ export default function Home() {
                   />
                 </div>
                 <h3 className="text-xl font-semibold text-black">Sarah Johnson</h3>
-                <p className="text-gray-600 mt-2">Strength & Conditioning Specialist</p>
-                <p className="text-gray-500 text-sm mt-1">5+ years experience</p>
+                <p className="text-gray-600 mt-2">근력 및 컨디셔닝 전문가</p>
+                <p className="text-gray-500 text-sm mt-1">5년 이상 경력</p>
               </div>
               <div className="text-center">
                 <div className="mx-auto mb-4">
@@ -145,8 +145,8 @@ export default function Home() {
                   />
                 </div>
                 <h3 className="text-xl font-semibold text-black">Mike Chen</h3>
-                <p className="text-gray-600 mt-2">Cardio & Endurance Coach</p>
-                <p className="text-gray-500 text-sm mt-1">7+ years experience</p>
+                <p className="text-gray-600 mt-2">유산소 및 지구력 코치</p>
+                <p className="text-gray-500 text-sm mt-1">7년 이상 경력</p>
               </div>
               <div className="text-center">
                 <div className="mx-auto mb-4">
@@ -159,8 +159,8 @@ export default function Home() {
                   />
                 </div>
                 <h3 className="text-xl font-semibold text-black">Emma Rodriguez</h3>
-                <p className="text-gray-600 mt-2">Yoga & Flexibility Expert</p>
-                <p className="text-gray-500 text-sm mt-1">6+ years experience</p>
+                <p className="text-gray-600 mt-2">요가 및 유연성 전문가</p>
+                <p className="text-gray-500 text-sm mt-1">6년 이상 경력</p>
               </div>
             </div>
           </div>
@@ -171,7 +171,7 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-black sm:text-4xl mb-8">
-                Join Our Running Crew
+                러닝 크루에 합류하세요
               </h2>
               
               <div className="mb-8">
@@ -187,15 +187,15 @@ export default function Home() {
               <div className="max-w-2xl mx-auto space-y-4">
                 <div className="flex items-center justify-center">
                   <span className="text-orange-600 text-xl mr-3">🏃</span>
-                  <span className="text-gray-700">Weekly group runs every Saturday morning</span>
+                  <span className="text-gray-700">매주 토요일 아침 그룹 러닝</span>
                 </div>
                 <div className="flex items-center justify-center">
                   <span className="text-orange-600 text-xl mr-3">🏆</span>
-                  <span className="text-gray-700">Monthly fitness challenges and competitions</span>
+                  <span className="text-gray-700">월간 피트니스 챌린지 및 대회</span>
                 </div>
                 <div className="flex items-center justify-center">
                   <span className="text-orange-600 text-xl mr-3">👥</span>
-                  <span className="text-gray-700">Supportive community of fitness enthusiasts</span>
+                  <span className="text-gray-700">피트니스 애호가들의 따뜻한 커뮤니티</span>
                 </div>
               </div>
             </div>
