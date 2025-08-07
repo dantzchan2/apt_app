@@ -347,7 +347,7 @@ export default function UsersManagement() {
       case 'admin':
         return 'bg-red-100 text-red-800';
       case 'trainer':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-blue-100 text-blue-800';
       case 'user':
         return 'bg-orange-100 text-orange-800';
       default:

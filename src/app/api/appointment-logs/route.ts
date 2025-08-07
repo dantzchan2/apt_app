@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '../../../lib/database';
+import { supabase } from '../../../lib/database';
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,47 +8,44 @@ export async function GET(request: NextRequest) {
     const userRole = searchParams.get('userRole');
     const appointmentId = searchParams.get('appointmentId');
 
-    let queryText = `
-      SELECT 
-        al.id,
-        al.appointment_id,
-        al.action,
-        al.action_by,
-        al.action_by_name,
-        al.action_by_role,
-        al.timestamp,
-        al.appointment_date,
-        al.appointment_time,
-        al.trainer_id,
-        al.trainer_name,
-        al.user_id,
-        al.user_name,
-        al.user_email,
-        al.product_id,
-        al.notes,
-        p.name as product_name
-      FROM appointment_logs al
-      LEFT JOIN products p ON al.product_id = p.id
-      WHERE 1=1
-    `;
-    const params: unknown[] = [];
+    let query = supabase
+      .from('appointment_logs')
+      .select(`
+        id,
+        appointment_id,
+        action,
+        action_by,
+        action_by_name,
+        action_by_role,
+        timestamp,
+        appointment_date,
+        appointment_time,
+        trainer_id,
+        trainer_name,
+        user_id,
+        user_name,
+        user_email,
+        product_id,
+        notes,
+        products (name)
+      `);
 
     // Admin can see all logs, users can only see their own
     if (userRole !== 'admin' && userId) {
-      params.push(userId);
-      queryText += ` AND (al.user_id = $${params.length} OR al.action_by = $${params.length})`;
+      query = query.or(`user_id.eq.${userId},action_by.eq.${userId}`);
     }
 
     if (appointmentId) {
-      params.push(appointmentId);
-      queryText += ` AND al.appointment_id = $${params.length}`;
+      query = query.eq('appointment_id', appointmentId);
     }
 
-    queryText += ` ORDER BY al.timestamp DESC`;
+    query = query.order('timestamp', { ascending: false });
 
-    const result = await query(queryText, params);
+    const { data: logs, error } = await query;
 
-    return NextResponse.json({ logs: result.rows });
+    if (error) throw error;
+
+    return NextResponse.json({ logs: logs || [] });
   } catch (error) {
     console.error('Get appointment logs error:', error);
     return NextResponse.json(

@@ -584,9 +584,9 @@ export default function Schedule() {
                     <div className="flex items-center justify-between sm:justify-end space-x-3">
                       <span className={`px-3 py-1 text-xs font-medium rounded-full ${
                         appointment.status === 'scheduled' 
-                          ? 'bg-green-100 text-green-800'
+                          ? 'bg-gray-100 text-gray-800'
                           : appointment.status === 'completed'
-                          ? 'bg-orange-100 text-orange-800'
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}>
                         {appointment.status === 'scheduled' ? '예약됨' : appointment.status === 'completed' ? '완료됨' : '취소됨'}

@@ -40,6 +40,7 @@ interface AppointmentLog {
   userEmail: string;
   usedPointBatchId?: string;
   purchaseItemId?: string;
+  productName?: string;
 }
 
 export default function AppointmentLogs() {
@@ -97,6 +98,7 @@ export default function AppointmentLogs() {
           user_email: string;
           used_point_batch_id?: string;
           product_id?: string;
+          products?: { name: string } | null;
         }) => ({
           id: log.id,
           appointmentId: log.appointment_id,
@@ -113,7 +115,8 @@ export default function AppointmentLogs() {
           userName: log.user_name,
           userEmail: log.user_email,
           usedPointBatchId: log.used_point_batch_id,
-          purchaseItemId: log.product_id
+          purchaseItemId: log.product_id,
+          productName: log.products?.name
         }));
         
         setAppointmentLogs(mappedLogs);
@@ -166,7 +169,7 @@ export default function AppointmentLogs() {
       'Action': log.action,
       'Action By': log.actionByName,
       'Action By Role': log.actionByRole,
-      'Purchase Product': log.purchaseItemId || 'N/A',
+      'Purchase Product': log.productName || log.purchaseItemId || 'N/A',
       'Timestamp': new Date(log.timestamp).toLocaleString(),
       'Appointment Date': log.appointmentDate,
       'Appointment Time': log.appointmentTime,
@@ -186,11 +189,11 @@ export default function AppointmentLogs() {
   const getActionColor = (action: string) => {
     switch (action) {
       case 'booked':
-        return 'bg-green-100 text-green-800';
+        return 'bg-gray-100 text-gray-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-green-100 text-gray-800';
     }
   };
 
@@ -199,7 +202,7 @@ export default function AppointmentLogs() {
       case 'admin':
         return 'bg-red-100 text-red-800';
       case 'trainer':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-blue-100 text-blue-800';
       case 'user':
         return 'bg-orange-100 text-orange-800';
       default:
@@ -413,11 +416,11 @@ export default function AppointmentLogs() {
                           {log.actionByRole}
                         </span>
                       </div>
-                      {log.action === 'booked' && log.purchaseItemId && (
+                      {log.action === 'booked' && (log.productName || log.purchaseItemId) && (
                         <div className="text-black dark:text-gray-400">
                           💳 구매 상품: 
                           <span className="ml-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
-                            {getProductDisplayName(log.purchaseItemId)}
+                            {log.productName || getProductDisplayName(log.purchaseItemId)}
                           </span>
                         </div>
                       )}
@@ -482,9 +485,9 @@ export default function AppointmentLogs() {
                         </span>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-black">
-                        {log.action === 'booked' && log.purchaseItemId ? (
+                        {log.action === 'booked' && (log.productName || log.purchaseItemId) ? (
                           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
-                            {getProductDisplayName(log.purchaseItemId)}
+                            {log.productName || getProductDisplayName(log.purchaseItemId)}
                           </span>
                         ) : (
                           <span className="text-gray-400">-</span>

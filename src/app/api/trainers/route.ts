@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
-import { query } from '../../../lib/database';
+import { supabase } from '../../../lib/database';
 
 export async function GET() {
   try {
-    const result = await query(`
-      SELECT id, name, email, phone, specialization, is_active, created_at
-      FROM users 
-      WHERE role = 'trainer' AND is_active = true
-      ORDER BY name
-    `);
+    const { data: trainers, error } = await supabase
+      .from('users')
+      .select('id, name, email, phone, specialization, is_active, created_at')
+      .eq('role', 'trainer')
+      .eq('is_active', true)
+      .order('name');
 
-    return NextResponse.json({ trainers: result.rows });
+    if (error) throw error;
+
+    return NextResponse.json({ trainers: trainers || [] });
   } catch (error) {
     console.error('Get trainers error:', error);
     return NextResponse.json(

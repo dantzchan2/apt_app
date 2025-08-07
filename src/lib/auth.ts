@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { query } from './database';
+import { supabase } from './database';
 
 export interface User {
   id: string;
@@ -25,16 +25,20 @@ export const verifyPassword = async (password: string, hash: string): Promise<bo
 
 export const authenticateUser = async (email: string, password: string): Promise<User | null> => {
   try {
-    const result = await query(
-      'SELECT id, name, email, phone, role, specialization, total_points, memo, is_active, created_at, password_hash FROM users WHERE email = $1 AND is_active = true',
-      [email]
-    );
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, name, email, phone, role, specialization, total_points, memo, is_active, created_at, password_hash')
+      .eq('email', email)
+      .eq('is_active', true)
+      .limit(1);
 
-    if (result.rows.length === 0) {
+    if (error) throw error;
+
+    if (!users || users.length === 0) {
       return null;
     }
 
-    const user = result.rows[0];
+    const user = users[0];
     
     // For demo purposes, allow "password" for specific demo accounts
     const isDemoAccount = ['admin@studiovit.com', 'sarah.johnson@studiovit.com', 'john.smith@email.com'].includes(email);
@@ -62,16 +66,20 @@ export const authenticateUser = async (email: string, password: string): Promise
 
 export const getUserById = async (id: string): Promise<User | null> => {
   try {
-    const result = await query(
-      'SELECT id, name, email, phone, role, specialization, total_points, memo, is_active, created_at FROM users WHERE id = $1 AND is_active = true',
-      [id]
-    );
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, name, email, phone, role, specialization, total_points, memo, is_active, created_at')
+      .eq('id', id)
+      .eq('is_active', true)
+      .limit(1);
 
-    if (result.rows.length === 0) {
+    if (error) throw error;
+
+    if (!users || users.length === 0) {
       return null;
     }
 
-    return result.rows[0];
+    return users[0];
   } catch (error) {
     console.error('Get user error:', error);
     return null;

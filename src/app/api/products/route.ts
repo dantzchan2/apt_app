@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
-import { query } from '../../../lib/database';
+import { supabase } from '../../../lib/database';
 
 export async function GET() {
   try {
-    const result = await query(`
-      SELECT id, name, description, points, price, display_order
-      FROM products 
-      WHERE is_active = true
-      ORDER BY display_order, name
-    `);
+    const { data: products, error } = await supabase
+      .from('products')
+      .select('id, name, description, points, price, display_order')
+      .eq('is_active', true)
+      .order('display_order')
+      .order('name');
 
-    return NextResponse.json({ products: result.rows });
+    if (error) throw error;
+
+    return NextResponse.json({ products: products || [] });
   } catch (error) {
     console.error('Get products error:', error);
     return NextResponse.json(
