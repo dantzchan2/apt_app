@@ -56,22 +56,25 @@ interface AppointmentLog {
   purchaseItemId?: string;
 }
 
-interface Trainer {
-  id: string;
-  name: string;
-  specialization: string;
-}
+// interface Trainer {
+//   id: string;
+//   name: string;
+//   specialization: string;
+// }
 
-const trainers: Trainer[] = [
-  { id: 'trainer1', name: 'Sarah Johnson', specialization: 'Strength Training' },
-  { id: 'trainer2', name: 'Mike Chen', specialization: 'Cardio & HIIT' },
-  { id: 'trainer3', name: 'Emma Davis', specialization: 'Yoga & Flexibility' },
-  { id: 'trainer4', name: 'David Wilson', specialization: 'CrossFit' }
+// Hardcoded trainers for now - TODO: Load from database
+const hardcodedTrainers = [
+  { id: '11111111-1111-4111-a111-111111111111', name: 'Sarah Johnson', specialization: 'Strength & Conditioning' },
+  { id: '22222222-2222-4222-a222-222222222222', name: 'Mike Chen', specialization: 'Cardio & Endurance' },
+  { id: '33333333-3333-4333-a333-333333333333', name: 'Emma Rodriguez', specialization: 'Yoga & Flexibility' },
+  { id: '44444444-4444-4444-a444-444444444444', name: 'Alex Thompson', specialization: 'CrossFit' },
+  { id: '55555555-5555-4555-a555-555555555555', name: 'Lisa Park', specialization: 'Pilates' }
 ];
 
 export default function Schedule() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  // const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedHour, setSelectedHour] = useState('');
@@ -79,6 +82,7 @@ export default function Schedule() {
   const [selectedTrainer, setSelectedTrainer] = useState('');
   const [isBooking, setIsBooking] = useState(false);
   const [view, setView] = useState<'book' | 'my-appointments'>('my-appointments');
+  // const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -297,13 +301,13 @@ export default function Schedule() {
     // Deduct point using FIFO (oldest first) and get tracking info
     const deductionResult = deductPointFromBatches(userData.pointBatches || [], 1);
     
-    const trainer = trainers.find(t => t.id === selectedTrainer);
+    // TODO: Fetch trainer name from database
     const newAppointment: Appointment = {
       id: Date.now().toString(),
       date: selectedDate,
       time: selectedTime,
       trainerId: selectedTrainer,
-      trainerName: trainer?.name || 'Unknown',
+      trainerName: 'Unknown', // TODO: Get from database
       userId: userData.id,
       userName: userData.name,
       status: 'scheduled',
@@ -327,7 +331,7 @@ export default function Schedule() {
       appointmentDate: selectedDate,
       appointmentTime: selectedTime,
       trainerId: selectedTrainer,
-      trainerName: trainer?.name || 'Unknown',
+      trainerName: 'Unknown', // TODO: Get from database
       userId: userData.id,
       userName: userData.name,
       userEmail: userData.email,
@@ -620,7 +624,7 @@ export default function Schedule() {
                   className="w-full px-3 py-2 border border-gray-300  rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 "
                 >
                   <option value="">트레이너를 선택해주세요...</option>
-                  {trainers.map(trainer => (
+                  {hardcodedTrainers.map(trainer => (
                     <option key={trainer.id} value={trainer.id}>
                       {trainer.name} - {trainer.specialization}
                     </option>

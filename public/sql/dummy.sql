@@ -6,12 +6,13 @@
 -- Run this AFTER running schema.sql to populate the database with test data
 
 -- Insert trainer users (trainers are now part of users table)
-INSERT INTO users (id, name, email, phone, role, specialization, total_points) VALUES
-('11111111-1111-4111-a111-111111111111'::UUID, 'Sarah Johnson', 'sarah.johnson@studiovit.com', '010-1234-5678', 'trainer', 'Strength & Conditioning', 0),
-('22222222-2222-4222-a222-222222222222'::UUID, 'Mike Chen', 'mike.chen@studiovit.com', '010-2345-6789', 'trainer', 'Cardio & Endurance', 0),
-('33333333-3333-4333-a333-333333333333'::UUID, 'Emma Rodriguez', 'emma.rodriguez@studiovit.com', '010-3456-7890', 'trainer', 'Yoga & Flexibility', 0),
-('44444444-4444-4444-a444-444444444444'::UUID, 'Alex Thompson', 'alex.thompson@studiovit.com', '010-4567-8901', 'trainer', 'CrossFit', 0),
-('55555555-5555-4555-a555-555555555555'::UUID, 'Lisa Park', 'lisa.park@studiovit.com', '010-5678-9012', 'trainer', 'Pilates', 0);
+-- Password hash for "password" is $2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi
+INSERT INTO users (id, name, email, phone, role, specialization, total_points, password_hash) VALUES
+('11111111-1111-4111-a111-111111111111'::UUID, 'Sarah Johnson', 'sarah.johnson@studiovit.com', '010-1234-5678', 'trainer', 'Strength & Conditioning', 0, '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
+('22222222-2222-4222-a222-222222222222'::UUID, 'Mike Chen', 'mike.chen@studiovit.com', '010-2345-6789', 'trainer', 'Cardio & Endurance', 0, '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
+('33333333-3333-4333-a333-333333333333'::UUID, 'Emma Rodriguez', 'emma.rodriguez@studiovit.com', '010-3456-7890', 'trainer', 'Yoga & Flexibility', 0, '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
+('44444444-4444-4444-a444-444444444444'::UUID, 'Alex Thompson', 'alex.thompson@studiovit.com', '010-4567-8901', 'trainer', 'CrossFit', 0, '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
+('55555555-5555-4555-a555-555555555555'::UUID, 'Lisa Park', 'lisa.park@studiovit.com', '010-5678-9012', 'trainer', 'Pilates', 0, '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
 -- Insert default products (point packages)
 INSERT INTO products (id, name, description, points, price, sale_rate, recv_rate, display_order) VALUES
@@ -22,21 +23,22 @@ INSERT INTO products (id, name, description, points, price, sale_rate, recv_rate
 ('eeeeeeee-eeee-4eee-eeee-eeeeeeeeeeee'::UUID, '레거시 패키지', '기존 고객용 호환성 패키지', 1, 5000.00, 0.0500, 0.0250, 99);
 
 -- Insert default admin user
-INSERT INTO users (id, name, email, phone, role, total_points) VALUES
-('00000000-0000-4000-a000-000000000000'::UUID, 'Admin User', 'admin@studiovit.com', '010-0000-0000', 'admin', 0);
+INSERT INTO users (id, name, email, phone, role, total_points, password_hash) VALUES
+('00000000-0000-4000-a000-000000000000'::UUID, 'Admin User', 'admin@studiovit.com', '010-0000-0000', 'admin', 0, '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
 -- Insert some sample users
-INSERT INTO users (id, name, email, phone, role, total_points) VALUES
-('10000000-0000-4000-a000-000000000001'::UUID, 'John Smith', 'john.smith@email.com', '010-1111-1111', 'user', 0),
-('10000000-0000-4000-a000-000000000002'::UUID, 'Emily Davis', 'emily.davis@email.com', '010-2222-2222', 'user', 0),
-('10000000-0000-4000-a000-000000000003'::UUID, 'Michael Brown', 'michael.brown@email.com', '010-3333-3333', 'user', 0),
-('10000000-0000-4000-a000-000000000004'::UUID, 'Sarah Wilson', 'sarah.wilson@email.com', '010-4444-4444', 'user', 0),
-('10000000-0000-4000-a000-000000000005'::UUID, 'David Miller', 'david.miller@email.com', '010-5555-5555', 'user', 0),
-('10000000-0000-4000-a000-000000000006'::UUID, 'Lisa Garcia', 'lisa.garcia@email.com', '010-6666-6666', 'user', 0),
-('10000000-0000-4000-a000-000000000007'::UUID, 'James Martinez', 'james.martinez@email.com', '010-7777-7777', 'user', 0),
-('10000000-0000-4000-a000-000000000008'::UUID, 'Maria Lopez', 'maria.lopez@email.com', '010-8888-8888', 'user', 0),
-('10000000-0000-4000-a000-000000000009'::UUID, 'Robert Taylor', 'robert.taylor@email.com', '010-9999-9999', 'user', 0),
-('10000000-0000-4000-a000-000000000010'::UUID, 'Jennifer White', 'jennifer.white@email.com', '010-1010-1010', 'user', 0);
+-- First user (John Smith) can also login with "password" for demo
+INSERT INTO users (id, name, email, phone, role, total_points, password_hash) VALUES
+('10000000-0000-4000-a000-000000000001'::UUID, 'John Smith', 'john.smith@email.com', '010-1111-1111', 'user', 0, '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
+('10000000-0000-4000-a000-000000000002'::UUID, 'Emily Davis', 'emily.davis@email.com', '010-2222-2222', 'user', 0, NULL),
+('10000000-0000-4000-a000-000000000003'::UUID, 'Michael Brown', 'michael.brown@email.com', '010-3333-3333', 'user', 0, NULL),
+('10000000-0000-4000-a000-000000000004'::UUID, 'Sarah Wilson', 'sarah.wilson@email.com', '010-4444-4444', 'user', 0, NULL),
+('10000000-0000-4000-a000-000000000005'::UUID, 'David Miller', 'david.miller@email.com', '010-5555-5555', 'user', 0, NULL),
+('10000000-0000-4000-a000-000000000006'::UUID, 'Lisa Garcia', 'lisa.garcia@email.com', '010-6666-6666', 'user', 0, NULL),
+('10000000-0000-4000-a000-000000000007'::UUID, 'James Martinez', 'james.martinez@email.com', '010-7777-7777', 'user', 0, NULL),
+('10000000-0000-4000-a000-000000000008'::UUID, 'Maria Lopez', 'maria.lopez@email.com', '010-8888-8888', 'user', 0, NULL),
+('10000000-0000-4000-a000-000000000009'::UUID, 'Robert Taylor', 'robert.taylor@email.com', '010-9999-9999', 'user', 0, NULL),
+('10000000-0000-4000-a000-000000000010'::UUID, 'Jennifer White', 'jennifer.white@email.com', '010-1010-1010', 'user', 0, NULL);
 
 -- Create some sample point batches using the helper function
 -- These will automatically create purchase logs as well

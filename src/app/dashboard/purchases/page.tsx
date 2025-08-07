@@ -18,16 +18,28 @@ interface PurchaseLog {
   user_id: string;
   user_name: string;
   user_email: string;
-  purchase_item_id: string;
+  product_id: string;
   datetime: string;
   price: number;
   points: number;
+  product_name?: string;
+  product_description?: string;
+  payment_method?: string;
+  payment_status?: string;
+}
+
+interface PurchaseStats {
+  total_purchases: number;
+  total_revenue: number;
+  unique_customers: number;
+  avg_purchase_value: number;
 }
 
 export default function PurchaseLogsPage() {
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
   const [purchaseLogs, setPurchaseLogs] = useState<PurchaseLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<PurchaseLog[]>([]);
+  const [purchaseStats, setPurchaseStats] = useState<PurchaseStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [userFilter, setUserFilter] = useState('all');
@@ -53,16 +65,28 @@ export default function PurchaseLogsPage() {
     
     setCurrentUser(parsedUserData);
     
-    // Load purchase logs
-    const storedLogs = localStorage.getItem('purchaseLogs');
-    if (storedLogs) {
-      const logs = JSON.parse(storedLogs);
-      setPurchaseLogs(logs);
-      setFilteredLogs(logs);
-    }
-    
-    setIsLoading(false);
+    // Load purchase logs from database
+    loadPurchaseLogs(parsedUserData);
   }, []);
+
+  const loadPurchaseLogs = async (userData: UserData) => {
+    try {
+      const response = await fetch(`/api/purchase-logs?userId=${userData.id}&userRole=${userData.role}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setPurchaseLogs(data.purchases);
+        setFilteredLogs(data.purchases);
+        setPurchaseStats(data.stats);
+      } else {
+        console.error('Failed to load purchase logs:', data.error);
+      }
+    } catch (error) {
+      console.error('Error loading purchase logs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     let filtered = purchaseLogs;
@@ -83,7 +107,7 @@ export default function PurchaseLogsPage() {
 
     // Filter by purchase item
     if (itemFilter !== 'all') {
-      filtered = filtered.filter(log => log.purchase_item_id === itemFilter);
+      filtered = filtered.filter(log => log.product_id === itemFilter);
     }
 
     // Filter by date range
@@ -117,7 +141,7 @@ export default function PurchaseLogsPage() {
   };
 
   const formatPrice = (price: number) => {
-    return `$${price.toFixed(2)}`;
+    return `₩${price.toLocaleString()}`;
   };
 
   const getTotalRevenue = () => {
@@ -134,21 +158,14 @@ export default function PurchaseLogsPage() {
   };
 
   const getUniqueItems = () => {
-    return Array.from(new Set(purchaseLogs.map(log => log.purchase_item_id)));
+    return Array.from(new Set(purchaseLogs.map(log => log.product_id)));
   };
 
-  const getProductDisplayName = (itemId: string | undefined) => {
-    if (!itemId) return '미확인';
-    
-    const productNames: { [key: string]: string } = {
-      'starter': '스타터 (5포인트)',
-      'basic': '베이직 (10포인트)',
-      'premium': '프리미엄 (20포인트)',
-      'pro': '프로 (50포인트)',
-      'legacy': '레거시',
-      'unknown': '미확인'
-    };
-    return productNames[itemId] || itemId.charAt(0).toUpperCase() + itemId.slice(1);
+  const getProductDisplayName = (log: PurchaseLog) => {
+    if (log.product_name) {
+      return `${log.product_name} (${log.points}포인트)`;
+    }
+    return log.product_id || '미확인';
   };
 
   if (isLoading) {
@@ -186,7 +203,9 @@ export default function PurchaseLogsPage() {
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-black">총 매출</h3>
-                <p className="text-2xl font-bold text-green-600">{formatPrice(getTotalRevenue())}</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {purchaseStats ? formatPrice(Number(purchaseStats.total_revenue)) : formatPrice(getTotalRevenue())}
+                </p>
               </div>
             </div>
           </div>
@@ -200,7 +219,9 @@ export default function PurchaseLogsPage() {
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-black">총 구매건수</h3>
-                <p className="text-2xl font-bold text-orange-600">{filteredLogs.length}</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {purchaseStats ? purchaseStats.total_purchases : filteredLogs.length}
+                </p>
               </div>
             </div>
           </div>
@@ -214,7 +235,9 @@ export default function PurchaseLogsPage() {
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-black">순 고객 수</h3>
-                <p className="text-2xl font-bold text-purple-600">{getUniqueUsers().length}</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {purchaseStats ? purchaseStats.unique_customers : getUniqueUsers().length}
+                </p>
               </div>
             </div>
           </div>
@@ -272,9 +295,13 @@ export default function PurchaseLogsPage() {
                   className="w-full px-3 py-2 border border-gray-300  rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 "
                 >
                   <option value="all">모든 패키지</option>
-                  {getUniqueItems().map((item) => (
-                    <option key={item} value={item}>{getProductDisplayName(item)}</option>
-                  ))}
+                  {getUniqueItems().map((item) => {
+                    const sampleLog = purchaseLogs.find(log => log.product_id === item);
+                    const displayName = sampleLog ? getProductDisplayName(sampleLog) : item;
+                    return (
+                      <option key={item} value={item}>{displayName}</option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -355,7 +382,7 @@ export default function PurchaseLogsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
-                          {getProductDisplayName(log.purchase_item_id)}
+                          {getProductDisplayName(log)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-black">

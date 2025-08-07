@@ -16,42 +16,38 @@ export default function Login() {
     setIsLoading(true);
     setError('');
 
-    // Demo authentication - in a real app, this would call an API
-    let userData = null;
-    
-    if (email === 'admin@aptapp.com' && password === 'password') {
-      userData = {
-        name: 'Admin User',
-        email: 'admin@aptapp.com',
-        role: 'admin' as const,
-        points: 100,
-        id: 'admin123'
-      };
-    } else if (email === 'trainer@aptapp.com' && password === 'password') {
-      userData = {
-        name: 'Sarah Johnson',
-        email: 'trainer@aptapp.com',
-        role: 'trainer' as const,
-        id: 'trainer1'
-      };
-    } else if (email === 'user@aptapp.com' && password === 'password') {
-      userData = {
-        name: 'Regular User',
-        email: 'user@aptapp.com',
-        role: 'user' as const,
-        points: 10,
-        id: 'user123'
-      };
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store authentication data
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userData', JSON.stringify({
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role,
+          points: data.user.total_points,
+          id: data.user.id,
+          phone: data.user.phone,
+          specialization: data.user.specialization
+        }));
+        router.push('/dashboard');
+      } else {
+        setError(data.error || '잘못된 이메일 또는 비밀번호입니다');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
-    
-    if (userData) {
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userData', JSON.stringify(userData));
-      router.push('/dashboard');
-    } else {
-      setError('잘못된 이메일 또는 비밀번호입니다');
-    }
-    
+
     setIsLoading(false);
   };
 
@@ -137,15 +133,15 @@ export default function Login() {
           <h3 className="text-sm font-medium text-black mb-3">데모 계정:</h3>
           <div className="space-y-3 text-sm text-black">
             <div className="border-l-4 border-red-500 pl-3">
-              <p><strong>관리자:</strong> admin@aptapp.com / password</p>
+              <p><strong>관리자:</strong> admin@studiovit.com / password</p>
               <p className="text-xs">포인트 구매, 예약, 트레이닝 세션 관리, 모든 사용자 관리 가능</p>
             </div>
             <div className="border-l-4 border-orange-500 pl-3">
-              <p><strong>트레이너:</strong> trainer@aptapp.com / password</p>
+              <p><strong>트레이너:</strong> sarah.johnson@studiovit.com / password</p>
               <p className="text-xs">자신의 트레이닝 예약을 조회하고 취소할 수 있음</p>
             </div>
             <div className="border-l-4 border-orange-500 pl-3">
-              <p><strong>사용자:</strong> user@aptapp.com / password</p>
+              <p><strong>사용자:</strong> john.smith@email.com / password</p>
               <p className="text-xs">포인트 구매 및 예약 가능</p>
             </div>
           </div>

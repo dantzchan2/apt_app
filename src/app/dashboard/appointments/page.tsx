@@ -69,16 +69,64 @@ export default function AppointmentLogs() {
     
     setCurrentUser(parsedUserData);
     
-    // Load appointment logs
-    const storedLogs = localStorage.getItem('appointmentLogs');
-    if (storedLogs) {
-      const logs = JSON.parse(storedLogs);
-      setAppointmentLogs(logs);
-      setFilteredLogs(logs);
-    }
-    
-    setIsLoading(false);
+    // Load appointment logs from database
+    loadAppointmentLogs(parsedUserData);
   }, []);
+
+  const loadAppointmentLogs = async (userData: UserData) => {
+    try {
+      const response = await fetch(`/api/appointment-logs?userId=${userData.id}&userRole=${userData.role}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Map database fields to component interface
+        const mappedLogs = data.logs.map((log: {
+          id: string;
+          appointment_id: string;
+          action: string;
+          action_by: string;
+          action_by_name: string;
+          action_by_role: string;
+          timestamp: string;
+          appointment_date: string;
+          appointment_time: string;
+          trainer_id: string;
+          trainer_name: string;
+          user_id: string;
+          user_name: string;
+          user_email: string;
+          used_point_batch_id?: string;
+          product_id?: string;
+        }) => ({
+          id: log.id,
+          appointmentId: log.appointment_id,
+          action: log.action,
+          actionBy: log.action_by,
+          actionByName: log.action_by_name,
+          actionByRole: log.action_by_role,
+          timestamp: log.timestamp,
+          appointmentDate: log.appointment_date,
+          appointmentTime: log.appointment_time,
+          trainerId: log.trainer_id,
+          trainerName: log.trainer_name,
+          userId: log.user_id,
+          userName: log.user_name,
+          userEmail: log.user_email,
+          usedPointBatchId: log.used_point_batch_id,
+          purchaseItemId: log.product_id
+        }));
+        
+        setAppointmentLogs(mappedLogs);
+        setFilteredLogs(mappedLogs);
+      } else {
+        console.error('Failed to load appointment logs:', data.error);
+      }
+    } catch (error) {
+      console.error('Error loading appointment logs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     let filtered = appointmentLogs;
