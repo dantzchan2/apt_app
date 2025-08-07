@@ -23,6 +23,8 @@ interface Appointment {
   date: string;
   time: string;
   status: 'scheduled' | 'completed' | 'cancelled';
+  usedPointBatchId?: string;
+  purchaseItemId?: string;
 }
 
 interface TrainerStats {
@@ -31,6 +33,12 @@ interface TrainerStats {
   totalAppointments: number;
   fulfilledAppointments: number;
   cancelledAppointments: number;
+  fulfilledByProduct: {
+    [purchaseItemId: string]: number;
+  };
+  cancelledByProduct: {
+    [purchaseItemId: string]: number;
+  };
 }
 
 const TRAINER_LIST = [
@@ -68,7 +76,9 @@ export default function MonthlySettlement() {
           trainerName: values[5],
           date: values[6],
           time: values[7],
-          status: values[8] as 'scheduled' | 'completed' | 'cancelled'
+          status: values[8] as 'scheduled' | 'completed' | 'cancelled',
+          usedPointBatchId: values[9] || undefined,
+          purchaseItemId: values[10] || undefined
         };
         return appointment;
       });
@@ -146,12 +156,32 @@ export default function MonthlySettlement() {
         appointment => appointment.status === 'cancelled'
       ).length;
 
+      // Group fulfilled appointments by purchase product
+      const fulfilledByProduct: { [key: string]: number } = {};
+      const completedAppointments = trainerAppointments.filter(appointment => appointment.status === 'completed');
+      
+      completedAppointments.forEach(appointment => {
+        const product = appointment.purchaseItemId || 'unknown';
+        fulfilledByProduct[product] = (fulfilledByProduct[product] || 0) + 1;
+      });
+
+      // Group cancelled appointments by purchase product
+      const cancelledByProduct: { [key: string]: number } = {};
+      trainerAppointments
+        .filter(appointment => appointment.status === 'cancelled')
+        .forEach(appointment => {
+          const product = appointment.purchaseItemId || 'unknown';
+          cancelledByProduct[product] = (cancelledByProduct[product] || 0) + 1;
+        });
+
       return {
         trainerId: trainer.id,
         trainerName: trainer.name,
         totalAppointments,
         fulfilledAppointments,
-        cancelledAppointments
+        cancelledAppointments,
+        fulfilledByProduct,
+        cancelledByProduct
       };
     });
 
@@ -215,6 +245,20 @@ export default function MonthlySettlement() {
   const formatMonthYear = (date: Date) => {
     const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
     return `${date.getFullYear()}년 ${monthNames[date.getMonth()]}`;
+  };
+
+  const getProductDisplayName = (itemId: string | undefined) => {
+    if (!itemId) return '미확인';
+    
+    const productNames: { [key: string]: string } = {
+      'starter': '스타터 (5포인트)',
+      'basic': '베이직 (10포인트)',
+      'premium': '프리미엄 (20포인트)',
+      'pro': '프로 (50포인트)',
+      'legacy': '레거시',
+      'unknown': '미확인'
+    };
+    return productNames[itemId] || itemId.charAt(0).toUpperCase() + itemId.slice(1);
   };
 
   if (isLoading) {
@@ -370,7 +414,13 @@ export default function MonthlySettlement() {
                           완료
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          완료 (상품별)
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           취소
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          취소 (상품별)
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           성공률
@@ -405,8 +455,38 @@ export default function MonthlySettlement() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
                             {stat.fulfilledAppointments}
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-xs space-y-1">
+                              {Object.entries(stat.fulfilledByProduct).map(([product, count]) => (
+                                <div key={product} className="flex items-center space-x-2">
+                                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    {getProductDisplayName(product)}
+                                  </span>
+                                  <span className="text-green-600 font-medium">{count}</span>
+                                </div>
+                              ))}
+                              {Object.keys(stat.fulfilledByProduct).length === 0 && (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </div>
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
                             {stat.cancelledAppointments}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-xs space-y-1">
+                              {Object.entries(stat.cancelledByProduct).map(([product, count]) => (
+                                <div key={product} className="flex items-center space-x-2">
+                                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    {getProductDisplayName(product)}
+                                  </span>
+                                  <span className="text-red-600 font-medium">{count}</span>
+                                </div>
+                              ))}
+                              {Object.keys(stat.cancelledByProduct).length === 0 && (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${parseFloat(successRate) >= 80

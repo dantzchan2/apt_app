@@ -38,6 +38,8 @@ interface AppointmentLog {
   userId: string;
   userName: string;
   userEmail: string;
+  usedPointBatchId?: string;
+  purchaseItemId?: string;
 }
 
 export default function AppointmentLogs() {
@@ -116,6 +118,7 @@ export default function AppointmentLogs() {
       'Action': log.action,
       'Action By': log.actionByName,
       'Action By Role': log.actionByRole,
+      'Purchase Product': log.purchaseItemId || 'N/A',
       'Timestamp': new Date(log.timestamp).toLocaleString(),
       'Appointment Date': log.appointmentDate,
       'Appointment Time': log.appointmentTime,
@@ -164,6 +167,20 @@ export default function AppointmentLogs() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const getProductDisplayName = (itemId: string | undefined) => {
+    if (!itemId) return '미확인';
+    
+    const productNames: { [key: string]: string } = {
+      'starter': '스타터 (5포인트)',
+      'basic': '베이직 (10포인트)',
+      'premium': '프리미엄 (20포인트)',
+      'pro': '프로 (50포인트)',
+      'legacy': '레거시',
+      'unknown': '미확인'
+    };
+    return productNames[itemId] || itemId.charAt(0).toUpperCase() + itemId.slice(1);
   };
 
   if (isLoading) {
@@ -348,6 +365,14 @@ export default function AppointmentLogs() {
                           {log.actionByRole}
                         </span>
                       </div>
+                      {log.action === 'booked' && log.purchaseItemId && (
+                        <div className="text-black dark:text-gray-400">
+                          💳 구매 상품: 
+                          <span className="ml-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                            {getProductDisplayName(log.purchaseItemId)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -370,6 +395,9 @@ export default function AppointmentLogs() {
                     실행자
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    구매 상품
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     시간
                   </th>
                 </tr>
@@ -377,7 +405,7 @@ export default function AppointmentLogs() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredLogs.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-black">
+                    <td colSpan={5} className="px-4 py-8 text-center text-black">
                       검색 조건에 맞는 예약 로그가 없습니다.
                     </td>
                   </tr>
@@ -404,6 +432,15 @@ export default function AppointmentLogs() {
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(log.actionByRole)}`}>
                           {log.actionByRole}
                         </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-black">
+                        {log.action === 'booked' && log.purchaseItemId ? (
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                            {getProductDisplayName(log.purchaseItemId)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-black">
                         {formatDateTime(log.timestamp)}

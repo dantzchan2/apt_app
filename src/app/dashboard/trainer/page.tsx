@@ -23,6 +23,8 @@ interface Appointment {
   userName: string;
   userEmail?: string;
   status: 'scheduled' | 'completed' | 'cancelled';
+  usedPointBatchId?: string;
+  purchaseItemId?: string;
 }
 
 interface AppointmentLog {
@@ -37,9 +39,11 @@ interface AppointmentLog {
   appointmentTime: string;
   trainerId: string;
   trainerName: string;
-  userId: string;
+  userId: string;  
   userName: string;
   userEmail: string;
+  usedPointBatchId?: string;
+  purchaseItemId?: string;
 }
 
 export default function TrainerDashboard() {

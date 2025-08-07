@@ -137,6 +137,20 @@ export default function PurchaseLogsPage() {
     return Array.from(new Set(purchaseLogs.map(log => log.purchase_item_id)));
   };
 
+  const getProductDisplayName = (itemId: string | undefined) => {
+    if (!itemId) return '미확인';
+    
+    const productNames: { [key: string]: string } = {
+      'starter': '스타터 (5포인트)',
+      'basic': '베이직 (10포인트)',
+      'premium': '프리미엄 (20포인트)',
+      'pro': '프로 (50포인트)',
+      'legacy': '레거시',
+      'unknown': '미확인'
+    };
+    return productNames[itemId] || itemId.charAt(0).toUpperCase() + itemId.slice(1);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -259,7 +273,7 @@ export default function PurchaseLogsPage() {
                 >
                   <option value="all">모든 패키지</option>
                   {getUniqueItems().map((item) => (
-                    <option key={item} value={item}>{item.charAt(0).toUpperCase() + item.slice(1)}</option>
+                    <option key={item} value={item}>{getProductDisplayName(item)}</option>
                   ))}
                 </select>
               </div>
@@ -340,8 +354,8 @@ export default function PurchaseLogsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800 capitalize">
-                          {log.purchase_item_id}
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                          {getProductDisplayName(log.purchase_item_id)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-black">

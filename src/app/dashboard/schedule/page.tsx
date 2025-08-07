@@ -33,6 +33,8 @@ interface Appointment {
   userName: string;
   userEmail?: string;
   status: 'scheduled' | 'completed' | 'cancelled';
+  usedPointBatchId?: string;
+  purchaseItemId?: string;
 }
 
 interface AppointmentLog {
@@ -50,6 +52,8 @@ interface AppointmentLog {
   userId: string;
   userName: string;
   userEmail: string;
+  usedPointBatchId?: string;
+  purchaseItemId?: string;
 }
 
 interface Trainer {
@@ -132,18 +136,31 @@ export default function Schedule() {
   }, []);
 
   // Helper function to deduct points using FIFO (oldest first)
-  const deductPointFromBatches = (batches: PointBatch[], pointsToDeduct: number): PointBatch[] => {
+  const deductPointFromBatches = (batches: PointBatch[], pointsToDeduct: number): { 
+    updatedBatches: PointBatch[], 
+    usedBatchId: string | null,
+    purchaseItemId: string | null 
+  } => {
     const sortedBatches = [...batches].sort((a, b) => 
       new Date(a.purchaseDate).getTime() - new Date(b.purchaseDate).getTime()
     );
     
     let remaining = pointsToDeduct;
     const updatedBatches: PointBatch[] = [];
+    let usedBatchId: string | null = null;
+    let purchaseItemId: string | null = null;
     
     for (const batch of sortedBatches) {
       if (remaining <= 0) {
         updatedBatches.push(batch);
         continue;
+      }
+      
+      // Track the first batch we use points from
+      if (remaining === pointsToDeduct && batch.points > 0) {
+        usedBatchId = batch.id;
+        // Extract purchase item from batch ID or use a default mapping
+        purchaseItemId = extractPurchaseItemFromBatch(batch);
       }
       
       if (batch.points <= remaining) {
@@ -160,7 +177,26 @@ export default function Schedule() {
       }
     }
     
-    return updatedBatches;
+    return { updatedBatches, usedBatchId, purchaseItemId };
+  };
+
+  // Helper function to extract purchase item from batch
+  const extractPurchaseItemFromBatch = (batch: PointBatch): string => {
+    // Try to extract from batch ID patterns
+    if (batch.id.includes('legacy')) return 'legacy';
+    if (batch.id.includes('starter')) return 'starter';
+    if (batch.id.includes('basic')) return 'basic';
+    if (batch.id.includes('premium')) return 'premium';
+    if (batch.id.includes('pro')) return 'pro';
+    
+    // Map based on original points (common package sizes)
+    switch (batch.originalPoints) {
+      case 5: return 'starter';
+      case 10: return 'basic';
+      case 20: return 'premium';
+      case 50: return 'pro';
+      default: return 'unknown';
+    }
   };
 
   // Helper function to refund points to the most recent valid batch
@@ -258,6 +294,9 @@ export default function Schedule() {
 
     setIsBooking(true);
 
+    // Deduct point using FIFO (oldest first) and get tracking info
+    const deductionResult = deductPointFromBatches(userData.pointBatches || [], 1);
+    
     const trainer = trainers.find(t => t.id === selectedTrainer);
     const newAppointment: Appointment = {
       id: Date.now().toString(),
@@ -267,7 +306,9 @@ export default function Schedule() {
       trainerName: trainer?.name || 'Unknown',
       userId: userData.id,
       userName: userData.name,
-      status: 'scheduled'
+      status: 'scheduled',
+      usedPointBatchId: deductionResult.usedBatchId || undefined,
+      purchaseItemId: deductionResult.purchaseItemId || undefined
     };
 
     const updatedAppointments = [...appointments, newAppointment];
@@ -289,7 +330,9 @@ export default function Schedule() {
       trainerName: trainer?.name || 'Unknown',
       userId: userData.id,
       userName: userData.name,
-      userEmail: userData.email
+      userEmail: userData.email,
+      usedPointBatchId: deductionResult.usedBatchId || undefined,
+      purchaseItemId: deductionResult.purchaseItemId || undefined
     };
 
     // Save to appointment logs
@@ -297,13 +340,12 @@ export default function Schedule() {
     existingLogs.push(appointmentLog);
     localStorage.setItem('appointmentLogs', JSON.stringify(existingLogs));
 
-    // Deduct point using FIFO (oldest first)
-    const updatedBatches = deductPointFromBatches(userData.pointBatches || [], 1);
-    const totalPoints = updatedBatches.reduce((sum, batch) => sum + batch.points, 0);
+    // Use the deduction result from earlier
+    const totalPoints = deductionResult.updatedBatches.reduce((sum, batch) => sum + batch.points, 0);
     
     const updatedUserData = {
       ...userData,
-      pointBatches: updatedBatches,
+      pointBatches: deductionResult.updatedBatches,
       points: totalPoints
     };
     setUserData(updatedUserData);
