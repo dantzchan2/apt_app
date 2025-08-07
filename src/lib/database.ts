@@ -2,7 +2,7 @@ import { Pool, PoolConfig } from 'pg';
 
 const dbConfig: PoolConfig = process.env.POSTGRES_URL ? {
   connectionString: process.env.POSTGRES_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 } : {
   user: process.env.POSTGRES_USER || process.env.DB_USER || 'postgres',
   host: process.env.POSTGRES_HOST || process.env.DB_HOST || 'localhost',
@@ -12,6 +12,7 @@ const dbConfig: PoolConfig = process.env.POSTGRES_URL ? {
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 };
 
 let pool: Pool;
