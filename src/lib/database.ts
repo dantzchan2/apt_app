@@ -1,6 +1,9 @@
 import { Pool, PoolConfig } from 'pg';
 
-const dbConfig: PoolConfig = {
+const dbConfig: PoolConfig = process.env.DATABASE_URL ? {
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+} : {
   user: process.env.DB_USER || 'postgres',
   host: process.env.DB_HOST || 'localhost',
   database: process.env.DB_NAME || 'studio_vit',
@@ -8,7 +11,7 @@ const dbConfig: PoolConfig = {
   port: parseInt(process.env.DB_PORT || '5432'),
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 10000,
 };
 
 let pool: Pool;
