@@ -1,8 +1,21 @@
 import { Pool, PoolConfig } from 'pg';
 
+const getSSLConfig = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return false;
+  }
+  return {
+    rejectUnauthorized: false,
+    require: true
+  };
+};
+
 const dbConfig: PoolConfig = process.env.POSTGRES_URL ? {
   connectionString: process.env.POSTGRES_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: getSSLConfig(),
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
 } : {
   user: process.env.POSTGRES_USER || process.env.DB_USER || 'postgres',
   host: process.env.POSTGRES_HOST || process.env.DB_HOST || 'localhost',
@@ -12,7 +25,7 @@ const dbConfig: PoolConfig = process.env.POSTGRES_URL ? {
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: getSSLConfig()
 };
 
 let pool: Pool;
