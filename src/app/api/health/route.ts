@@ -1,8 +1,22 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '../../../lib/database';
+import { authenticateRequest, authorizeRole } from '../../../lib/auth-middleware';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Authenticate the request
+    const authResult = await authenticateRequest(request);
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.error.status });
+    }
+
+    // Only admins can access health check
+    if (!authorizeRole(authResult.user, ['admin'])) {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
     // Test Supabase connection with a simple query
     const { error: testError } = await supabase
       .from('users')

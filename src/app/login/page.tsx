@@ -28,17 +28,7 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store authentication data
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('userData', JSON.stringify({
-          name: data.user.name,
-          email: data.user.email,
-          role: data.user.role,
-          points: data.user.total_points,
-          id: data.user.id,
-          phone: data.user.phone,
-          specialization: data.user.specialization
-        }));
+        // Login successful, cookie is set by the server
         router.push('/dashboard');
       } else {
         setError(data.error || '잘못된 이메일 또는 비밀번호입니다');

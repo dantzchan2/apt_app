@@ -1,27 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getUserById } from '../../../../lib/auth';
+import { NextResponse } from 'next/server';
+import { getSessionUser } from '../../../../lib/session';
 
-export async function POST(request: NextRequest) {
+export async function GET() {
   try {
-    const { userId } = await request.json();
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
-      );
-    }
-
-    const user = await getUserById(userId);
+    const user = await getSessionUser();
 
     if (!user) {
       return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+        { error: 'Not authenticated' },
+        { status: 401 }
       );
     }
 
-    return NextResponse.json({ user });
+    return NextResponse.json({ 
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        specialization: user.specialization,
+        total_points: user.total_points
+      }
+    });
   } catch (error) {
     console.error('Get user error:', error);
     return NextResponse.json(

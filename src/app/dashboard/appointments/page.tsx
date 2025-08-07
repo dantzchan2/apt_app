@@ -54,29 +54,43 @@ export default function AppointmentLogs() {
   const router = useRouter();
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated');
-    const storedUserData = localStorage.getItem('userData');
-    
-    if (authStatus !== 'true' || !storedUserData) {
-      router.push('/login');
-      return;
-    }
-    
-    const parsedUserData = JSON.parse(storedUserData);
-    if (parsedUserData.role !== 'admin') {
-      router.push('/dashboard');
-      return;
-    }
-    
-    setCurrentUser(parsedUserData);
-    
-    // Load appointment logs from database
-    loadAppointmentLogs(parsedUserData);
-  }, []);
+    const getCurrentUser = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        
+        if (!response.ok) {
+          router.push('/login');
+          return;
+        }
+        
+        const data = await response.json();
+        const userData = data.user;
+        
+        if (userData.role !== 'admin') {
+          router.push('/dashboard');
+          return;
+        }
+        
+        setCurrentUser(userData);
+        
+        // Load appointment logs from database
+        loadAppointmentLogs(userData);
+      } catch (error) {
+        console.error('Error getting current user:', error);
+        router.push('/login');
+      }
+    };
+
+    getCurrentUser();
+  }, [router]);
 
   const loadAppointmentLogs = async (userData: UserData) => {
     try {
-      const response = await fetch(`/api/appointment-logs?userId=${userData.id}&userRole=${userData.role}`);
+      // Admin should see all logs, so don't pass a specific userId
+      const url = userData.role === 'admin' 
+        ? '/api/appointment-logs' 
+        : `/api/appointment-logs?userId=${userData.id}`;
+      const response = await fetch(url);
       const data = await response.json();
       
       if (response.ok) {

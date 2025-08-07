@@ -22,11 +22,19 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userData');
+  const handleLogout = async () => {
+    try {
+      // Call logout API to clear session cookie
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    
     setIsOpen(false);
-    router.push('/');
+    router.push('/login');
   };
 
   const navigationItems = [

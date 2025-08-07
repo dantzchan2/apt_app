@@ -1,12 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '../../../lib/database';
+import { authenticateRequest, authorizeResource } from '../../../lib/auth-middleware';
 
 export async function GET(request: NextRequest) {
   try {
+    // Authenticate the request
+    const authResult = await authenticateRequest(request);
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.error.status });
+    }
+
+    const authenticatedUser = authResult.user;
+    
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const requestedUserId = searchParams.get('userId');
     const trainerId = searchParams.get('trainerId');
     const date = searchParams.get('date');
+
+    // Verify resource access (only check if requestedUserId is provided)
+    if (requestedUserId && !authorizeResource(authenticatedUser, requestedUserId)) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      );
+    }
 
     let query = supabase
       .from('appointments')
@@ -17,12 +34,21 @@ export async function GET(request: NextRequest) {
         products (name, points)
       `);
 
-    if (userId) {
-      query = query.eq('user_id', userId);
-    }
-
-    if (trainerId) {
-      query = query.eq('trainer_id', trainerId);
+    // Apply user-based filtering based on role
+    if (authenticatedUser.role === 'admin') {
+      // Admins can see all appointments, apply filters as requested
+      if (requestedUserId) {
+        query = query.eq('user_id', requestedUserId);
+      }
+      if (trainerId) {
+        query = query.eq('trainer_id', trainerId);
+      }
+    } else if (authenticatedUser.role === 'trainer') {
+      // Trainers can see appointments they're involved in
+      query = query.eq('trainer_id', authenticatedUser.id);
+    } else {
+      // Regular users can only see their own appointments
+      query = query.eq('user_id', authenticatedUser.id);
     }
 
     if (date) {
@@ -48,6 +74,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate the request
+    const authResult = await authenticateRequest(request);
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.error.status });
+    }
+
+    const authenticatedUser = authResult.user;
+    
     const { 
       userId, 
       userName, 
@@ -59,6 +93,14 @@ export async function POST(request: NextRequest) {
       productId,
       notes 
     } = await request.json();
+
+    // Verify the user can only create appointments for themselves (unless admin)
+    if (authenticatedUser.role !== 'admin' && userId !== authenticatedUser.id) {
+      return NextResponse.json(
+        { error: 'Can only create appointments for yourself' },
+        { status: 403 }
+      );
+    }
 
     // Insert the appointment
     const { data: appointment, error: appointmentError } = await supabase
