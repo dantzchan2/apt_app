@@ -1,13 +1,13 @@
 import { Pool, PoolConfig } from 'pg';
 
-const dbConfig: PoolConfig = process.env.DATABASE_URL ? {
-  connectionString: process.env.DATABASE_URL,
+const dbConfig: PoolConfig = process.env.POSTGRES_URL ? {
+  connectionString: process.env.POSTGRES_URL,
   ssl: { rejectUnauthorized: false }
 } : {
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'studio_vit',
-  password: process.env.DB_PASSWORD || 'password',
+  user: process.env.POSTGRES_USER || process.env.DB_USER || 'postgres',
+  host: process.env.POSTGRES_HOST || process.env.DB_HOST || 'localhost',
+  database: process.env.POSTGRES_DATABASE || process.env.DB_NAME || 'studio_vit',
+  password: process.env.POSTGRES_PASSWORD || process.env.DB_PASSWORD || 'password',
   port: parseInt(process.env.DB_PORT || '5432'),
   max: 20,
   idleTimeoutMillis: 30000,
