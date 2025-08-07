@@ -25,13 +25,39 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (user) {
-      // Load appointments - TODO: This should also come from API
-      const storedAppointments = localStorage.getItem('appointments');
-      if (storedAppointments) {
-        setAppointments(JSON.parse(storedAppointments));
-      }
+      // Load appointments from API
+      fetchAppointments();
     }
   }, [user]);
+
+  const fetchAppointments = async () => {
+    try {
+      const response = await fetch('/api/appointments', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Transform API response to match frontend interface
+        const transformedAppointments = (data.appointments || []).map((apt: Record<string, unknown>) => ({
+          id: apt.id,
+          userId: apt.user_id,
+          userName: apt.user_name,
+          userEmail: apt.user_email,
+          trainerId: apt.trainer_id,
+          trainerName: apt.trainer_name,
+          date: apt.appointment_date || apt.date,
+          time: apt.appointment_time || apt.time,
+          status: apt.status
+        }));
+        setAppointments(transformedAppointments);
+      } else {
+        console.error('Failed to fetch appointments');
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    }
+  };
 
 
   const getUpcomingAppointments = () => {

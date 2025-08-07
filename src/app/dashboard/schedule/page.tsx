@@ -37,24 +37,24 @@ interface Appointment {
   purchaseItemId?: string;
 }
 
-interface AppointmentLog {
-  id: string;
-  appointmentId: string;
-  action: 'booked' | 'cancelled';
-  actionBy: string; // user ID who performed the action
-  actionByName: string; // name of who performed the action
-  actionByRole: 'user' | 'trainer' | 'admin';
-  timestamp: string;
-  appointmentDate: string;
-  appointmentTime: string;
-  trainerId: string;
-  trainerName: string;
-  userId: string;
-  userName: string;
-  userEmail: string;
-  usedPointBatchId?: string;
-  purchaseItemId?: string;
-}
+// interface AppointmentLog {
+//   id: string;
+//   appointmentId: string;
+//   action: 'booked' | 'cancelled';
+//   actionBy: string; // user ID who performed the action
+//   actionByName: string; // name of who performed the action
+//   actionByRole: 'user' | 'trainer' | 'admin';
+//   timestamp: string;
+//   appointmentDate: string;
+//   appointmentTime: string;
+//   trainerId: string;
+//   trainerName: string;
+//   userId: string;
+//   userName: string;
+//   userEmail: string;
+//   usedPointBatchId?: string;
+//   purchaseItemId?: string;
+// }
 
 // interface Trainer {
 //   id: string;
@@ -123,18 +123,46 @@ export default function Schedule() {
       parsedUserData.pointBatches = validBatches;
       parsedUserData.points = totalPoints;
       
-      // Update localStorage with cleaned data
-      localStorage.setItem('userData', JSON.stringify(parsedUserData));
+      // TODO: Update user data via API call when point batches expire
+      // await fetch('/api/users/update-points', { ... })
     }
     
     setUserData(parsedUserData);
     
-    // Load appointments from localStorage
-    const storedAppointments = localStorage.getItem('appointments');
-    if (storedAppointments) {
-      setAppointments(JSON.parse(storedAppointments));
-    }
+    // Load appointments from API
+    fetchAppointments();
   }, [user]);
+
+  const fetchAppointments = async () => {
+    try {
+      const response = await fetch('/api/appointments', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Transform API response to match frontend interface
+        const transformedAppointments = (data.appointments || []).map((apt: Record<string, unknown>) => ({
+          id: apt.id,
+          userId: apt.user_id,
+          userName: apt.user_name,
+          userEmail: apt.user_email,
+          trainerId: apt.trainer_id,
+          trainerName: apt.trainer_name,
+          date: apt.appointment_date || apt.date,
+          time: apt.appointment_time || apt.time,
+          status: apt.status,
+          usedPointBatchId: apt.used_point_batch_id,
+          purchaseItemId: apt.purchase_item_id
+        }));
+        setAppointments(transformedAppointments);
+      } else {
+        console.error('Failed to fetch appointments');
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    }
+  };
 
   // Helper function to deduct points using FIFO (oldest first)
   const deductPointFromBatches = (batches: PointBatch[], pointsToDeduct: number): { 
@@ -298,76 +326,61 @@ export default function Schedule() {
     // Deduct point using FIFO (oldest first) and get tracking info
     const deductionResult = deductPointFromBatches(userData.pointBatches || [], 1);
     
-    // TODO: Fetch trainer name from database
-    const newAppointment: Appointment = {
-      id: Date.now().toString(),
-      date: selectedDate,
-      time: selectedTime,
-      trainerId: selectedTrainer,
-      trainerName: 'Unknown', // TODO: Get from database
-      userId: userData.id,
-      userName: userData.name,
-      status: 'scheduled',
-      usedPointBatchId: deductionResult.usedBatchId || undefined,
-      purchaseItemId: deductionResult.purchaseItemId || undefined
-    };
+    try {
+      // Create appointment via API
+      const response = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          userId: userData.id,
+          userName: userData.name,
+          userEmail: userData.email,
+          trainerId: selectedTrainer,
+          trainerName: 'Unknown', // TODO: Get from database
+          date: selectedDate,
+          time: selectedTime,
+          productId: deductionResult.purchaseItemId || 'unknown',
+          notes: `Used batch: ${deductionResult.usedBatchId || 'unknown'}`
+        })
+      });
 
-    const updatedAppointments = [...appointments, newAppointment];
-    setAppointments(updatedAppointments);
-    localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create appointment');
+      }
 
-    // Log the appointment booking
-    const appointmentLog: AppointmentLog = {
-      id: Date.now().toString() + Math.random().toString(36).substring(2, 11),
-      appointmentId: newAppointment.id,
-      action: 'booked',
-      actionBy: userData.id,
-      actionByName: userData.name,
-      actionByRole: userData.role,
-      timestamp: new Date().toISOString(),
-      appointmentDate: selectedDate,
-      appointmentTime: selectedTime,
-      trainerId: selectedTrainer,
-      trainerName: 'Unknown', // TODO: Get from database
-      userId: userData.id,
-      userName: userData.name,
-      userEmail: userData.email,
-      usedPointBatchId: deductionResult.usedBatchId || undefined,
-      purchaseItemId: deductionResult.purchaseItemId || undefined
-    };
+      // Refresh appointments from server
+      await fetchAppointments();
 
-    // Save to appointment logs
-    const existingLogs = JSON.parse(localStorage.getItem('appointmentLogs') || '[]');
-    existingLogs.push(appointmentLog);
-    localStorage.setItem('appointmentLogs', JSON.stringify(existingLogs));
+      // Update user points (API call should also handle this, but update local state)
+      // Use the deduction result from earlier
+      const totalPoints = deductionResult.updatedBatches.reduce((sum, batch) => sum + batch.points, 0);
+      
+      const updatedUserData = {
+        ...userData,
+        pointBatches: deductionResult.updatedBatches,
+        points: totalPoints
+      };
+      setUserData(updatedUserData);
 
-    // Use the deduction result from earlier
-    const totalPoints = deductionResult.updatedBatches.reduce((sum, batch) => sum + batch.points, 0);
-    
-    const updatedUserData = {
-      ...userData,
-      pointBatches: deductionResult.updatedBatches,
-      points: totalPoints
-    };
-    setUserData(updatedUserData);
-    localStorage.setItem('userData', JSON.stringify(updatedUserData));
-    
-    // Also update the user in the allUsers list if it exists
-    const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
-    const updatedAllUsers = allUsers.map((user: UserData) => 
-      user.id === userData.id ? updatedUserData : user
-    );
-    if (updatedAllUsers.some((user: UserData) => user.id === userData.id)) {
-      localStorage.setItem('allUsers', JSON.stringify(updatedAllUsers));
+      // TODO: Update user points via API call
+      // await fetch('/api/users/update-points', { ... })
+
+      alert('예약이 성공적으로 완료되었습니다!');
+    } catch (error) {
+      console.error('Booking error:', error);
+      alert(`예약 실패: ${error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'}`);
+    } finally {
+      setIsBooking(false);
+      setSelectedDate('');
+      setSelectedTime('');
+      setSelectedHour('');
+      setSelectedMinute('');
+      setSelectedTrainer('');
     }
-
-    setIsBooking(false);
-    setSelectedDate('');
-    setSelectedTime('');
-    setSelectedHour('');
-    setSelectedMinute('');
-    setSelectedTrainer('');
-    alert('예약이 성공적으로 완료되었습니다!');
   };
 
   const getMyAppointments = () => {
@@ -442,62 +455,49 @@ export default function Schedule() {
     const appointment = appointments.find(apt => apt.id === appointmentId);
     if (!appointment) return;
 
-    // Update appointment status to cancelled
-    const updatedAppointments = appointments.map(apt => 
-      apt.id === appointmentId 
-        ? { ...apt, status: 'cancelled' as const }
-        : apt
-    );
-    
-    setAppointments(updatedAppointments);
-    localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+    try {
+      // Update appointment status via API
+      const response = await fetch('/api/appointments', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: appointmentId,
+          status: 'cancelled'
+        })
+      });
 
-    // Refund the point - add to most recent batch that hasn't expired
-    if (userData) {
-      // Log the appointment cancellation
-      const appointmentLog: AppointmentLog = {
-        id: Date.now().toString() + Math.random().toString(36).substring(2, 11),
-        appointmentId: appointmentId,
-        action: 'cancelled',
-        actionBy: userData.id,
-        actionByName: userData.name,
-        actionByRole: userData.role,
-        timestamp: new Date().toISOString(),
-        appointmentDate: appointment.date,
-        appointmentTime: appointment.time,
-        trainerId: appointment.trainerId,
-        trainerName: appointment.trainerName,
-        userId: appointment.userId,
-        userName: appointment.userName,
-        userEmail: userData.email
-      };
-
-      // Save to appointment logs
-      const existingLogs = JSON.parse(localStorage.getItem('appointmentLogs') || '[]');
-      existingLogs.push(appointmentLog);
-      localStorage.setItem('appointmentLogs', JSON.stringify(existingLogs));
-      const refundedBatches = refundPointToBatches(userData.pointBatches || []);
-      const totalPoints = refundedBatches.reduce((sum, batch) => sum + batch.points, 0);
-      
-      const updatedUserData = {
-        ...userData,
-        pointBatches: refundedBatches,
-        points: totalPoints
-      };
-      setUserData(updatedUserData);
-      localStorage.setItem('userData', JSON.stringify(updatedUserData));
-      
-      // Also update the user in the allUsers list if it exists
-      const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
-      const updatedAllUsers = allUsers.map((user: UserData) => 
-        user.id === userData.id ? updatedUserData : user
-      );
-      if (updatedAllUsers.some((user: UserData) => user.id === userData.id)) {
-        localStorage.setItem('allUsers', JSON.stringify(updatedAllUsers));
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to cancel appointment');
       }
-    }
 
-    alert('예약이 성공적으로 취소되었습니다. 포인트가 환불되었습니다.');
+      // Refresh appointments from server
+      await fetchAppointments();
+
+      // Refund the point - add to most recent batch that hasn't expired  
+      if (userData) {
+        const refundedBatches = refundPointToBatches(userData.pointBatches || []);
+        const totalPoints = refundedBatches.reduce((sum, batch) => sum + batch.points, 0);
+        
+        const updatedUserData = {
+          ...userData,
+          pointBatches: refundedBatches,
+          points: totalPoints
+        };
+        setUserData(updatedUserData);
+
+        // TODO: Update user points via API call
+        // await fetch('/api/users/update-points', { ... })
+      }
+
+      alert('예약이 성공적으로 취소되었습니다. 포인트가 환불되었습니다.');
+    } catch (error) {
+      console.error('Cancellation error:', error);
+      alert(`취소 실패: ${error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'}`);
+    }
   };
 
   if (isLoading) {

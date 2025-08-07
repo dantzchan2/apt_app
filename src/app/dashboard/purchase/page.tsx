@@ -73,10 +73,26 @@ export default function Purchase() {
     };
     setUserData(userData);
     
-    // Load purchase logs
-    const logs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
-    setPurchaseLogs(logs);
+    // Load purchase logs from API
+    fetchPurchaseLogs();
   }, [user, router]);
+
+  const fetchPurchaseLogs = async () => {
+    try {
+      const response = await fetch('/api/purchase-logs', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setPurchaseLogs(data.purchases || []);
+      } else {
+        console.error('Failed to fetch purchase logs');
+      }
+    } catch (error) {
+      console.error('Error fetching purchase logs:', error);
+    }
+  };
 
   const handlePurchase = async (option: PurchaseOption) => {
     if (!userData) return;
@@ -93,34 +109,11 @@ export default function Purchase() {
       points: (userData.points || 0) + option.points
     };
 
-    localStorage.setItem('userData', JSON.stringify(updatedUserData));
+    // Update local state (TODO: update in database via API)
     setUserData(updatedUserData);
     
-    // Also update the user in the allUsers list if it exists
-    const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
-    const updatedAllUsers = allUsers.map((user: UserData) => 
-      user.id === userData.id ? updatedUserData : user
-    );
-    if (updatedAllUsers.some((user: UserData) => user.id === userData.id)) {
-      localStorage.setItem('allUsers', JSON.stringify(updatedAllUsers));
-    }
-    
-    // Log the purchase
-    const purchaseLog: PurchaseLog = {
-      purchase_id: Date.now().toString() + Math.random().toString(36).substring(2, 11),
-      user_id: userData.id,
-      user_name: userData.name,
-      user_email: userData.email,
-      purchase_item_id: option.id,
-      datetime: new Date().toISOString(),
-      price: option.price,
-      points: option.points
-    };
-
-    // Save to purchase logs
-    const existingLogs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
-    existingLogs.push(purchaseLog);
-    localStorage.setItem('purchaseLogs', JSON.stringify(existingLogs));
+    // TODO: Save purchase log via API
+    // await fetch('/api/purchase-logs', { method: 'POST', ... })
     
     setIsLoading(false);
     setSelectedOption(null);
@@ -128,9 +121,8 @@ export default function Purchase() {
     // Show success message (in a real app, you might use a toast notification)
     alert(`${option.points} 포인트를 성공적으로 구매했습니다!`);
     
-    // Refresh purchase logs
-    const updatedLogs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
-    setPurchaseLogs(updatedLogs);
+    // Refresh purchase logs from API
+    await fetchPurchaseLogs();
   };
 
   const downloadPurchaseLogs = () => {
@@ -206,47 +198,16 @@ export default function Purchase() {
       points: totalPoints
     };
 
-    localStorage.setItem('userData', JSON.stringify(updatedUserData));
+    // Update local state (TODO: update in database via API) 
     setUserData(updatedUserData);
     
-    // Also update the user in the allUsers list if it exists
-    const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
-    const updatedAllUsers = allUsers.map((user: UserData) => {
-      if (user.id === userData.id) {
-        return {
-          ...user,
-          pointBatches: validBatches,
-          points: totalPoints
-        };
-      }
-      return user;
-    });
-    if (updatedAllUsers.some((user: UserData) => user.id === userData.id)) {
-      localStorage.setItem('allUsers', JSON.stringify(updatedAllUsers));
-    }
-    
-    // Log the debug purchase
-    const purchaseLog: PurchaseLog = {
-      purchase_id: 'debug-' + Date.now().toString() + Math.random().toString(36).substring(2, 11),
-      user_id: userData.id,
-      user_name: userData.name,
-      user_email: userData.email,
-      purchase_item_id: 'debug-expiring',
-      datetime: new Date().toISOString(),
-      price: 0,
-      points: 3
-    };
-
-    // Save to purchase logs
-    const existingLogs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
-    existingLogs.push(purchaseLog);
-    localStorage.setItem('purchaseLogs', JSON.stringify(existingLogs));
+    // TODO: Log the debug purchase via API
+    // await fetch('/api/purchase-logs', { method: 'POST', ... })
     
     setIsLoading(false);
     
-    // Refresh purchase logs
-    const updatedLogs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
-    setPurchaseLogs(updatedLogs);
+    // Refresh purchase logs from API
+    await fetchPurchaseLogs();
     
     alert('디버그 구매가 완료되었습니다! 내일 만료되는 3포인트가 추가되었습니다.');
   };

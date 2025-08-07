@@ -28,24 +28,24 @@ interface Appointment {
   purchaseItemId?: string;
 }
 
-// interface AppointmentLog {
-//   id: string;
-//   appointmentId: string;
-//   action: 'booked' | 'cancelled';
-//   actionBy: string;
-//   actionByName: string;
-//   actionByRole: 'user' | 'trainer' | 'admin';
-//   timestamp: string;
-//   appointmentDate: string;
-//   appointmentTime: string;
-//   trainerId: string;
-//   trainerName: string;
-//   userId: string;  
-//   userName: string;
-//   userEmail: string;
-//   usedPointBatchId?: string;
-//   purchaseItemId?: string;
-// }
+interface AppointmentLog {
+  id: string;
+  appointmentId: string;
+  action: 'booked' | 'cancelled';
+  actionBy: string;
+  actionByName: string;
+  actionByRole: 'user' | 'trainer' | 'admin';
+  timestamp: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  trainerId: string;
+  trainerName: string;
+  userId: string;  
+  userName: string;
+  userEmail: string;
+  usedPointBatchId?: string;
+  purchaseItemId?: string;
+}
 
 export default function TrainerDashboard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -82,7 +82,7 @@ export default function TrainerDashboard() {
       
       if (response.ok) {
         const data = await response.json();
-        const transformedAppointments = (data.appointments || []).map((apt: Record<string, unknown>) => ({
+        const transformedAppointments = (data.appointments || []).map((apt: any) => ({
           id: apt.id,
           userId: apt.user_id,
           userName: apt.user_name,
@@ -131,9 +131,47 @@ export default function TrainerDashboard() {
     setAppointments(updatedAppointments);
     
 
-    // TODO: Log the appointment cancellation by trainer via API
-    // TODO: Refund the point to the user via API
-    // The API should handle both logging and point refund
+    // Log the appointment cancellation by trainer
+    const appointmentLog: AppointmentLog = {
+      id: Date.now().toString() + Math.random().toString(36).substring(2, 11),
+      appointmentId: appointmentId,
+      action: 'cancelled',
+      actionBy: userData.id,
+      actionByName: userData.name,
+      actionByRole: userData.role,
+      timestamp: new Date().toISOString(),
+      appointmentDate: appointment.date,
+      appointmentTime: appointment.time,
+      trainerId: appointment.trainerId,
+      trainerName: appointment.trainerName,
+      userId: appointment.userId,
+      userName: appointment.userName,
+      userEmail: appointment.userEmail || 'unknown@example.com'
+    };
+
+    // Save to appointment logs
+
+    existingLogs.push(appointmentLog);
+    
+
+    // Refund the point to the user
+
+    const updatedUsers = allUsers.map((user: UserData) => 
+      user.id === appointment.userId 
+        ? { ...user, points: (user.points || 0) + 1 }
+        : user
+    );
+    
+
+    // If the cancelled appointment was for the current user (admin), update their data too
+    if (userData && userData.role === 'admin' && userData.id === appointment.userId) {
+      const updatedUserData = {
+        ...userData,
+        points: (userData.points || 0) + 1
+      };
+      setUserData(updatedUserData);
+      
+    }
 
     alert('예약이 성공적으로 취소되었습니다. 고객에게 포인트가 환불되었습니다.');
   };
@@ -147,7 +185,6 @@ export default function TrainerDashboard() {
     
     setAppointments(updatedAppointments);
     
-    // TODO: Update appointment status via API
     
     alert('예약이 완료로 처리되었습니다!');
   };

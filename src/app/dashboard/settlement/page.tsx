@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardHeader from '../../../components/DashboardHeader';
 import { useAuth } from '../../../hooks/useAuth';
@@ -59,7 +59,7 @@ export default function MonthlySettlement() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  const loadCSVData = async () => {
+  const loadCSVData = useCallback(async () => {
     try {
       const response = await fetch('/data/appointments.csv');
       const csvText = await response.text();
@@ -88,11 +88,33 @@ export default function MonthlySettlement() {
       setAppointments(csvAppointments);
     } catch (error) {
       console.error('Error loading CSV data:', error);
-      // Fallback to localStorage if CSV fails
-      const storedAppointments = localStorage.getItem('appointments');
-      if (storedAppointments) {
-        setAppointments(JSON.parse(storedAppointments));
+      // Fallback to API if CSV fails
+      await fetchAppointments();
+    }
+  }, []);
+
+  const fetchAppointments = async () => {
+    try {
+      const response = await fetch('/api/appointments', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        const transformedAppointments = (data.appointments || []).map((apt: Record<string, unknown>) => ({
+          id: apt.id,
+          userId: apt.user_id,
+          userName: apt.user_name,
+          userEmail: apt.user_email,
+          trainerId: apt.trainer_id,
+          trainerName: apt.trainer_name,
+          date: apt.appointment_date || apt.date,
+          time: apt.appointment_time || apt.time,
+          status: apt.status,
+          usedPointBatchId: apt.used_point_batch_id,
+          purchaseItemId: apt.purchase_item_id
+        }));
+        setAppointments(transformedAppointments);
       }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
     }
   };
 
@@ -115,7 +137,7 @@ export default function MonthlySettlement() {
     loadCSVData();
 
     setIsLoading(false);
-  }, [user, router]);
+  }, [user, router, loadCSVData]);
 
   useEffect(() => {
     const calculateTrainerStats = () => {

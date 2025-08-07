@@ -54,19 +54,23 @@ export default function UsersManagement() {
     };
     setCurrentUser(userData);
     
-    // Initialize users list if it doesn't exist or needs update
-    const storedUsers = localStorage.getItem('allUsers');
-    const dataVersion = localStorage.getItem('usersDataVersion');
-    const currentVersion = '2.2'; // Update this to force refresh
+    // Load users from database via API
+    fetchUsers();
     
-    // Clear localStorage completely for this version to ensure clean state
-    if (dataVersion !== currentVersion) {
-      localStorage.removeItem('allUsers');
-      localStorage.removeItem('userData');
-      localStorage.removeItem('usersDataVersion');
-    }
-    
-    if (!storedUsers || dataVersion !== currentVersion) {
+    setIsLoading(false);
+  }, [user, router]);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/users', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setAllUsers(data.users || []);
+        setFilteredUsers(data.users || []);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      // Fallback to hardcoded users if API fails
       const defaultUsers: UserData[] = [
         {
           name: 'Admin User',
@@ -174,71 +178,11 @@ export default function UsersManagement() {
           memo: ''
         }
       ];
-      localStorage.setItem('allUsers', JSON.stringify(defaultUsers));
-      localStorage.setItem('usersDataVersion', currentVersion);
+
       setAllUsers(defaultUsers);
       setFilteredUsers(defaultUsers);
-      
-      // Also update the current user's data in localStorage if they match
-      const currentUserData = localStorage.getItem('userData');
-      if (currentUserData) {
-        const currentUser = JSON.parse(currentUserData);
-        const matchingUser = defaultUsers.find(user => user.id === currentUser.id);
-        if (matchingUser) {
-          localStorage.setItem('userData', JSON.stringify(matchingUser));
-        }
-      }
-    } else {
-      const users = JSON.parse(storedUsers);
-      // Add memo field and point batches to existing users if they don't exist
-      const usersWithUpdatedFields = users.map((user: UserData) => {
-        const updatedUser = {
-          ...user,
-          memo: user.memo || ''
-        };
-        
-        // Initialize point batches if user doesn't have them yet (but only if they don't already exist)
-        if (!updatedUser.pointBatches && updatedUser.points && !user.pointBatches) {
-          const purchaseDate = new Date().toISOString();
-          const expiryDate = new Date();
-          expiryDate.setMonth(expiryDate.getMonth() + 6);
-          
-          const legacyBatch: PointBatch = {
-            id: 'legacy-' + Date.now() + '-' + user.id,
-            points: updatedUser.points,
-            purchaseDate: purchaseDate,
-            expiryDate: expiryDate.toISOString(),
-            originalPoints: updatedUser.points
-          };
-          
-          updatedUser.pointBatches = [legacyBatch];
-        }
-        
-        // Clean up expired batches and recalculate points
-        if (updatedUser.pointBatches) {
-          const now = new Date();
-          const validBatches = updatedUser.pointBatches.filter((batch: PointBatch) => 
-            new Date(batch.expiryDate) > now
-          );
-          
-          const totalPoints = validBatches.reduce((sum: number, batch: PointBatch) => sum + batch.points, 0);
-          
-          updatedUser.pointBatches = validBatches;
-          updatedUser.points = totalPoints;
-        }
-        
-        return updatedUser;
-      });
-      
-      // Update localStorage with cleaned data
-      localStorage.setItem('allUsers', JSON.stringify(usersWithUpdatedFields));
-      
-      setAllUsers(usersWithUpdatedFields);
-      setFilteredUsers(usersWithUpdatedFields);
     }
-    
-    setIsLoading(false);
-  }, [user, router]);
+  };
 
   useEffect(() => {
     let filtered = allUsers;
@@ -271,13 +215,11 @@ export default function UsersManagement() {
     );
     
     setAllUsers(updatedUsers);
-    localStorage.setItem('allUsers', JSON.stringify(updatedUsers));
     
     // If the updated user is the current user, update their session data
     if (userId === currentUser?.id) {
       const updatedCurrentUser = { ...currentUser, role: newRole };
       setCurrentUser(updatedCurrentUser);
-      localStorage.setItem('userData', JSON.stringify(updatedCurrentUser));
     }
     
     alert(`사용자 역할이 ${newRole === 'user' ? '사용자' : newRole === 'trainer' ? '트레이너' : '관리자'}로 성공적으로 변경되었습니다!`);
@@ -308,13 +250,12 @@ export default function UsersManagement() {
       }
       return true;
     }));
-    localStorage.setItem('allUsers', JSON.stringify(updatedUsers));
     
     setShowMemoPopup(false);
     setSelectedUser(null);
     setMemoText('');
     
-    alert('메모가 성공적으로 저장되었습니다!');
+    alert('메모가 성성적으로 저장되었습니다!');
   };
 
   const handleMemoCancel = () => {
