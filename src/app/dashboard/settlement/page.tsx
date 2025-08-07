@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardHeader from '../../../components/DashboardHeader';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface UserData {
   name: string;
@@ -50,6 +51,7 @@ const TRAINER_LIST = [
 ];
 
 export default function MonthlySettlement() {
+  const { user, isLoading: authLoading } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -95,44 +97,28 @@ export default function MonthlySettlement() {
   };
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!user) return;
     
-    const authStatus = localStorage.getItem('isAuthenticated');
-    const storedUserData = localStorage.getItem('userData');
-    
-    if (authStatus === 'true' && storedUserData) {
-      try {
-        const parsedData = JSON.parse(storedUserData);
-        
-        // Check if user is admin
-        if (parsedData.role !== 'admin') {
-          router.replace('/dashboard');
-          return;
-        }
-        
-        setUserData(parsedData);
-
-        // Load appointments from CSV
-        loadCSVData();
-
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('userData');
-        router.replace('/login');
-      }
-    } else {
-      setIsLoading(false);
-      router.replace('/login');
+    // Check if user is admin or trainer
+    if (user.role !== 'admin' && user.role !== 'trainer') {
+      router.replace('/dashboard');
+      return;
     }
-  }, [router]);
+    
+    const userData = {
+      ...user,
+      points: user.total_points
+    };
+    setUserData(userData);
+
+    // Load appointments from CSV
+    loadCSVData();
+
+    setIsLoading(false);
+  }, [user, router]);
 
   useEffect(() => {
-    calculateTrainerStats();
-  }, [appointments, currentDate]);
-
-  const calculateTrainerStats = () => {
+    const calculateTrainerStats = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
@@ -186,7 +172,10 @@ export default function MonthlySettlement() {
     });
 
     setTrainerStats(stats);
-  };
+    };
+    
+    calculateTrainerStats();
+  }, [appointments, currentDate]);
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prevDate => {
@@ -261,7 +250,7 @@ export default function MonthlySettlement() {
     return productNames[itemId] || itemId.charAt(0).toUpperCase() + itemId.slice(1);
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -272,7 +261,7 @@ export default function MonthlySettlement() {
     );
   }
 
-  if (!userData || userData.role !== 'admin') {
+  if (!user || !userData || (userData.role !== 'admin' && userData.role !== 'trainer')) {
     return null;
   }
 

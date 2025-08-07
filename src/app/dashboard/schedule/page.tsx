@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardHeader from '../../../components/DashboardHeader';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface PointBatch {
   id: string;
@@ -72,9 +72,9 @@ const hardcodedTrainers = [
 ];
 
 export default function Schedule() {
+  const { user, isLoading } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  // const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedHour, setSelectedHour] = useState('');
@@ -82,19 +82,16 @@ export default function Schedule() {
   const [selectedTrainer, setSelectedTrainer] = useState('');
   const [isBooking, setIsBooking] = useState(false);
   const [view, setView] = useState<'book' | 'my-appointments'>('my-appointments');
-  // const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated');
-    const storedUserData = localStorage.getItem('userData');
+    if (!user) return;
     
-    if (authStatus !== 'true' || !storedUserData) {
-      router.push('/login');
-      return;
-    }
-    
-    const parsedUserData = JSON.parse(storedUserData);
+    // Convert user from auth to userData format
+    const parsedUserData = {
+      ...user,
+      points: user.total_points,
+      pointBatches: [] as PointBatch[]
+    };
     
     // Initialize point batches if user doesn't have them yet
     if (!parsedUserData.pointBatches && parsedUserData.points) {
@@ -137,7 +134,7 @@ export default function Schedule() {
     if (storedAppointments) {
       setAppointments(JSON.parse(storedAppointments));
     }
-  }, []);
+  }, [user]);
 
   // Helper function to deduct points using FIFO (oldest first)
   const deductPointFromBatches = (batches: PointBatch[], pointsToDeduct: number): { 
@@ -503,7 +500,7 @@ export default function Schedule() {
     alert('예약이 성공적으로 취소되었습니다. 포인트가 환불되었습니다.');
   };
 
-  if (!userData) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -512,6 +509,10 @@ export default function Schedule() {
         </div>
       </div>
     );
+  }
+
+  if (!user || !userData) {
+    return null;
   }
 
   return (

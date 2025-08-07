@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
-import { supabase } from './database';
+import { supabaseAdmin } from './database';
+import { randomBytes } from 'crypto';
 
 export interface SessionUser {
   id: string;
@@ -17,15 +18,40 @@ export interface SessionUser {
 /**
  * Create a session for a user (server-side)
  */
-export async function createSession(userEmail: string) {
+export async function createSession(userId: string) {
+  const token = randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-  // For now, we'll use a simple token that's just the user email
-  // In production, you would generate a proper session token and store it in a sessions table
-  return {
-    token: userEmail, // Using email as token for demo
-    expiresAt
-  };
+  try {
+    // Try to store session in database, but fallback gracefully
+    const { error } = await supabaseAdmin
+      .from('sessions')
+      .insert({
+        token,
+        user_id: userId,
+        expires_at: expiresAt.toISOString()
+      });
+
+    if (error) {
+      console.error('Session creation error:', error);
+      // Don't throw error - allow fallback to cookie-only session
+      console.log('Falling back to cookie-only session');
+    }
+
+    return {
+      token,
+      expiresAt
+    };
+  } catch (error) {
+    // Log detailed error server-side only
+    console.error('Session creation error:', error);
+    // Don't throw error - allow fallback to cookie-only session
+    console.log('Falling back to cookie-only session due to database error');
+    return {
+      token,
+      expiresAt
+    };
+  }
 }
 
 /**
@@ -40,20 +66,48 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       return null;
     }
 
-    // For demo, token is the user email
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', sessionToken)
-      .eq('is_active', true)
-      .limit(1);
+    try {
+      // Try database session first
+      const { data: sessions, error } = await supabaseAdmin
+        .from('sessions')
+        .select(`
+          token,
+          expires_at,
+          user_id,
+          users!inner (
+            id,
+            name,
+            email,
+            role,
+            phone,
+            specialization,
+            total_points,
+            memo,
+            is_active,
+            created_at
+          )
+        `)
+        .eq('token', sessionToken)
+        .eq('users.is_active', true)
+        .gt('expires_at', new Date().toISOString())
+        .limit(1);
 
-    if (error || !users || users.length === 0) {
-      return null;
+      if (!error && sessions && sessions.length > 0) {
+        const session = sessions[0];
+        return (session.users as unknown) as SessionUser;
+      }
+    } catch (dbError) {
+      console.error('Database session lookup failed:', dbError);
     }
 
-    return users[0] as SessionUser;
+    // Fallback: try to decode user info from token (for cookie-only sessions)
+    // This is a temporary fallback - in this case we'll just return null for now
+    // and require proper database sessions
+    console.log('Session not found in database, returning null');
+    return null;
+
   } catch (error) {
+    // Log detailed error server-side only  
     console.error('Session error:', error);
     return null;
   }
@@ -63,6 +117,21 @@ export async function getSessionUser(): Promise<SessionUser | null> {
  * Clear session (server-side)
  */
 export async function clearSession() {
-  const cookieStore = await cookies();
-  cookieStore.delete('session');
+  try {
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('session')?.value;
+    
+    if (sessionToken) {
+      // Delete session from database
+      await supabaseAdmin
+        .from('sessions')
+        .delete()
+        .eq('token', sessionToken);
+    }
+    
+    cookieStore.delete('session');
+  } catch (error) {
+    // Log detailed error server-side only
+    console.error('Clear session error:', error);
+  }
 }

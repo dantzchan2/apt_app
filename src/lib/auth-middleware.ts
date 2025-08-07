@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { supabase } from './database';
+import { supabaseAdmin } from './database';
 
 export interface AuthenticatedUser {
   id: string;
@@ -37,15 +37,32 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
   }
 
   try {
-    // For demo, session token is the user email
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('id, name, email, phone, role, specialization, total_points, memo, is_active, created_at')
-      .eq('email', sessionToken)
-      .eq('is_active', true)
+    // Look up session in database and join with user
+    const { data: sessions, error } = await supabaseAdmin
+      .from('sessions')
+      .select(`
+        token,
+        expires_at,
+        users!inner (
+          id,
+          name,
+          email,
+          phone,
+          role,
+          specialization,
+          total_points,
+          memo,
+          is_active,
+          created_at
+        )
+      `)
+      .eq('token', sessionToken)
+      .eq('users.is_active', true)
+      .gt('expires_at', new Date().toISOString())
       .limit(1);
 
     if (error) {
+      // Log detailed error server-side only
       console.error('Database error during authentication:', error);
       return {
         success: false,
@@ -53,18 +70,20 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
       };
     }
 
-    if (!users || users.length === 0) {
+    if (!sessions || sessions.length === 0) {
       return {
         success: false,
-        error: { error: 'Invalid session', status: 401 }
+        error: { error: 'Invalid or expired session', status: 401 }
       };
     }
 
+    const user = (sessions[0].users as unknown) as AuthenticatedUser;
     return {
       success: true,
-      user: users[0] as AuthenticatedUser
+      user
     };
   } catch (error) {
+    // Log detailed error server-side only
     console.error('Authentication error:', error);
     return {
       success: false,

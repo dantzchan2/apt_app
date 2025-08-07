@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardHeader from '../../../components/DashboardHeader';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface UserData {
   name: string;
@@ -47,27 +48,25 @@ interface AppointmentLog {
 }
 
 export default function TrainerDashboard() {
+  const { user, isLoading: authLoading } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated');
-    const storedUserData = localStorage.getItem('userData');
+    if (!user) return;
     
-    if (authStatus !== 'true' || !storedUserData) {
-      router.push('/login');
-      return;
-    }
-    
-    const parsedUserData = JSON.parse(storedUserData);
-    if (parsedUserData.role !== 'trainer' && parsedUserData.role !== 'admin') {
+    if (user.role !== 'trainer' && user.role !== 'admin') {
       router.push('/dashboard');
       return;
     }
     
-    setUserData(parsedUserData);
+    const userData = {
+      ...user,
+      points: user.total_points
+    };
+    setUserData(userData);
     
     // Load appointments from localStorage
     const storedAppointments = localStorage.getItem('appointments');
@@ -76,7 +75,7 @@ export default function TrainerDashboard() {
     }
     
     setIsLoading(false);
-  }, []);
+  }, [user, router]);
 
   const getMyAppointments = () => {
     if (!userData) return [];
@@ -167,7 +166,7 @@ export default function TrainerDashboard() {
     alert('예약이 완료로 처리되었습니다!');
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -178,7 +177,7 @@ export default function TrainerDashboard() {
     );
   }
 
-  if (!userData) {
+  if (!user || !userData) {
     return null;
   }
 

@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardHeader from '../../../components/DashboardHeader';
-import * as XLSX from 'xlsx';
+import { exportToCSV } from '../../../lib/csv-export';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface PointBatch {
   id: string;
@@ -26,6 +27,7 @@ interface UserData {
 
 
 export default function UsersManagement() {
+  const { user, isLoading: authLoading } = useAuth();
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
   const [allUsers, setAllUsers] = useState<UserData[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
@@ -38,21 +40,19 @@ export default function UsersManagement() {
   const router = useRouter();
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated');
-    const storedUserData = localStorage.getItem('userData');
+    if (!user) return;
     
-    if (authStatus !== 'true' || !storedUserData) {
-      router.push('/login');
-      return;
-    }
-    
-    const parsedUserData = JSON.parse(storedUserData);
-    if (parsedUserData.role !== 'admin') {
+    if (user.role !== 'admin') {
       router.push('/dashboard');
       return;
     }
     
-    setCurrentUser(parsedUserData);
+    const userData = {
+      ...user,
+      points: user.total_points,
+      pointBatches: []
+    };
+    setCurrentUser(userData);
     
     // Initialize users list if it doesn't exist or needs update
     const storedUsers = localStorage.getItem('allUsers');
@@ -238,7 +238,7 @@ export default function UsersManagement() {
     }
     
     setIsLoading(false);
-  }, []);
+  }, [user, router]);
 
   useEffect(() => {
     let filtered = allUsers;
@@ -333,12 +333,8 @@ export default function UsersManagement() {
       Memo: user.memo || ''
     }));
 
-    const ws = XLSX.utils.json_to_sheet(userData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Users');
-    
-    const fileName = `user_data_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(wb, fileName);
+    const fileName = `user_data_${new Date().toISOString().split('T')[0]}.csv`;
+    exportToCSV(userData, fileName);
   };
 
 
@@ -359,7 +355,7 @@ export default function UsersManagement() {
     return allUsers.filter(user => user.role === role).length;
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -370,7 +366,7 @@ export default function UsersManagement() {
     );
   }
 
-  if (!currentUser) {
+  if (!user || !currentUser) {
     return null;
   }
 
@@ -591,7 +587,7 @@ export default function UsersManagement() {
             </h3>
             <ul className="text-sm text-orange-700 space-y-1">
               <li>• <strong>사용자 데이터</strong>는 이름, 이메일, 역할, 포인트, 메모를 포함합니다</li>
-              <li>• 파일은 엑셀 (.xlsx) 형식으로 다운로드됩니다</li>
+              <li>• 파일은 CSV (.csv) 형식으로 다운로드됩니다</li>
               <li>• 파일명에 현재 날짜가 포함되어 쉽게 정리할 수 있습니다</li>
               <li>• 구매 로그는 포인트 구매 페이지에서 다운로드할 수 있습니다</li>
             </ul>

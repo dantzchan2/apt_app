@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardHeader from '../../../components/DashboardHeader';
-import * as XLSX from 'xlsx';
+import { exportToCSV } from '../../../lib/csv-export';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface PointBatch {
   id: string;
@@ -49,6 +50,7 @@ const purchaseOptions: PurchaseOption[] = [
 ];
 
 export default function Purchase() {
+  const { user, isLoading: authLoading } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -57,26 +59,24 @@ export default function Purchase() {
   const router = useRouter();
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated');
-    const storedUserData = localStorage.getItem('userData');
+    if (!user) return;
     
-    if (authStatus !== 'true' || !storedUserData) {
-      router.push('/login');
-      return;
-    }
-    
-    const parsedUserData = JSON.parse(storedUserData);
-    if (parsedUserData.role !== 'user' && parsedUserData.role !== 'admin') {
+    if (user.role !== 'user' && user.role !== 'admin') {
       router.push('/dashboard');
       return;
     }
     
-    setUserData(parsedUserData);
+    const userData = {
+      ...user,
+      points: user.total_points,
+      pointBatches: []
+    };
+    setUserData(userData);
     
     // Load purchase logs
     const logs = JSON.parse(localStorage.getItem('purchaseLogs') || '[]');
     setPurchaseLogs(logs);
-  }, []);
+  }, [user, router]);
 
   const handlePurchase = async (option: PurchaseOption) => {
     if (!userData) return;
@@ -150,12 +150,8 @@ export default function Purchase() {
       'Points': log.points
     }));
 
-    const ws = XLSX.utils.json_to_sheet(formattedLogs);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Purchase Logs');
-    
-    const fileName = `purchase_logs_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(wb, fileName);
+    const fileName = `purchase_logs_${new Date().toISOString().split('T')[0]}.csv`;
+    exportToCSV(formattedLogs, fileName);
   };
 
   const getUserPurchaseLogs = () => {
@@ -255,7 +251,7 @@ export default function Purchase() {
     alert('디버그 구매가 완료되었습니다! 내일 만료되는 3포인트가 추가되었습니다.');
   };
 
-  if (!userData) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -264,6 +260,10 @@ export default function Purchase() {
         </div>
       </div>
     );
+  }
+
+  if (!user || !userData) {
+    return null;
   }
 
   return (

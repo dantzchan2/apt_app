@@ -32,8 +32,8 @@ export default function SignUp() {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('비밀번호는 최소 6자 이상이어야 합니다');
+    if (formData.password.length < 8) {
+      setError('비밀번호는 8자보다 길어야 합니다');
       setIsLoading(false);
       return;
     }
@@ -51,19 +51,51 @@ export default function SignUp() {
       return;
     }
 
-    // Demo sign-up - in a real app, this would call an API
-    const userData = {
-      name: formData.name,
-      email: formData.email,
-      phone: sanitizedPhone,
-      role: 'user' as const,
-      points: 0,
-      id: Date.now().toString()
-    };
+    try {
+      // Get CSRF token first
+      const csrfResponse = await fetch('/api/csrf-token', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!csrfResponse.ok) {
+        setError('Failed to get security token');
+        setIsLoading(false);
+        return;
+      }
+      
+      const { csrfToken } = await csrfResponse.json();
 
-    localStorage.setItem('userData', JSON.stringify(userData));
-    localStorage.setItem('isAuthenticated', 'true');
-    router.push('/dashboard');
+      // Make signup request with CSRF token
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: sanitizedPhone,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Signup failed');
+        setIsLoading(false);
+        return;
+      }
+
+      // Signup successful - redirect to dashboard
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Signup error:', error);
+      setError('Network error. Please try again.');
+    }
     
     setIsLoading(false);
   };

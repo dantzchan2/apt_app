@@ -1,27 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardHeader from '../../components/DashboardHeader';
+import { useAuth } from '../../hooks/useAuth';
 
-interface PointBatch {
-  id: string;
-  points: number;
-  purchaseDate: string;
-  expiryDate: string;
-  originalPoints: number;
-}
 
-interface UserData {
-  name: string;
-  email: string;
-  phone: string;
-  role: 'user' | 'trainer' | 'admin';
-  points?: number;
-  pointBatches?: PointBatch[];
-  id: string;
-}
 
 interface Appointment {
   id: string;
@@ -36,87 +20,18 @@ interface Appointment {
 }
 
 export default function Dashboard() {
-  const [userData, setUserData] = useState<UserData | null>(null);
+  const { user, isLoading } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
-    // Prevent running on server side
-    if (typeof window === 'undefined') return;
-    
-    const authStatus = localStorage.getItem('isAuthenticated');
-    const storedUserData = localStorage.getItem('userData');
-    
-    console.log('Dashboard - authStatus:', authStatus);
-    console.log('Dashboard - storedUserData:', storedUserData);
-    
-    if (authStatus === 'true') {
-      if (storedUserData) {
-        try {
-          const parsedData = JSON.parse(storedUserData);
-          console.log('Dashboard - parsed user data:', parsedData);
-          
-          // Initialize point batches if user doesn't have them yet (only for true legacy users)
-          if (!parsedData.pointBatches && parsedData.points && typeof parsedData.points === 'number') {
-            // Convert existing points to a single batch (for backward compatibility)
-            const purchaseDate = new Date().toISOString();
-            const expiryDate = new Date();
-            expiryDate.setMonth(expiryDate.getMonth() + 6);
-            
-            const legacyBatch: PointBatch = {
-              id: 'legacy-' + Date.now(),
-              points: parsedData.points,
-              purchaseDate: purchaseDate,
-              expiryDate: expiryDate.toISOString(),
-              originalPoints: parsedData.points
-            };
-            
-            parsedData.pointBatches = [legacyBatch];
-          }
-          
-          // Clean up expired batches and recalculate points
-          if (parsedData.pointBatches) {
-            const now = new Date();
-            const validBatches = parsedData.pointBatches.filter((batch: PointBatch) => 
-              new Date(batch.expiryDate) > now
-            );
-            
-            const totalPoints = validBatches.reduce((sum: number, batch: PointBatch) => sum + batch.points, 0);
-            
-            parsedData.pointBatches = validBatches;
-            parsedData.points = totalPoints;
-            
-            // Update localStorage with cleaned data
-            localStorage.setItem('userData', JSON.stringify(parsedData));
-          }
-          
-          setUserData(parsedData);
-
-          // Load appointments
-          const storedAppointments = localStorage.getItem('appointments');
-          if (storedAppointments) {
-            setAppointments(JSON.parse(storedAppointments));
-          }
-
-          setIsLoading(false);
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          localStorage.removeItem('isAuthenticated');
-          localStorage.removeItem('userData');
-          router.replace('/login');
-        }
-      } else {
-        console.log('Dashboard - No user data found, redirecting to login');
-        localStorage.removeItem('isAuthenticated');
-        router.replace('/login');
+    if (user) {
+      // Load appointments - TODO: This should also come from API
+      const storedAppointments = localStorage.getItem('appointments');
+      if (storedAppointments) {
+        setAppointments(JSON.parse(storedAppointments));
       }
-    } else {
-      console.log('Dashboard - Not authenticated, redirecting to login');
-      setIsLoading(false);
-      router.replace('/login');
     }
-  }, []);
+  }, [user]);
 
 
   const getUpcomingAppointments = () => {
@@ -142,9 +57,9 @@ export default function Dashboard() {
   };
 
   const getUserAppointments = () => {
-    if (!userData) return [];
+    if (!user) return [];
     return getUpcomingAppointments().filter(appointment =>
-      userData.role === 'user' ? appointment.userId === userData.id : appointment.trainerId === userData.id
+      user.role === 'user' ? appointment.userId === user.id : appointment.trainerId === user.id
     );
   };
 
@@ -170,14 +85,18 @@ export default function Dashboard() {
     );
   }
 
-  if (!userData) {
+  if (!user) {
     return null;
   }
 
   return (
     <div className="min-h-screen bg-white" suppressHydrationWarning>
       <DashboardHeader 
-        userData={userData} 
+        userData={{
+          ...user,
+          points: user.total_points,
+          pointBatches: []
+        }} 
         title="대시보드" 
         currentPage="/dashboard" 
         showPoints={true}
@@ -185,18 +104,18 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Upcoming Appointments Section for Users and Trainers */}
-        {(userData.role === 'user' || userData.role === 'trainer') && (
+        {(user.role === 'user' || user.role === 'trainer') && (
           <div className="mb-8">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h2 className="text-xl font-semibold text-black">
-                  {userData.role === 'user' ? '예정된 예약' : '예정된 트레이닝 세션'}
+                  {user.role === 'user' ? '예정된 예약' : '예정된 트레이닝 세션'}
                 </h2>
               </div>
               <div className="p-6">
                 {getUserAppointments().length === 0 ? (
                   <p className="text-gray-500 text-center py-8">
-                    예정된 {userData.role === 'user' ? '예약이' : '트레이닝 세션이'} 없습니다.
+                    예정된 {user.role === 'user' ? '예약이' : '트레이닝 세션이'} 없습니다.
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -208,12 +127,12 @@ export default function Dashboard() {
                           </div>
                           <div>
                             <h3 className="font-semibold text-black">
-                              {userData.role === 'user' ? `${appointment.trainerName} 트레이너와 PT` : `${appointment.userName}님과 세션`}
+                              {user.role === 'user' ? `${appointment.trainerName} 트레이너와 PT` : `${appointment.userName}님과 세션`}
                             </h3>
                             <p className="text-sm text-gray-600">
                               {formatDateTime(appointment.date, appointment.time)}
                             </p>
-                            {userData.role === 'user' && (
+                            {user.role === 'user' && (
                               <p className="text-xs text-gray-500">
                                 {appointment.userEmail}
                               </p>
@@ -228,10 +147,10 @@ export default function Dashboard() {
                     {getUserAppointments().length > 5 && (
                       <div className="text-center pt-4">
                         <Link
-                          href={userData.role === 'user' ? '/dashboard/schedule' : '/dashboard/trainer'}
+                          href={user.role === 'user' ? '/dashboard/schedule' : '/dashboard/trainer'}
                           className="text-orange-600 hover:text-red-600 text-sm font-medium"
                         >
-                          전체 {getUserAppointments().length}개 {userData.role === 'user' ? '예약' : '세션'} 보기
+                          전체 {getUserAppointments().length}개 {user.role === 'user' ? '예약' : '세션'} 보기
                         </Link>
                       </div>
                     )}
@@ -243,7 +162,7 @@ export default function Dashboard() {
         )}
 
         {/* All Appointments Section for Admins */}
-        {userData.role === 'admin' && (
+        {user.role === 'admin' && (
           <div className="mb-8">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200">
@@ -296,7 +215,7 @@ export default function Dashboard() {
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
-          {(userData.role === 'user' || userData.role === 'admin') && (
+          {(user.role === 'user' || user.role === 'admin') && (
             <Link href="/dashboard/schedule" className="block">
               <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">
@@ -314,7 +233,7 @@ export default function Dashboard() {
             </Link>
           )}
 
-          {(userData.role === 'user' || userData.role === 'admin') && (
+          {(user.role === 'user' || user.role === 'admin') && (
             <Link href="/dashboard/purchase" className="block">
               <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">
@@ -332,7 +251,7 @@ export default function Dashboard() {
             </Link>
           )}
 
-          {(userData.role === 'trainer' || userData.role === 'admin') && (
+          {(user.role === 'trainer' || user.role === 'admin') && (
             <Link href="/dashboard/trainer" className="block">
               <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">
@@ -350,7 +269,7 @@ export default function Dashboard() {
             </Link>
           )}
 
-          {userData.role === 'admin' && (
+          {user.role === 'admin' && (
             <Link href="/dashboard/users" className="block">
               <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">
@@ -368,7 +287,7 @@ export default function Dashboard() {
             </Link>
           )}
 
-          {userData.role === 'admin' && (
+          {user.role === 'admin' && (
             <Link href="/dashboard/appointments" className="block">
               <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">
@@ -386,7 +305,7 @@ export default function Dashboard() {
             </Link>
           )}
 
-          {userData.role === 'admin' && (
+          {user.role === 'admin' && (
             <Link href="/dashboard/settlement" className="block">
               <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">

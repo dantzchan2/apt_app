@@ -1,7 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { clearSession } from '../../../../lib/session';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
+    // Get session token from cookie
+    const sessionToken = request.cookies.get('session')?.value;
+    
+    if (sessionToken) {
+      // Delete session from database
+      await clearSession();
+    }
+    
     // Clear the session cookie
     const response = NextResponse.json({ message: 'Logged out successfully' });
     

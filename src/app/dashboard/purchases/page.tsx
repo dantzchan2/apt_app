@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardHeader from '../../../components/DashboardHeader';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface UserData {
   name: string;
@@ -36,6 +37,7 @@ interface PurchaseStats {
 }
 
 export default function PurchaseLogsPage() {
+  const { user, isLoading: authLoading } = useAuth();
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
   const [purchaseLogs, setPurchaseLogs] = useState<PurchaseLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<PurchaseLog[]>([]);
@@ -49,25 +51,22 @@ export default function PurchaseLogsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated');
-    const storedUserData = localStorage.getItem('userData');
+    if (!user) return;
     
-    if (authStatus !== 'true' || !storedUserData) {
-      router.push('/login');
-      return;
-    }
-    
-    const parsedUserData = JSON.parse(storedUserData);
-    if (parsedUserData.role !== 'admin') {
+    if (user.role !== 'admin') {
       router.push('/dashboard');
       return;
     }
     
-    setCurrentUser(parsedUserData);
+    const userData = {
+      ...user,
+      points: user.total_points
+    };
+    setCurrentUser(userData);
     
     // Load purchase logs from database
-    loadPurchaseLogs(parsedUserData);
-  }, []);
+    loadPurchaseLogs(userData);
+  }, [user, router]);
 
   const loadPurchaseLogs = async (userData: UserData) => {
     try {
@@ -168,7 +167,7 @@ export default function PurchaseLogsPage() {
     return log.product_id || '미확인';
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -179,7 +178,7 @@ export default function PurchaseLogsPage() {
     );
   }
 
-  if (!currentUser) {
+  if (!user || !currentUser) {
     return null;
   }
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardHeader from '../../../components/DashboardHeader';
-import * as XLSX from 'xlsx';
+import { exportToCSV } from '../../../lib/csv-export';
 
 interface PointBatch {
   id: string;
@@ -192,12 +192,8 @@ export default function AppointmentLogs() {
       'User Email': log.userEmail
     }));
 
-    const ws = XLSX.utils.json_to_sheet(formattedLogs);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Appointment Logs');
-    
-    const fileName = `appointment_logs_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(wb, fileName);
+    const fileName = `appointment_logs_${new Date().toISOString().split('T')[0]}.csv`;
+    exportToCSV(formattedLogs, fileName);
   };
 
   const getActionColor = (action: string) => {

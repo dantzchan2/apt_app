@@ -1,9 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateUser } from '../../../../lib/auth';
 import { createSession } from '../../../../lib/session';
+import { checkRateLimit, getClientIP } from '../../../../lib/rate-limit';
+import { requireCSRFProtection } from '../../../../lib/csrf-protection';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting for login attempts
+    const clientIP = getClientIP(request);
+    const rateLimit = checkRateLimit(clientIP, {
+      maxAttempts: 5, // 5 attempts
+      windowMs: 15 * 60 * 1000 // 15 minutes
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Too many login attempts. Please try again later.',
+          resetTime: rateLimit.resetTime
+        },
+        { status: 429 }
+      );
+    }
+
+    // CSRF protection
+    const csrfCheck = await requireCSRFProtection(request);
+    if (!csrfCheck.valid) {
+      return NextResponse.json(
+        { error: csrfCheck.error || 'CSRF protection failed' },
+        { status: 403 }
+      );
+    }
+
     const { email, password } = await request.json();
 
     if (!email || !password) {
@@ -23,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create session
-    const session = await createSession(user.email);
+    const session = await createSession(user.id);
 
     // Set HTTP-only cookie
     const response = NextResponse.json({ 

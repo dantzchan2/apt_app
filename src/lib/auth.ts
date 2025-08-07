@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { supabase } from './database';
+import { supabaseAdmin } from './database';
 
 export interface User {
   id: string;
@@ -25,7 +25,7 @@ export const verifyPassword = async (password: string, hash: string): Promise<bo
 
 export const authenticateUser = async (email: string, password: string): Promise<User | null> => {
   try {
-    const { data: users, error } = await supabase
+    const { data: users, error } = await supabaseAdmin
       .from('users')
       .select('id, name, email, phone, role, specialization, total_points, memo, is_active, created_at, password_hash')
       .eq('email', email)
@@ -40,13 +40,9 @@ export const authenticateUser = async (email: string, password: string): Promise
 
     const user = users[0];
     
-    // For demo purposes, allow "password" for specific demo accounts
-    const isDemoAccount = ['admin@studiovit.com', 'sarah.johnson@studiovit.com', 'john.smith@email.com'].includes(email);
-    
+    // Verify password hash
     let isValidPassword = false;
-    if (isDemoAccount && password === 'password') {
-      isValidPassword = true;
-    } else if (user.password_hash) {
+    if (user.password_hash) {
       isValidPassword = await verifyPassword(password, user.password_hash);
     }
 
@@ -59,6 +55,7 @@ export const authenticateUser = async (email: string, password: string): Promise
     const { password_hash, ...userWithoutPassword } = user;
     return userWithoutPassword;
   } catch (error) {
+    // Log detailed error server-side only
     console.error('Authentication error:', error);
     return null;
   }
@@ -66,7 +63,7 @@ export const authenticateUser = async (email: string, password: string): Promise
 
 export const getUserById = async (id: string): Promise<User | null> => {
   try {
-    const { data: users, error } = await supabase
+    const { data: users, error } = await supabaseAdmin
       .from('users')
       .select('id, name, email, phone, role, specialization, total_points, memo, is_active, created_at')
       .eq('id', id)
@@ -81,6 +78,7 @@ export const getUserById = async (id: string): Promise<User | null> => {
 
     return users[0];
   } catch (error) {
+    // Log detailed error server-side only
     console.error('Get user error:', error);
     return null;
   }

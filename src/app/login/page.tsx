@@ -17,11 +17,28 @@ export default function Login() {
     setError('');
 
     try {
+      // Get CSRF token first
+      const csrfResponse = await fetch('/api/csrf-token', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!csrfResponse.ok) {
+        setError('Failed to get security token');
+        setIsLoading(false);
+        return;
+      }
+      
+      const { csrfToken } = await csrfResponse.json();
+
+      // Make login request with CSRF token
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
         },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
 
