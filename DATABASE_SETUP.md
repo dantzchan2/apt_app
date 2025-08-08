@@ -52,20 +52,6 @@ For local PostgreSQL development:
    ```
    DATABASE_URL=postgresql://postgres:password@localhost:5432/studio_vit
    ```
-
-## Demo Login Accounts
-
-After running the dummy data script, you can login with these accounts:
-
-- **Admin**: `admin@studiovit.com` / `password`
-  - Full access to all features
-  
-- **Trainer**: `sarah.johnson@studiovit.com` / `password` 
-  - Access to trainer-specific features
-  
-- **User**: `john.smith@email.com` / `password`
-  - Regular user features
-
 ## Database Schema
 
 The database includes the following main tables:

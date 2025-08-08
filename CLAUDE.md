@@ -22,7 +22,6 @@ This is a Next.js 15 React application called "Studio Vit" - a point-based appoi
 
 ### Authentication System
 - Database-backed session authentication with HTTP-only cookies
-- Demo authentication with fallback credentials: `admin@studiovit.com` / `password` and `sarah.johnson@studiovit.com` / `password`
 - Session management using secure tokens stored in Supabase database
 - User data structure:
   ```typescript

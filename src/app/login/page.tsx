@@ -140,15 +140,15 @@ export default function Login() {
           <h3 className="text-sm font-medium text-black mb-3">데모 계정:</h3>
           <div className="space-y-3 text-sm text-black">
             <div className="border-l-4 border-red-500 pl-3">
-              <p><strong>관리자:</strong> admin@studiovit.com / password</p>
+              <p><strong>관리자:</strong> admin@studiovit.com / password!</p>
               <p className="text-xs">포인트 구매, 예약, 트레이닝 세션 관리, 모든 사용자 관리 가능</p>
             </div>
             <div className="border-l-4 border-orange-500 pl-3">
-              <p><strong>트레이너:</strong> sarah.johnson@studiovit.com / password</p>
+              <p><strong>트레이너:</strong> gb@studiovit.com / password!</p>
               <p className="text-xs">자신의 트레이닝 예약을 조회하고 취소할 수 있음</p>
             </div>
             <div className="border-l-4 border-orange-500 pl-3">
-              <p><strong>사용자:</strong> john.smith@email.com / password</p>
+              <p><strong>사용자:</strong> d@d.com / password!</p>
               <p className="text-xs">포인트 구매 및 예약 가능</p>
             </div>
           </div>
