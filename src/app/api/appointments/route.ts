@@ -164,28 +164,81 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Insert the appointment
-    const { data: appointment, error: appointmentError } = await supabase
+    // Check for existing appointments at this time slot
+    const { data: existingAppointments, error: checkError } = await supabase
       .from('appointments')
-      .insert({
-        user_id: userId,
-        user_name: userName,
-        user_email: userEmail,
-        trainer_id: trainerId,
-        trainer_name: trainerName,
-        appointment_date: date,
-        appointment_time: time,
-        status: 'scheduled',
-        product_id: productId,
-        used_point_batch_id: usedPointBatchId,
-        notes: notes
-      })
-      .select('id')
-      .single();
+      .select('id, status, user_id')
+      .eq('trainer_id', trainerId)
+      .eq('appointment_date', date)
+      .eq('appointment_time', time);
 
-    if (appointmentError) throw appointmentError;
+    if (checkError) {
+      console.error('Error checking existing appointment:', checkError);
+      return NextResponse.json(
+        { error: 'Failed to check appointment availability' },
+        { status: 500 }
+      );
+    }
 
-    const appointmentId = appointment.id;
+    // Check if there's an active appointment
+    const activeAppointment = existingAppointments?.find(apt => apt.status === 'scheduled');
+    if (activeAppointment) {
+      return NextResponse.json(
+        { error: 'This time slot is already booked' },
+        { status: 409 }
+      );
+    }
+
+    // Check if there's a cancelled appointment we can reuse (to avoid unique constraint)
+    const cancelledAppointment = existingAppointments?.find(apt => apt.status === 'cancelled');
+    
+    let appointmentId;
+
+    if (cancelledAppointment) {
+      // Reuse the cancelled appointment by updating it
+      const { data: updatedAppointment, error: updateError } = await supabase
+        .from('appointments')
+        .update({
+          user_id: userId,
+          user_name: userName,
+          user_email: userEmail,
+          status: 'scheduled',
+          product_id: productId,
+          used_point_batch_id: usedPointBatchId,
+          notes: notes,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cancelledAppointment.id)
+        .select('id')
+        .single();
+      
+      if (updateError) throw updateError;
+      appointmentId = updatedAppointment.id;
+    } else {
+      // Create new appointment
+      const { data: newAppointment, error: appointmentError } = await supabase
+        .from('appointments')
+        .insert({
+          user_id: userId,
+          user_name: userName,
+          user_email: userEmail,
+          trainer_id: trainerId,
+          trainer_name: trainerName,
+          appointment_date: date,
+          appointment_time: time,
+          status: 'scheduled',
+          product_id: productId,
+          used_point_batch_id: usedPointBatchId,
+          notes: notes
+        })
+        .select('id')
+        .single();
+      
+      if (appointmentError) throw appointmentError;
+      appointmentId = newAppointment.id;
+    }
+
+    // appointmentId is already set above
 
     // Log the booking action
     const { error: logError } = await supabase
@@ -224,6 +277,122 @@ export async function POST(request: NextRequest) {
     console.error('Create appointment error:', error);
     return NextResponse.json(
       { error: 'Failed to create appointment' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    // Authenticate the request
+    const authResult = await authenticateRequest(request);
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.error.status });
+    }
+
+    const authenticatedUser = authResult.user;
+    
+    const { id, status } = await request.json();
+
+    if (!id || !status) {
+      return NextResponse.json(
+        { error: 'Appointment ID and status are required' },
+        { status: 400 }
+      );
+    }
+
+    // Get the appointment to verify ownership and get details for refund
+    const { data: appointment, error: fetchError } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !appointment) {
+      return NextResponse.json(
+        { error: 'Appointment not found' },
+        { status: 404 }
+      );
+    }
+
+    // Verify the user can cancel this appointment (only their own unless admin)
+    if (authenticatedUser.role !== 'admin' && appointment.user_id !== authenticatedUser.id) {
+      return NextResponse.json(
+        { error: 'Can only cancel your own appointments' },
+        { status: 403 }
+      );
+    }
+
+    // Update appointment status
+    const { error: updateError } = await supabase
+      .from('appointments')
+      .update({ status: status })
+      .eq('id', id);
+
+    if (updateError) throw updateError;
+
+    // If cancelling, refund the point by updating the point batch
+    if (status === 'cancelled' && appointment.used_point_batch_id) {
+      // First get current remaining points
+      const { data: pointBatch, error: getBatchError } = await supabase
+        .from('point_batches')
+        .select('remaining_points')
+        .eq('id', appointment.used_point_batch_id)
+        .single();
+
+      if (!getBatchError && pointBatch) {
+        const newRemainingPoints = pointBatch.remaining_points + 1;
+        
+        const { error: refundError } = await supabase
+          .from('point_batches')
+          .update({ 
+            remaining_points: newRemainingPoints,
+            is_active: true // Reactivate the batch if it was depleted
+          })
+          .eq('id', appointment.used_point_batch_id);
+
+        if (refundError) {
+          console.error('Failed to refund point:', refundError);
+          // Don't fail the whole request if refund fails
+        }
+      }
+    }
+
+    // Log the cancellation action
+    const { error: logError } = await supabase
+      .from('appointment_logs')
+      .insert({
+        appointment_id: id,
+        action: 'cancelled',
+        action_by: authenticatedUser.id,
+        action_by_name: authenticatedUser.name,
+        action_by_role: authenticatedUser.role,
+        appointment_date: appointment.appointment_date,
+        appointment_time: appointment.appointment_time,
+        trainer_id: appointment.trainer_id,
+        trainer_name: appointment.trainer_name,
+        user_id: appointment.user_id,
+        user_name: appointment.user_name,
+        user_email: appointment.user_email,
+        product_id: appointment.product_id,
+        used_point_batch_id: appointment.used_point_batch_id
+      });
+
+    if (logError) {
+      console.error('Failed to log cancellation action:', logError);
+      // Don't fail the whole request if logging fails
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Appointment cancelled successfully',
+      appointmentId: id,
+      status: status
+    });
+  } catch (error) {
+    console.error('Update appointment error:', error);
+    return NextResponse.json(
+      { error: 'Failed to update appointment' },
       { status: 500 }
     );
   }
