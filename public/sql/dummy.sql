@@ -1,9 +1,9 @@
--- Studio Vit PT Scheduling App - Dummy Data
--- Created: 2025-01-07
--- Description: Sample data for testing and development
+-- Studio Vit PT Scheduling App - Dummy Data  
+-- Description: Sample data for testing and development (no localStorage - fully database-backed)
 
 -- This file contains all the dummy/sample data for the fitness appointment scheduling system
 -- Run this AFTER running schema.sql to populate the database with test data
+-- All data is now stored in PostgreSQL/Supabase - localStorage has been completely removed
 
 -- Insert trainer users (trainers are now part of users table)
 -- Password hash for "password" is $2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi
@@ -116,6 +116,13 @@ UPDATE users SET memo = '초보자 - 요가에 관심 많음' WHERE id = '100000
 UPDATE users SET memo = 'VIP 고객 - 프로 패키지 선호' WHERE id = '10000000-0000-4000-a000-000000000004'::UUID;
 UPDATE users SET memo = '운동 경험 많음 - 크로스핏 집중' WHERE id = '10000000-0000-4000-a000-000000000005'::UUID;
 
+-- Create sample active sessions (optional - for testing session management)
+-- These would normally be created by the authentication system
+INSERT INTO sessions (id, session_token, user_id, expires_at, ip_address, user_agent) VALUES
+('40000000-0000-4000-a000-000000000001'::UUID, 'sample_admin_session_token_1234567890abcdef', '00000000-0000-4000-a000-000000000000'::UUID, CURRENT_TIMESTAMP + INTERVAL '24 hours', '127.0.0.1', 'Mozilla/5.0 (Demo Admin Session)'),
+('40000000-0000-4000-a000-000000000002'::UUID, 'sample_trainer_session_token_1234567890abcdef', '11111111-1111-4111-a111-111111111111'::UUID, CURRENT_TIMESTAMP + INTERVAL '24 hours', '127.0.0.1', 'Mozilla/5.0 (Demo Trainer Session)'),
+('40000000-0000-4000-a000-000000000003'::UUID, 'sample_user_session_token_1234567890abcdef', '10000000-0000-4000-a000-000000000001'::UUID, CURRENT_TIMESTAMP + INTERVAL '24 hours', '127.0.0.1', 'Mozilla/5.0 (Demo User Session)');
+
 COMMIT;
 
 -- Display summary of inserted data
@@ -129,6 +136,7 @@ SELECT 'Point Batches: ' || COUNT(*) as point_batches FROM point_batches;
 SELECT 'Purchase Logs: ' || COUNT(*) as purchase_logs FROM purchase_logs;
 SELECT 'Appointments: ' || COUNT(*) as appointments FROM appointments;
 SELECT 'Appointment Logs: ' || COUNT(*) as appointment_logs FROM appointment_logs;
+SELECT 'Active Sessions: ' || COUNT(*) as active_sessions FROM sessions WHERE is_active = true;
 
 -- Show user points summary
 SELECT 

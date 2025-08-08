@@ -87,10 +87,8 @@ export async function POST(request: NextRequest) {
       userName, 
       userEmail, 
       trainerId, 
-      trainerName, 
       date, 
       time, 
-      productId,
       notes 
     } = await request.json();
 
@@ -99,6 +97,70 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Can only create appointments for yourself' },
         { status: 403 }
+      );
+    }
+
+    // Look up trainer name from database
+    const { data: trainer, error: trainerError } = await supabase
+      .from('users')
+      .select('name, specialization')
+      .eq('id', trainerId)
+      .eq('role', 'trainer')
+      .single();
+
+    if (trainerError || !trainer) {
+      return NextResponse.json(
+        { error: 'Trainer not found' },
+        { status: 404 }
+      );
+    }
+
+    const trainerName = trainer.name;
+
+    // Get user's available point batches (FIFO - oldest first)
+    const { data: pointBatches, error: batchError } = await supabase
+      .from('point_batches')
+      .select('id, product_id, remaining_points, purchase_date')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .gt('remaining_points', 0)
+      .gt('expiry_date', new Date().toISOString())
+      .order('purchase_date', { ascending: true });
+
+    if (batchError) {
+      return NextResponse.json(
+        { error: 'Failed to fetch point batches' },
+        { status: 500 }
+      );
+    }
+
+    if (!pointBatches || pointBatches.length === 0) {
+      return NextResponse.json(
+        { error: 'Insufficient points available' },
+        { status: 400 }
+      );
+    }
+
+    // Use the oldest available batch (FIFO)
+    const oldestBatch = pointBatches[0];
+    const usedPointBatchId = oldestBatch.id;
+    const productId = oldestBatch.product_id;
+
+    // Deduct 1 point from the oldest batch
+    const newRemainingPoints = oldestBatch.remaining_points - 1;
+    
+    const { error: updateError } = await supabase
+      .from('point_batches')
+      .update({ 
+        remaining_points: newRemainingPoints,
+        is_active: newRemainingPoints > 0 // Mark as inactive if fully used
+      })
+      .eq('id', usedPointBatchId);
+
+    if (updateError) {
+      return NextResponse.json(
+        { error: 'Failed to deduct points' },
+        { status: 500 }
       );
     }
 
@@ -115,6 +177,7 @@ export async function POST(request: NextRequest) {
         appointment_time: time,
         status: 'scheduled',
         product_id: productId,
+        used_point_batch_id: usedPointBatchId,
         notes: notes
       })
       .select('id')
@@ -140,7 +203,8 @@ export async function POST(request: NextRequest) {
         user_id: userId,
         user_name: userName,
         user_email: userEmail,
-        product_id: productId
+        product_id: productId,
+        used_point_batch_id: usedPointBatchId
       });
 
     if (logError) {
@@ -150,7 +214,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      appointmentId: appointmentId 
+      appointmentId: appointmentId,
+      usedPointBatchId: usedPointBatchId,
+      productId: productId,
+      trainerName: trainerName,
+      pointsDeducted: 1
     });
   } catch (error) {
     console.error('Create appointment error:', error);

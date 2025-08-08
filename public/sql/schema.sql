@@ -1,5 +1,4 @@
 -- Studio Vit PT Scheduling App - PostgreSQL Schema
--- Created: 2025-01-07
 -- Description: Complete database schema for the fitness appointment scheduling system
 
 -- Enable UUID extension
@@ -10,6 +9,7 @@ DROP TABLE IF EXISTS appointment_logs CASCADE;
 DROP TABLE IF EXISTS appointments CASCADE;
 DROP TABLE IF EXISTS purchase_logs CASCADE;
 DROP TABLE IF EXISTS point_batches CASCADE;
+DROP TABLE IF EXISTS sessions CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS products CASCADE;
 
@@ -45,6 +45,19 @@ CREATE TABLE users (
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create sessions table (for HTTP-only cookie authentication)
+CREATE TABLE sessions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_token VARCHAR(128) UNIQUE NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    ip_address INET,
+    user_agent TEXT,
+    is_active BOOLEAN DEFAULT true
 );
 
 -- Create point_batches table (tracks point purchases and expiration)
@@ -131,6 +144,11 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_active ON users(is_active);
 
+CREATE INDEX idx_sessions_token ON sessions(session_token);
+CREATE INDEX idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX idx_sessions_expires ON sessions(expires_at);
+CREATE INDEX idx_sessions_active ON sessions(is_active);
+
 CREATE INDEX idx_products_active ON products(is_active);
 CREATE INDEX idx_products_display_order ON products(display_order);
 
@@ -168,6 +186,8 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
+CREATE TRIGGER update_sessions_updated_at BEFORE UPDATE ON sessions
+    FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
 CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON products
     FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
@@ -304,11 +324,12 @@ ORDER BY name;
 
 -- Add comments to tables for documentation
 COMMENT ON TABLE products IS 'Purchasable point packages with pricing and commission rates';
-COMMENT ON TABLE users IS 'Stores all user accounts (users, trainers, admins) - trainers have specialization field';
+COMMENT ON TABLE users IS 'Stores all user accounts (users, trainers, admins) with authentication';
+COMMENT ON TABLE sessions IS 'HTTP-only cookie sessions for secure authentication';
 COMMENT ON TABLE point_batches IS 'Tracks individual point purchases with expiration dates (FIFO consumption)';
-COMMENT ON TABLE purchase_logs IS 'Audit log of all point purchases';
+COMMENT ON TABLE purchase_logs IS 'Audit log of all point purchases with payment status';
 COMMENT ON TABLE appointments IS 'Main appointments table with trainer and user details';
-COMMENT ON TABLE appointment_logs IS 'Audit trail for all appointment-related actions';
+COMMENT ON TABLE appointment_logs IS 'Complete audit trail for all appointment-related actions';
 
 COMMENT ON COLUMN users.specialization IS 'For trainers: their area of expertise (Strength & Conditioning, Yoga, etc.)';
 COMMENT ON COLUMN users.total_points IS 'For users: current point balance, always 0 for trainers and admins';

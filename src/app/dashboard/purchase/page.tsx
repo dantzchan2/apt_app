@@ -24,11 +24,13 @@ interface UserData {
   id: string;
 }
 
-interface PurchaseOption {
+interface Product {
   id: string;
+  name: string;
+  description: string;
   points: number;
   price: number;
-  popular?: boolean;
+  display_order: number;
 }
 
 interface PurchaseLog {
@@ -36,22 +38,16 @@ interface PurchaseLog {
   user_id: string;
   user_name: string;
   user_email: string;
-  purchase_item_id: string;
+  product_id: string;
   datetime: string;
   price: number;
   points: number;
 }
 
-const purchaseOptions: PurchaseOption[] = [
-  { id: 'basic', points: 5, price: 25 },
-  { id: 'standard', points: 10, price: 45, popular: true },
-  { id: 'premium', points: 20, price: 80 },
-  { id: 'deluxe', points: 50, price: 180 }
-];
-
 export default function Purchase() {
   const { user, isLoading: authLoading } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [purchaseLogs, setPurchaseLogs] = useState<PurchaseLog[]>([]);
@@ -73,9 +69,27 @@ export default function Purchase() {
     };
     setUserData(userData);
     
-    // Load purchase logs from API
+    // Load purchase logs and products from API
     fetchPurchaseLogs();
+    fetchProducts();
   }, [user, router]);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data.products || []);
+      } else {
+        console.error('Failed to fetch products');
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
 
   const fetchPurchaseLogs = async () => {
     try {
@@ -94,35 +108,55 @@ export default function Purchase() {
     }
   };
 
-  const handlePurchase = async (option: PurchaseOption) => {
+  const handlePurchase = async (product: Product) => {
     if (!userData) return;
     
     setIsLoading(true);
-    setSelectedOption(option.id);
+    setSelectedOption(product.id);
 
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Update user points
-    const updatedUserData = {
-      ...userData,
-      points: (userData.points || 0) + option.points
-    };
+      // Make purchase API call
+      const response = await fetch('/api/purchase-logs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          productId: product.id
+        })
+      });
 
-    // Update local state (TODO: update in database via API)
-    setUserData(updatedUserData);
-    
-    // TODO: Save purchase log via API
-    // await fetch('/api/purchase-logs', { method: 'POST', ... })
-    
-    setIsLoading(false);
-    setSelectedOption(null);
-    
-    // Show success message (in a real app, you might use a toast notification)
-    alert(`${option.points} 포인트를 성공적으로 구매했습니다!`);
-    
-    // Refresh purchase logs from API
-    await fetchPurchaseLogs();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Purchase failed');
+      }
+
+      await response.json();
+
+      // Update user points in local state
+      const updatedUserData = {
+        ...userData,
+        points: (userData.points || 0) + product.points
+      };
+      setUserData(updatedUserData);
+      
+      // Show success message
+      alert(`${product.points} 포인트를 성공적으로 구매했습니다!`);
+      
+      // Refresh purchase logs from API
+      await fetchPurchaseLogs();
+
+    } catch (error) {
+      console.error('Purchase error:', error);
+      alert(`구매 실패: ${error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'}`);
+    } finally {
+      setIsLoading(false);
+      setSelectedOption(null);
+    }
   };
 
   const downloadPurchaseLogs = () => {
@@ -136,9 +170,9 @@ export default function Purchase() {
       'User ID': log.user_id,
       'User Name': log.user_name,
       'User Email': log.user_email,
-      'Package': log.purchase_item_id,
+      'Product ID': log.product_id,
       'Date & Time': new Date(log.datetime).toLocaleString(),
-      'Price ($)': log.price,
+      'Price (₩)': log.price,
       'Points': log.points
     }));
 
@@ -274,55 +308,61 @@ export default function Purchase() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {purchaseOptions.map((option) => (
-            <div
-              key={option.id}
-              className={`relative bg-white rounded-lg shadow-md p-6 ${
-                option.popular ? 'ring-2 ring-orange-500' : ''
-              }`}
-            >
-              {option.popular && (
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <span className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                    가장 인기
-                  </span>
-                </div>
-              )}
-              
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-black mb-2 capitalize">
-                  {option.id}
-                </h3>
-                <div className="mb-4">
-                  <span className="text-3xl font-bold text-black">
-                    {option.points}
-                  </span>
-                  <span className="text-black ml-1">포인트</span>
-                </div>
-                <div className="mb-6">
-                  <span className="text-2xl font-bold text-green-600">${option.price}</span>
-                  <div className="text-sm text-black mt-1">
-                    포인트당 ${(option.price / option.points).toFixed(2)}
+          {products.map((product) => {
+            const isPopular = product.points === 10; // Mark the 10-point package as popular
+            return (
+              <div
+                key={product.id}
+                className={`relative bg-white rounded-lg shadow-md p-6 ${
+                  isPopular ? 'ring-2 ring-orange-500' : ''
+                }`}
+              >
+                {isPopular && (
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <span className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                      가장 인기
+                    </span>
                   </div>
-                </div>
+                )}
                 
-                <button
-                  onClick={() => handlePurchase(option)}
-                  disabled={isLoading && selectedOption === option.id}
-                  className={`w-full py-3 px-4 rounded-md font-medium text-sm transition-colors ${
-                    option.popular
-                      ? 'bg-orange-600 hover:bg-orange-700 text-white'
-                      : 'bg-gray-200 hover:bg-gray-300 text-black'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {isLoading && selectedOption === option.id 
-                    ? '처리 중...' 
-                    : '구매하기'
-                  }
-                </button>
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-black mb-2">
+                    {product.name}
+                  </h3>
+                  {product.description && (
+                    <p className="text-sm text-gray-600 mb-3">{product.description}</p>
+                  )}
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold text-black">
+                      {product.points}
+                    </span>
+                    <span className="text-black ml-1">포인트</span>
+                  </div>
+                  <div className="mb-6">
+                    <span className="text-2xl font-bold text-green-600">₩{product.price.toLocaleString()}</span>
+                    <div className="text-sm text-black mt-1">
+                      포인트당 ₩{Math.round(product.price / product.points).toLocaleString()}
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => handlePurchase(product)}
+                    disabled={isLoading && selectedOption === product.id}
+                    className={`w-full py-3 px-4 rounded-md font-medium text-sm transition-colors ${
+                      isPopular
+                        ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                        : 'bg-gray-200 hover:bg-gray-300 text-black'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {isLoading && selectedOption === product.id 
+                      ? '처리 중...' 
+                      : '구매하기'
+                    }
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="mt-12 bg-white rounded-lg shadow-md p-6">
@@ -394,8 +434,8 @@ export default function Purchase() {
                           <span className="text-white font-bold text-lg">$</span>
                         </div>
                         <div>
-                          <h4 className="font-semibold text-black capitalize">
-                            {log.purchase_item_id} 패키지
+                          <h4 className="font-semibold text-black">
+                            구매 패키지
                           </h4>
                           <p className="text-sm text-black">
                             {formatDateTime(log.datetime)}
@@ -407,7 +447,7 @@ export default function Purchase() {
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-bold text-green-600">
-                          ${log.price}
+                          ₩{log.price.toLocaleString()}
                         </div>
                         <div className="text-sm text-black">
                           +{log.points} 포인트

@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
 
     const authenticatedUser = authResult.user;
     
-    // Check if user has permission to view purchase logs
-    if (!authorizeRole(authenticatedUser, ['admin', 'trainer'])) {
+    // Users can see their own purchase logs, admins and trainers can see all purchase logs
+    if (!authorizeRole(authenticatedUser, ['admin', 'trainer', 'user'])) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }
@@ -82,6 +82,117 @@ export async function GET(request: NextRequest) {
     console.error('Get purchase logs error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch purchase logs' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    // Authenticate the request
+    const authResult = await authenticateRequest(request);
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.error.status });
+    }
+
+    const authenticatedUser = authResult.user;
+    
+    // Only users and admins can make purchases
+    if (!authorizeRole(authenticatedUser, ['user', 'admin'])) {
+      return NextResponse.json(
+        { error: 'Insufficient permissions to make purchases' },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+    const { productId } = body;
+
+    if (!productId) {
+      return NextResponse.json(
+        { error: 'Product ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Get product details
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('id, name, points, price')
+      .eq('id', productId)
+      .eq('is_active', true)
+      .single();
+
+    if (productError || !product) {
+      return NextResponse.json(
+        { error: 'Product not found or inactive' },
+        { status: 404 }
+      );
+    }
+
+    // Create purchase log
+    const { data: purchaseLog, error: purchaseError } = await supabase
+      .from('purchase_logs')
+      .insert({
+        user_id: authenticatedUser.id,
+        user_name: authenticatedUser.name,
+        user_email: authenticatedUser.email,
+        product_id: product.id,
+        points: product.points,
+        price: product.price,
+        payment_method: 'demo', // In a real app, this would come from payment processor
+        payment_status: 'completed'
+      })
+      .select()
+      .single();
+
+    if (purchaseError) {
+      console.error('Purchase log error:', purchaseError);
+      return NextResponse.json(
+        { error: 'Failed to create purchase log' },
+        { status: 500 }
+      );
+    }
+
+    // Create point batch
+    const expiryDate = new Date();
+    expiryDate.setMonth(expiryDate.getMonth() + 6); // 6 months from now
+
+    const { data: pointBatch, error: batchError } = await supabase
+      .from('point_batches')
+      .insert({
+        user_id: authenticatedUser.id,
+        product_id: product.id,
+        original_points: product.points,
+        remaining_points: product.points,
+        purchase_date: new Date().toISOString(),
+        expiry_date: expiryDate.toISOString(),
+        price_paid: product.price
+      })
+      .select()
+      .single();
+
+    if (batchError) {
+      console.error('Point batch error:', batchError);
+      return NextResponse.json(
+        { error: 'Failed to create point batch' },
+        { status: 500 }
+      );
+    }
+
+    // The total_points will be automatically updated by the database trigger
+
+    return NextResponse.json({
+      success: true,
+      purchase: purchaseLog,
+      pointBatch: pointBatch,
+      product: product
+    });
+
+  } catch (error) {
+    console.error('Purchase error:', error);
+    return NextResponse.json(
+      { error: 'Failed to process purchase' },
       { status: 500 }
     );
   }

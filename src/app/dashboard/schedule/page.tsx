@@ -93,40 +93,6 @@ export default function Schedule() {
       pointBatches: [] as PointBatch[]
     };
     
-    // Initialize point batches if user doesn't have them yet
-    if (!parsedUserData.pointBatches && parsedUserData.points) {
-      // Convert existing points to a single batch (for backward compatibility)
-      const purchaseDate = new Date().toISOString();
-      const expiryDate = new Date();
-      expiryDate.setMonth(expiryDate.getMonth() + 6);
-      
-      const legacyBatch: PointBatch = {
-        id: 'legacy-' + Date.now(),
-        points: parsedUserData.points,
-        purchaseDate: purchaseDate,
-        expiryDate: expiryDate.toISOString(),
-        originalPoints: parsedUserData.points
-      };
-      
-      parsedUserData.pointBatches = [legacyBatch];
-    }
-    
-    // Clean up expired batches and recalculate points
-    if (parsedUserData.pointBatches) {
-      const now = new Date();
-      const validBatches = parsedUserData.pointBatches.filter((batch: PointBatch) => 
-        new Date(batch.expiryDate) > now
-      );
-      
-      const totalPoints = validBatches.reduce((sum: number, batch: PointBatch) => sum + batch.points, 0);
-      
-      parsedUserData.pointBatches = validBatches;
-      parsedUserData.points = totalPoints;
-      
-      // TODO: Update user data via API call when point batches expire
-      // await fetch('/api/users/update-points', { ... })
-    }
-    
     setUserData(parsedUserData);
     
     // Load appointments from API
@@ -164,103 +130,6 @@ export default function Schedule() {
     }
   };
 
-  // Helper function to deduct points using FIFO (oldest first)
-  const deductPointFromBatches = (batches: PointBatch[], pointsToDeduct: number): { 
-    updatedBatches: PointBatch[], 
-    usedBatchId: string | null,
-    purchaseItemId: string | null 
-  } => {
-    const sortedBatches = [...batches].sort((a, b) => 
-      new Date(a.purchaseDate).getTime() - new Date(b.purchaseDate).getTime()
-    );
-    
-    let remaining = pointsToDeduct;
-    const updatedBatches: PointBatch[] = [];
-    let usedBatchId: string | null = null;
-    let purchaseItemId: string | null = null;
-    
-    for (const batch of sortedBatches) {
-      if (remaining <= 0) {
-        updatedBatches.push(batch);
-        continue;
-      }
-      
-      // Track the first batch we use points from
-      if (remaining === pointsToDeduct && batch.points > 0) {
-        usedBatchId = batch.id;
-        // Extract purchase item from batch ID or use a default mapping
-        purchaseItemId = extractPurchaseItemFromBatch(batch);
-      }
-      
-      if (batch.points <= remaining) {
-        // Use entire batch
-        remaining -= batch.points;
-        // Don't add this batch as it's completely used
-      } else {
-        // Use partial batch
-        updatedBatches.push({
-          ...batch,
-          points: batch.points - remaining
-        });
-        remaining = 0;
-      }
-    }
-    
-    return { updatedBatches, usedBatchId, purchaseItemId };
-  };
-
-  // Helper function to extract purchase item from batch
-  const extractPurchaseItemFromBatch = (batch: PointBatch): string => {
-    // Try to extract from batch ID patterns
-    if (batch.id.includes('legacy')) return 'legacy';
-    if (batch.id.includes('starter')) return 'starter';
-    if (batch.id.includes('basic')) return 'basic';
-    if (batch.id.includes('premium')) return 'premium';
-    if (batch.id.includes('pro')) return 'pro';
-    
-    // Map based on original points (common package sizes)
-    switch (batch.originalPoints) {
-      case 5: return 'starter';
-      case 10: return 'basic';
-      case 20: return 'premium';
-      case 50: return 'pro';
-      default: return 'unknown';
-    }
-  };
-
-  // Helper function to refund points to the most recent valid batch
-  const refundPointToBatches = (batches: PointBatch[]): PointBatch[] => {
-    const now = new Date();
-    const validBatches = batches.filter(batch => new Date(batch.expiryDate) > now);
-    
-    if (validBatches.length === 0) {
-      // Create a new batch if no valid batches exist
-      const refundDate = new Date().toISOString();
-      const expiryDate = new Date();
-      expiryDate.setMonth(expiryDate.getMonth() + 6);
-      
-      return [...batches, {
-        id: 'refund-' + Date.now(),
-        points: 1,
-        purchaseDate: refundDate,
-        expiryDate: expiryDate.toISOString(),
-        originalPoints: 1
-      }];
-    }
-    
-    // Add to most recent valid batch
-    const sortedBatches = [...validBatches].sort((a, b) => 
-      new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime()
-    );
-    
-    const mostRecentBatch = sortedBatches[0];
-    
-    return batches.map(batch => 
-      batch.id === mostRecentBatch.id 
-        ? { ...batch, points: batch.points + 1 }
-        : batch
-    );
-  };
 
 
   const generateHours = () => {
@@ -322,9 +191,6 @@ export default function Schedule() {
     }
 
     setIsBooking(true);
-
-    // Deduct point using FIFO (oldest first) and get tracking info
-    const deductionResult = deductPointFromBatches(userData.pointBatches || [], 1);
     
     try {
       // Create appointment via API
@@ -339,11 +205,9 @@ export default function Schedule() {
           userName: userData.name,
           userEmail: userData.email,
           trainerId: selectedTrainer,
-          trainerName: 'Unknown', // TODO: Get from database
           date: selectedDate,
           time: selectedTime,
-          productId: deductionResult.purchaseItemId || 'unknown',
-          notes: `Used batch: ${deductionResult.usedBatchId || 'unknown'}`
+          notes: 'Appointment booking'
         })
       });
 
@@ -355,19 +219,12 @@ export default function Schedule() {
       // Refresh appointments from server
       await fetchAppointments();
 
-      // Update user points (API call should also handle this, but update local state)
-      // Use the deduction result from earlier
-      const totalPoints = deductionResult.updatedBatches.reduce((sum, batch) => sum + batch.points, 0);
-      
+      // Update user points in local state (subtract 1 point)
       const updatedUserData = {
         ...userData,
-        pointBatches: deductionResult.updatedBatches,
-        points: totalPoints
+        points: (userData.points || 0) - 1
       };
       setUserData(updatedUserData);
-
-      // TODO: Update user points via API call
-      // await fetch('/api/users/update-points', { ... })
 
       alert('예약이 성공적으로 완료되었습니다!');
     } catch (error) {
@@ -477,20 +334,13 @@ export default function Schedule() {
       // Refresh appointments from server
       await fetchAppointments();
 
-      // Refund the point - add to most recent batch that hasn't expired  
+      // Refund the point in local state (add 1 point back)
       if (userData) {
-        const refundedBatches = refundPointToBatches(userData.pointBatches || []);
-        const totalPoints = refundedBatches.reduce((sum, batch) => sum + batch.points, 0);
-        
         const updatedUserData = {
           ...userData,
-          pointBatches: refundedBatches,
-          points: totalPoints
+          points: (userData.points || 0) + 1
         };
         setUserData(updatedUserData);
-
-        // TODO: Update user points via API call
-        // await fetch('/api/users/update-points', { ... })
       }
 
       alert('예약이 성공적으로 취소되었습니다. 포인트가 환불되었습니다.');
