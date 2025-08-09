@@ -12,6 +12,18 @@ export async function PUT(request: NextRequest) {
 
     const authenticatedUser = authResult.user;
     
+    // Check if request body contains any user ID parameters
+    const requestBody = await request.json().catch(() => ({})); // Handle empty body
+    
+    // Security: Users can only delete their own account
+    // No user ID is accepted from request to prevent privilege escalation
+    if (requestBody.userId || requestBody.id) {
+      return NextResponse.json(
+        { error: 'Cannot specify user ID - users can only delete their own account' },
+        { status: 403 }
+      );
+    }
+    
     // Set user as inactive instead of deleting
     const { error: updateError } = await supabase
       .from('users')
@@ -25,19 +37,8 @@ export async function PUT(request: NextRequest) {
       throw updateError;
     }
 
-    // Also deactivate all user's sessions to prevent further access
-    const { error: sessionError } = await supabase
-      .from('sessions')
-      .update({ 
-        is_active: false,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', authenticatedUser.id);
-
-    if (sessionError) {
-      console.error('Failed to deactivate sessions:', sessionError);
-      // Don't fail the whole request if session deactivation fails
-    }
+    // Sessions will be invalidated by the logout call on the frontend
+    // No need to manually update sessions table here
 
     return NextResponse.json({ 
       success: true, 

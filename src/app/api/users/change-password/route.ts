@@ -13,7 +13,17 @@ export async function PUT(request: NextRequest) {
 
     const authenticatedUser = authResult.user;
     
-    const { currentPassword, newPassword } = await request.json();
+    const requestBody = await request.json();
+    const { currentPassword, newPassword } = requestBody;
+
+    // Security: Users can only change their own password
+    // No user ID is accepted from request to prevent privilege escalation
+    if (requestBody.userId || requestBody.id) {
+      return NextResponse.json(
+        { error: 'Cannot specify user ID - users can only change their own password' },
+        { status: 403 }
+      );
+    }
 
     if (!currentPassword || !newPassword) {
       return NextResponse.json(
@@ -29,7 +39,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Get user's current password hash
+    // Get user's current password hash - only allow users to change their own password
     const { data: user, error: fetchError } = await supabase
       .from('users')
       .select('password_hash')
