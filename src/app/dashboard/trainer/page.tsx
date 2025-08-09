@@ -82,6 +82,7 @@ export default function TrainerDashboard() {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Trainer appointments response:', data);
         const transformedAppointments = (data.appointments || []).map((apt: Record<string, unknown>) => ({
           id: apt.id,
           userId: apt.user_id,
@@ -90,10 +91,15 @@ export default function TrainerDashboard() {
           trainerId: apt.trainer_id,
           trainerName: apt.trainer_name,
           date: apt.appointment_date || apt.date,
-          time: apt.appointment_time || apt.time,
-          status: apt.status
+          time: (apt.appointment_time || apt.time)?.toString().substring(0, 5), // Remove seconds: HH:MM:SS -> HH:MM
+          status: apt.status,
+          usedPointBatchId: apt.used_point_batch_id,
+          purchaseItemId: apt.purchase_item_id
         }));
+        console.log('Processed trainer appointments:', transformedAppointments);
         setAppointments(transformedAppointments);
+      } else {
+        console.error('Failed to fetch trainer appointments:', response.status, await response.text());
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -118,38 +124,63 @@ export default function TrainerDashboard() {
       return;
     }
 
-    const appointment = appointments.find(apt => apt.id === appointmentId);
-    if (!appointment || !userData) return;
+    try {
+      // Call API to cancel appointment
+      const response = await fetch('/api/appointments', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: appointmentId,
+          status: 'cancelled'
+        })
+      });
 
-    // Update appointment status to cancelled
-    const updatedAppointments = appointments.map(apt => 
-      apt.id === appointmentId 
-        ? { ...apt, status: 'cancelled' as const }
-        : apt
-    );
-    
-    setAppointments(updatedAppointments);
-    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to cancel appointment');
+      }
 
-    // TODO: Log the appointment cancellation by trainer via API
-    // TODO: Refund the point to the user via API
-    // The API should handle both logging and point refund
+      // Refresh appointments from server
+      await fetchAppointments();
 
-    alert('예약이 성공적으로 취소되었습니다. 고객에게 포인트가 환불되었습니다.');
+      alert('예약이 성공적으로 취소되었습니다. 고객에게 포인트가 환불되었습니다.');
+    } catch (error) {
+      console.error('Cancellation error:', error);
+      alert(`취소 실패: ${error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'}`);
+    }
   };
 
-  const markAsCompleted = (appointmentId: string) => {
-    const updatedAppointments = appointments.map(apt => 
-      apt.id === appointmentId 
-        ? { ...apt, status: 'completed' as const }
-        : apt
-    );
-    
-    setAppointments(updatedAppointments);
-    
-    // TODO: Update appointment status via API
-    
-    alert('예약이 완료로 처리되었습니다!');
+  const markAsCompleted = async (appointmentId: string) => {
+    try {
+      // Call API to mark appointment as completed
+      const response = await fetch('/api/appointments', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: appointmentId,
+          status: 'completed'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to mark appointment as completed');
+      }
+
+      // Refresh appointments from server
+      await fetchAppointments();
+
+      alert('예약이 완료로 처리되었습니다!');
+    } catch (error) {
+      console.error('Mark completed error:', error);
+      alert(`완료 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'}`);
+    }
   };
 
   if (authLoading || isLoading) {
@@ -187,6 +218,28 @@ export default function TrainerDashboard() {
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Debug Info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h3 className="text-sm font-bold text-yellow-800 mb-2">🐛 Debug Info</h3>
+            <div className="text-xs space-y-1 text-yellow-700">
+              <p>User: {userData?.name} ({userData?.email}) - Role: {userData?.role}</p>
+              <p>User ID: {userData?.id}</p>
+              <p>Total Appointments Fetched: {appointments.length}</p>
+              <p>My Appointments (filtered): {myAppointments.length}</p>
+              <p>Upcoming: {upcomingAppointments.length}, Past: {pastAppointments.length}</p>
+            </div>
+            {appointments.length > 0 && (
+              <details className="mt-2">
+                <summary className="text-xs font-medium text-yellow-800 cursor-pointer">View Raw Appointments</summary>
+                <pre className="text-xs mt-1 bg-yellow-100 p-2 rounded overflow-auto">
+                  {JSON.stringify(appointments.slice(0, 3), null, 2)}
+                </pre>
+              </details>
+            )}
+          </div>
+        )}
+        
         <div className="space-y-8">
           {/* Upcoming Appointments */}
           <div className="bg-white rounded-lg shadow-md p-6">

@@ -45,15 +45,15 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
       roles: ['user', 'trainer', 'admin'],
     },
     {
-      name: '포인트 구매',
-      href: '/dashboard/purchase',
-      icon: '$',
-      roles: ['user', 'admin'],
-    },
-    {
       name: '예약 스케줄',
       href: '/dashboard/schedule',
       icon: '📅',
+      roles: ['user', 'admin'],
+    },
+    {
+      name: '포인트 구매',
+      href: '/dashboard/purchase',
+      icon: '$',
       roles: ['user', 'admin'],
     },
     {
