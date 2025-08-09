@@ -107,6 +107,12 @@ const formatDayNumber = (date: Date) => {
   return date.getDate();
 };
 
+const isAppointmentCompleted = (date: string, time: string) => {
+  const now = new Date();
+  const appointmentDateTime = new Date(`${date}T${time}:00`);
+  return appointmentDateTime < now;
+};
+
 export default function Schedule() {
   const { user, isLoading } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -170,7 +176,10 @@ export default function Schedule() {
   };
 
   const fetchAllAppointments = async () => {
-    if (!userData) return;
+    if (!userData || !selectedTrainer) {
+      console.log('Skipping appointment fetch - missing userData or selectedTrainer');
+      return;
+    }
     
     try {
       // Fetch user's own appointments (all trainers)
@@ -244,6 +253,12 @@ export default function Schedule() {
         // Regular users only see unavailable slots (no details)
         const weekStart = getWeekDays()[0];
         const weekEnd = getWeekDays()[6];
+
+        if (!selectedTrainer) {
+          console.log('No trainer selected, skipping availability fetch');
+          return;
+        }
+
         const availabilityResponse = await fetch(`/api/trainer-availability?trainerId=${selectedTrainer}&startDate=${formatDateForAPI(weekStart)}&endDate=${formatDateForAPI(weekEnd)}`, {
           credentials: 'include'
         });
@@ -341,6 +356,12 @@ export default function Schedule() {
     return slotDateTime >= oneHourFromNow;
   };
 
+  const isTimeSlotInPast = (date: string, time: string) => {
+    const now = new Date();
+    const slotDateTime = new Date(`${date}T${time}:00`);
+    return slotDateTime < now;
+  };
+
   const getSlotAppointment = (date: string, time: string) => {
     // Function to check if an appointment time falls within a 30-minute slot
     const isTimeInSlot = (appointmentTime: string, slotTime: string) => {
@@ -381,7 +402,17 @@ export default function Schedule() {
     
     if (userApt) {
       console.log('Found user appointment:', { date, time, appointment: userApt });
-      return { type: 'user', appointment: userApt };
+
+      // Check if appointment should be auto-completed (past appointment time)
+      const isCompleted = userApt.status === 'completed' || isAppointmentCompleted(date, userApt.time);
+
+      return {
+        type: 'user',
+        appointment: {
+          ...userApt,
+          status: isCompleted ? 'completed' : userApt.status
+        }
+      };
     }
     
     // Check for trainer availability based on user role
@@ -435,11 +466,19 @@ export default function Schedule() {
     const slot = getSlotAppointment(date, time);
     
     if (slot && slot.type === 'user') {
+      // Check if appointment is completed
+      if (slot.appointment.status === 'completed') {
+        alert('이미 완료된 예약입니다.');
+        return;
+      }
+
       // User's own appointment - offer to cancel
       if (canCancelAppointment(date)) {
         if (confirm('이 예약을 취소하시겠습니까? 포인트가 환불됩니다.')) {
           handleCancelAppointment(slot.appointment.id);
         }
+      } else {
+        alert('예약 취소는 예약 시간 24시간 전까지만 가능합니다.');
       }
       return;
     }
@@ -719,7 +758,9 @@ export default function Schedule() {
                   const dateStr = formatDateForAPI(day);
                   const slotData = getSlotAppointment(dateStr, timeSlot);
                   const isAvailable = isTimeSlotAvailable(dateStr, timeSlot);
+                  const isInPast = isTimeSlotInPast(dateStr, timeSlot);
                   const isUserAppointment = slotData?.type === 'user';
+                  const isCompletedAppointment = isUserAppointment && slotData?.appointment.status === 'completed';
                   const isTrainerBusy = slotData?.type === 'trainer';
                   const isUnavailable = slotData?.type === 'unavailable';
                   const isSlotBooking = selectedSlot?.date === dateStr && selectedSlot?.time === timeSlot;
@@ -728,15 +769,19 @@ export default function Schedule() {
                     <div
                       key={`${dayIndex}-${timeIndex}`}
                       className={`relative px-1 py-3 border-l border-gray-200 transition-colors min-h-[48px] ${
-                        isUserAppointment
+                        isCompletedAppointment
+                          ? 'bg-blue-100 cursor-default'
+                          : isUserAppointment
                           ? 'bg-green-100 hover:bg-green-200 cursor-pointer'
                           : isTrainerBusy
-                          ? 'bg-gray-100 cursor-default'
-                          : isUnavailable
-                          ? 'bg-gray-700 cursor-not-allowed'
+                            ? 'bg-gray-500 cursor-default'
+                            : isUnavailable
+                              ? 'bg-gray-500 cursor-not-allowed'
+                              : isInPast
+                                ? 'bg-gray-400 cursor-not-allowed'
                           : isAvailable
                           ? 'bg-white hover:bg-orange-50 cursor-pointer'
-                          : 'bg-gray-50 cursor-not-allowed'
+                                  : 'bg-gray-500 cursor-not-allowed'
                       } ${
                         isSlotBooking ? 'bg-orange-200' : ''
                       }`}
@@ -744,17 +789,21 @@ export default function Schedule() {
                     >
                       {slotData && (
                         <div className={`text-xs p-1 rounded text-center leading-tight ${
-                          isUserAppointment
+                          isCompletedAppointment
+                            ? 'bg-blue-600 text-white font-medium'
+                            : isUserAppointment
                             ? 'bg-green-600 text-white'
                             : isUnavailable
-                            ? 'bg-gray-900 text-white font-medium'
+                              ? 'bg-gray-600 text-white font-medium'
                             : 'bg-gray-600 text-white'
                         }`}>
-                          {isUserAppointment 
-                            ? '내 예약' 
+                          {isCompletedAppointment
+                            ? '완료됨'
+                            : isUserAppointment
+                              ? `${slotData.appointment.trainerName} 트레이너`
                             : isUnavailable
                             ? '예약됨'
-                            : slotData.appointment.userName?.split(' ')[0] || '예약됨'
+                                : slotData?.appointment.userName?.split(' ')[0] || '예약됨'
                           }
                         </div>
                       )}
@@ -775,7 +824,7 @@ export default function Schedule() {
         {/* Legend and Instructions */}
         <div className="mt-4 bg-white rounded-lg shadow-sm p-4">
           <h3 className="text-sm font-medium text-gray-900 mb-3">예약 가이드</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs">
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-white border-2 border-dashed border-orange-300 rounded"></div>
               <span className="text-gray-600">예약 가능 - 탭하여 예약</span>
@@ -785,6 +834,10 @@ export default function Schedule() {
               <span className="text-gray-600">내 예약 - 탭하여 취소</span>
             </div>
             <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-blue-100 rounded"></div>
+              <span className="text-gray-600">완료된 예약</span>
+            </div>
+            <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-gray-700 rounded"></div>
               <span className="text-gray-600">
                 {(userData?.role === 'admin' || userData?.role === 'trainer')
@@ -792,6 +845,10 @@ export default function Schedule() {
                   : '예약 불가 시간'
                 }
               </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-black rounded"></div>
+              <span className="text-gray-600">지난 시간</span>
             </div>
           </div>
           

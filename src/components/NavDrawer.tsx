@@ -57,6 +57,12 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
       roles: ['user', 'admin'],
     },
     {
+      name: '사용자 정보',
+      href: '/dashboard/user-info',
+      icon: '⚙️',
+      roles: ['user', 'trainer', 'admin'],
+    },
+    {
       name: '내 트레이닝 세션',
       href: '/dashboard/trainer',
       icon: '💪',
