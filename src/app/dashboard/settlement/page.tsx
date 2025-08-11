@@ -42,18 +42,21 @@ interface TrainerStats {
   };
 }
 
-const TRAINER_LIST = [
-  { id: 'trainer1', name: 'Sarah Johnson', specialization: 'Strength & Conditioning' },
-  { id: 'trainer2', name: 'Mike Chen', specialization: 'Cardio & Endurance' },
-  { id: 'trainer3', name: 'Emma Rodriguez', specialization: 'Yoga & Flexibility' },
-  { id: 'trainer4', name: 'Alex Thompson', specialization: 'CrossFit' },
-  { id: 'trainer5', name: 'Lisa Park', specialization: 'Pilates' }
-];
+interface Trainer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  specialization: string;
+  is_active: boolean;
+  created_at: string;
+}
 
 export default function MonthlySettlement() {
   const { user, isLoading: authLoading } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [trainerStats, setTrainerStats] = useState<TrainerStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,11 +96,31 @@ export default function MonthlySettlement() {
     }
   }, []);
 
+  const fetchTrainers = async () => {
+    try {
+      const response = await fetch('/api/trainers', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const fetchedTrainers = data.trainers || [];
+        setTrainers(fetchedTrainers);
+        console.log('Loaded trainers for settlement:', fetchedTrainers);
+      } else {
+        console.error('Failed to fetch trainers:', response.status, await response.text());
+      }
+    } catch (error) {
+      console.error('Error fetching trainers:', error);
+    }
+  };
+
   const fetchAppointments = async () => {
     try {
       const response = await fetch('/api/appointments', { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
+        console.log('Settlement page - raw appointments data:', data);
         const transformedAppointments = (data.appointments || []).map((apt: Record<string, unknown>) => ({
           id: apt.id,
           userId: apt.user_id,
@@ -106,12 +129,15 @@ export default function MonthlySettlement() {
           trainerId: apt.trainer_id,
           trainerName: apt.trainer_name,
           date: apt.appointment_date || apt.date,
-          time: apt.appointment_time || apt.time,
+          time: (apt.appointment_time || apt.time)?.toString().substring(0, 5), // Remove seconds
           status: apt.status,
           usedPointBatchId: apt.used_point_batch_id,
           purchaseItemId: apt.purchase_item_id
         }));
+        console.log('Settlement page - transformed appointments:', transformedAppointments);
         setAppointments(transformedAppointments);
+      } else {
+        console.error('Failed to fetch appointments for settlement:', response.status, await response.text());
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -133,25 +159,38 @@ export default function MonthlySettlement() {
     };
     setUserData(userData);
 
-    // Load appointments from CSV
-    loadCSVData();
+    // Load trainers and appointments
+    fetchTrainers();
+    fetchAppointments(); // Use API instead of CSV
 
     setIsLoading(false);
   }, [user, router, loadCSVData]);
 
   useEffect(() => {
     const calculateTrainerStats = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    // Filter appointments for the current month
-    const monthlyAppointments = appointments.filter(appointment => {
-      const appointmentDate = new Date(appointment.date);
-      return appointmentDate.getFullYear() === year && appointmentDate.getMonth() === month;
-    });
+      if (trainers.length === 0) {
+        console.log('No trainers loaded yet, skipping stats calculation');
+        return;
+      }
+      
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      console.log(`Calculating stats for ${year}-${month + 1} (${formatMonthYear(currentDate)})`);
+      console.log('Total appointments available:', appointments.length);
+      
+      // Filter appointments for the current month
+      const monthlyAppointments = appointments.filter(appointment => {
+        const appointmentDate = new Date(appointment.date);
+        const matches = appointmentDate.getFullYear() === year && appointmentDate.getMonth() === month;
+        if (appointments.length < 10) { // Only log for small datasets to avoid spam
+          console.log(`Appointment ${appointment.date} (${appointmentDate.getFullYear()}-${appointmentDate.getMonth() + 1}) matches ${year}-${month + 1}:`, matches);
+        }
+        return matches;
+      });
+      console.log(`Found ${monthlyAppointments.length} appointments for current month`);
 
-    // Calculate stats for each trainer
-    const stats = TRAINER_LIST.map(trainer => {
+      // Calculate stats for each trainer
+      const stats = trainers.map(trainer => {
       const trainerAppointments = monthlyAppointments.filter(
         appointment => appointment.trainerId === trainer.id
       );
@@ -193,11 +232,12 @@ export default function MonthlySettlement() {
       };
     });
 
-    setTrainerStats(stats);
+      setTrainerStats(stats);
+      console.log('Calculated trainer stats:', stats);
     };
     
     calculateTrainerStats();
-  }, [appointments, currentDate]);
+  }, [appointments, trainers, currentDate]);
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prevDate => {
@@ -258,6 +298,39 @@ export default function MonthlySettlement() {
     return `${date.getFullYear()}년 ${monthNames[date.getMonth()]}`;
   };
 
+  const handleBulkAutoComplete = async () => {
+    if (!confirm('지난 예약들을 자동으로 완료 처리하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/appointments/auto-complete', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          cutoffTime: new Date().toISOString()
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to auto-complete appointments');
+      }
+
+      const result = await response.json();
+      alert(`성공적으로 ${result.updatedCount}건의 예약이 완료 처리되었습니다.`);
+      
+      // Refresh the data to show updated statistics
+      fetchAppointments();
+    } catch (error) {
+      console.error('Bulk auto-complete error:', error);
+      alert(`자동 완료 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'}`);
+    }
+  };
+
   const getProductDisplayName = (itemId: string | undefined) => {
     if (!itemId) return '미확인';
     
@@ -297,6 +370,52 @@ export default function MonthlySettlement() {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Admin Actions */}
+        {userData?.role === 'admin' && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-blue-900 mb-3">관리자 작업</h3>
+            <button
+              onClick={handleBulkAutoComplete}
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            >
+              지난 예약 자동 완료 처리
+            </button>
+            <p className="text-xs text-blue-700 mt-2">
+              현재 시간 이전의 모든 &quot;scheduled&quot; 예약을 &quot;completed&quot;로 일괄 변경합니다.
+            </p>
+          </div>
+        )}
+        
+        {/* Debug Info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h3 className="text-sm font-bold text-yellow-800 mb-2">🐛 Settlement Debug Info</h3>
+            <div className="text-xs space-y-1 text-yellow-700">
+              <p>User: {userData?.name} ({userData?.email}) - Role: {userData?.role}</p>
+              <p>Total Trainers Loaded: {trainers.length}</p>
+              <p>Total Appointments Loaded: {appointments.length}</p>
+              <p>Current Month: {formatMonthYear(currentDate)}</p>
+              <p>Trainer Stats Calculated: {trainerStats.length}</p>
+            </div>
+            {trainers.length > 0 && (
+              <details className="mt-2">
+                <summary className="text-xs font-medium text-yellow-800 cursor-pointer">View Loaded Trainers</summary>
+                <pre className="text-xs mt-1 bg-yellow-100 p-2 rounded overflow-auto">
+                  {JSON.stringify(trainers, null, 2)}
+                </pre>
+              </details>
+            )}
+            {appointments.length > 0 && (
+              <details className="mt-2">
+                <summary className="text-xs font-medium text-yellow-800 cursor-pointer">View Loaded Appointments (first 3)</summary>
+                <pre className="text-xs mt-1 bg-yellow-100 p-2 rounded overflow-auto">
+                  {JSON.stringify(appointments.slice(0, 3), null, 2)}
+                </pre>
+              </details>
+            )}
+          </div>
+        )}
+        
         {/* Month and Year Selection */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

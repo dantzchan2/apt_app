@@ -32,7 +32,7 @@ interface Appointment {
   userId: string;
   userName: string;
   userEmail?: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
   usedPointBatchId?: string;
   purchaseItemId?: string;
 }
@@ -466,9 +466,14 @@ export default function Schedule() {
     const slot = getSlotAppointment(date, time);
     
     if (slot && slot.type === 'user') {
-      // Check if appointment is completed
+      // Check if appointment is completed or no-show
       if (slot.appointment.status === 'completed') {
         alert('이미 완료된 예약입니다.');
+        return;
+      }
+      
+      if (slot.appointment.status === 'no_show') {
+        alert('노쇼 처리된 예약입니다.');
         return;
       }
 
@@ -761,6 +766,7 @@ export default function Schedule() {
                   const isInPast = isTimeSlotInPast(dateStr, timeSlot);
                   const isUserAppointment = slotData?.type === 'user';
                   const isCompletedAppointment = isUserAppointment && slotData?.appointment.status === 'completed';
+                  const isNoShowAppointment = isUserAppointment && slotData?.appointment.status === 'no_show';
                   const isTrainerBusy = slotData?.type === 'trainer';
                   const isUnavailable = slotData?.type === 'unavailable';
                   const isSlotBooking = selectedSlot?.date === dateStr && selectedSlot?.time === timeSlot;
@@ -771,6 +777,8 @@ export default function Schedule() {
                       className={`relative px-1 py-3 border-l border-gray-200 transition-colors min-h-[48px] ${
                         isCompletedAppointment
                           ? 'bg-blue-100 cursor-default'
+                          : isNoShowAppointment
+                          ? 'bg-orange-100 cursor-default'
                           : isUserAppointment
                           ? 'bg-green-100 hover:bg-green-200 cursor-pointer'
                           : isTrainerBusy
@@ -791,6 +799,8 @@ export default function Schedule() {
                         <div className={`text-xs p-1 rounded text-center leading-tight ${
                           isCompletedAppointment
                             ? 'bg-blue-600 text-white font-medium'
+                            : isNoShowAppointment
+                            ? 'bg-orange-600 text-white font-medium'
                             : isUserAppointment
                             ? 'bg-green-600 text-white'
                             : isUnavailable
@@ -799,6 +809,8 @@ export default function Schedule() {
                         }`}>
                           {isCompletedAppointment
                             ? '완료됨'
+                            : isNoShowAppointment
+                            ? '노쇼'
                             : isUserAppointment
                               ? `${slotData.appointment.trainerName} 트레이너`
                             : isUnavailable
@@ -824,7 +836,7 @@ export default function Schedule() {
         {/* Legend and Instructions */}
         <div className="mt-4 bg-white rounded-lg shadow-sm p-4">
           <h3 className="text-sm font-medium text-gray-900 mb-3">예약 가이드</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-6 gap-4 text-xs">
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-white border-2 border-dashed border-orange-300 rounded"></div>
               <span className="text-gray-600">예약 가능 - 탭하여 예약</span>
@@ -836,6 +848,10 @@ export default function Schedule() {
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-blue-100 rounded"></div>
               <span className="text-gray-600">완료된 예약</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-orange-100 rounded"></div>
+              <span className="text-gray-600">노쇼 처리된 예약</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-gray-700 rounded"></div>

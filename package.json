@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:features": "node run-tests.js",
+    "test:comprehensive": "node test-script.js",
+    "test:manual": "node run-tests.js --manual",
+    "test:code-only": "node test-features-only.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.53.1",

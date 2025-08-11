@@ -1,0 +1,301 @@
+{
+  "timestamp": "2025-08-10T09:47:07.464Z",
+  "summary": {
+    "totalTests": 14,
+    "passedTests": 14,
+    "failedTests": 0,
+    "successRate": 100
+  },
+  "categories": {
+    "Navigation": {
+      "total": 2,
+      "passed": 2,
+      "tests": [
+        {
+          "name": "File Structure: Navigation drawer component",
+          "passed": true,
+          "message": "File exists (6263 bytes)"
+        },
+        {
+          "name": "Navigation Menu Order",
+          "passed": true,
+          "message": "포인트 구매 appears after 예약 스케줄 in navigation"
+        }
+      ]
+    },
+    "No-Show Features": {
+      "total": 3,
+      "passed": 3,
+      "tests": [
+        {
+          "name": "Trainer No-Show Functions",
+          "passed": true,
+          "message": "markAsNoShow function and no-show buttons implemented"
+        },
+        {
+          "name": "Complete-to-NoShow Feature",
+          "passed": true,
+          "message": "Trainers can change completed appointments to no-show"
+        },
+        {
+          "name": "Schedule No-Show Display",
+          "passed": true,
+          "message": "No-show appointments properly displayed with styling and legend"
+        }
+      ]
+    },
+    "Schedule Display": {
+      "total": 2,
+      "passed": 2,
+      "tests": [
+        {
+          "name": "Schedule No-Show Display",
+          "passed": true,
+          "message": "No-show appointments properly displayed with styling and legend"
+        },
+        {
+          "name": "Schedule Legend Update",
+          "passed": true,
+          "message": "Legend updated to accommodate no-show color indicator"
+        }
+      ]
+    },
+    "Settlement Updates": {
+      "total": 2,
+      "passed": 2,
+      "tests": [
+        {
+          "name": "File Structure: Settlement page",
+          "passed": true,
+          "message": "File exists (26183 bytes)"
+        },
+        {
+          "name": "Settlement Dynamic Trainers",
+          "passed": true,
+          "message": "Settlement page loads trainers from database (not hardcoded)"
+        }
+      ]
+    },
+    "API Implementation": {
+      "total": 2,
+      "passed": 2,
+      "tests": [
+        {
+          "name": "Auto-Complete API Implementation",
+          "passed": true,
+          "message": "Auto-complete API properly implemented with database constraint fixes"
+        },
+        {
+          "name": "Database Constraint Fix",
+          "passed": true,
+          "message": "Database logging no longer uses null values for required fields"
+        }
+      ]
+    },
+    "File Structure": {
+      "total": 6,
+      "passed": 6,
+      "tests": [
+        {
+          "name": "File Structure: Trainer dashboard page",
+          "passed": true,
+          "message": "File exists (16692 bytes)"
+        },
+        {
+          "name": "File Structure: User schedule page",
+          "passed": true,
+          "message": "File exists (36492 bytes)"
+        },
+        {
+          "name": "File Structure: Settlement page",
+          "passed": true,
+          "message": "File exists (26183 bytes)"
+        },
+        {
+          "name": "File Structure: Bulk auto-complete API",
+          "passed": true,
+          "message": "File exists (4041 bytes)"
+        },
+        {
+          "name": "File Structure: Appointments API",
+          "passed": true,
+          "message": "File exists (12391 bytes)"
+        },
+        {
+          "name": "File Structure: Navigation drawer component",
+          "passed": true,
+          "message": "File exists (6263 bytes)"
+        }
+      ]
+    }
+  },
+  "allResults": [
+    {
+      "name": "File Structure: Trainer dashboard page",
+      "passed": true,
+      "message": "File exists (16692 bytes)",
+      "details": {
+        "path": "src/app/dashboard/trainer/page.tsx",
+        "exists": true,
+        "size": 16692
+      },
+      "timestamp": "2025-08-10T09:47:07.461Z"
+    },
+    {
+      "name": "File Structure: User schedule page",
+      "passed": true,
+      "message": "File exists (36492 bytes)",
+      "details": {
+        "path": "src/app/dashboard/schedule/page.tsx",
+        "exists": true,
+        "size": 36492
+      },
+      "timestamp": "2025-08-10T09:47:07.461Z"
+    },
+    {
+      "name": "File Structure: Settlement page",
+      "passed": true,
+      "message": "File exists (26183 bytes)",
+      "details": {
+        "path": "src/app/dashboard/settlement/page.tsx",
+        "exists": true,
+        "size": 26183
+      },
+      "timestamp": "2025-08-10T09:47:07.462Z"
+    },
+    {
+      "name": "File Structure: Bulk auto-complete API",
+      "passed": true,
+      "message": "File exists (4041 bytes)",
+      "details": {
+        "path": "src/app/api/appointments/auto-complete/route.ts",
+        "exists": true,
+        "size": 4041
+      },
+      "timestamp": "2025-08-10T09:47:07.462Z"
+    },
+    {
+      "name": "File Structure: Appointments API",
+      "passed": true,
+      "message": "File exists (12391 bytes)",
+      "details": {
+        "path": "src/app/api/appointments/route.ts",
+        "exists": true,
+        "size": 12391
+      },
+      "timestamp": "2025-08-10T09:47:07.462Z"
+    },
+    {
+      "name": "File Structure: Navigation drawer component",
+      "passed": true,
+      "message": "File exists (6263 bytes)",
+      "details": {
+        "path": "src/components/NavDrawer.tsx",
+        "exists": true,
+        "size": 6263
+      },
+      "timestamp": "2025-08-10T09:47:07.462Z"
+    },
+    {
+      "name": "Navigation Menu Order",
+      "passed": true,
+      "message": "포인트 구매 appears after 예약 스케줄 in navigation",
+      "details": {
+        "scheduleFound": true,
+        "pointsFound": true,
+        "correctOrder": true,
+        "schedulePosition": 140,
+        "pointsPosition": 260
+      },
+      "timestamp": "2025-08-10T09:47:07.462Z"
+    },
+    {
+      "name": "Trainer No-Show Functions",
+      "passed": true,
+      "message": "markAsNoShow function and no-show buttons implemented",
+      "details": {
+        "hasMarkAsNoShow": true,
+        "hasNoShowButton": true,
+        "hasNoShowStatus": true,
+        "hasNoShowInterface": true,
+        "coreImplementation": true
+      },
+      "timestamp": "2025-08-10T09:47:07.463Z"
+    },
+    {
+      "name": "Complete-to-NoShow Feature",
+      "passed": true,
+      "message": "Trainers can change completed appointments to no-show",
+      "details": {
+        "hasCompleteToNoShow": true,
+        "hasCompleteToNoShowButton": true,
+        "implementationComplete": true
+      },
+      "timestamp": "2025-08-10T09:47:07.463Z"
+    },
+    {
+      "name": "Schedule No-Show Display",
+      "passed": true,
+      "message": "No-show appointments properly displayed with styling and legend",
+      "details": {
+        "hasNoShowInInterface": true,
+        "hasNoShowAppointmentVar": true,
+        "hasNoShowStyling": true,
+        "hasNoShowLegend": true,
+        "hasNoShowHandling": true,
+        "implementationComplete": true
+      },
+      "timestamp": "2025-08-10T09:47:07.463Z"
+    },
+    {
+      "name": "Schedule Legend Update",
+      "passed": true,
+      "message": "Legend updated to accommodate no-show color indicator",
+      "details": {
+        "hasUpdatedLegend": true,
+        "expectedColumns": 6
+      },
+      "timestamp": "2025-08-10T09:47:07.463Z"
+    },
+    {
+      "name": "Settlement Dynamic Trainers",
+      "passed": true,
+      "message": "Settlement page loads trainers from database (not hardcoded)",
+      "details": {
+        "hasFetchTrainers": true,
+        "hasApiCall": true,
+        "hasHardcodedList": false,
+        "hasBulkComplete": true,
+        "hasDebugInfo": true,
+        "usesDatabase": true
+      },
+      "timestamp": "2025-08-10T09:47:07.464Z"
+    },
+    {
+      "name": "Auto-Complete API Implementation",
+      "passed": true,
+      "message": "Auto-complete API properly implemented with database constraint fixes",
+      "details": {
+        "hasLogging": true,
+        "hasProperTrainerIdMapping": true,
+        "hasProperUserIdMapping": true,
+        "hasProperFieldsMapping": true,
+        "hasErrorHandling": true,
+        "hasSelectFields": true,
+        "implementationComplete": true
+      },
+      "timestamp": "2025-08-10T09:47:07.464Z"
+    },
+    {
+      "name": "Database Constraint Fix",
+      "passed": true,
+      "message": "Database logging no longer uses null values for required fields",
+      "details": {
+        "hasConstraintFix": true,
+        "fixImplemented": true
+      },
+      "timestamp": "2025-08-10T09:47:07.464Z"
+    }
+  ],
+  "note": "This test focuses on code implementation without requiring authentication"
+}

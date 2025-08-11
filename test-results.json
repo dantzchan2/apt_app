@@ -1,0 +1,426 @@
+{
+  "timestamp": "2025-08-10T09:39:22.057Z",
+  "summary": {
+    "totalTests": 21,
+    "passedTests": 15,
+    "failedTests": 6,
+    "successRate": 71.4
+  },
+  "categories": {
+    "Infrastructure": {
+      "total": 7,
+      "passed": 7,
+      "tests": [
+        {
+          "name": "Development Server Status",
+          "passed": true,
+          "message": "Server is running on localhost:3000"
+        },
+        {
+          "name": "File Structure: Trainer dashboard page",
+          "passed": true,
+          "message": "File exists (16692 bytes)"
+        },
+        {
+          "name": "File Structure: User schedule page",
+          "passed": true,
+          "message": "File exists (36492 bytes)"
+        },
+        {
+          "name": "File Structure: Settlement page",
+          "passed": true,
+          "message": "File exists (26183 bytes)"
+        },
+        {
+          "name": "File Structure: Bulk auto-complete API",
+          "passed": true,
+          "message": "File exists (4041 bytes)"
+        },
+        {
+          "name": "File Structure: Appointments API",
+          "passed": true,
+          "message": "File exists (12391 bytes)"
+        },
+        {
+          "name": "File Structure: Navigation drawer component",
+          "passed": true,
+          "message": "File exists (6263 bytes)"
+        }
+      ]
+    },
+    "Authentication": {
+      "total": 3,
+      "passed": 0,
+      "tests": [
+        {
+          "name": "Admin Authentication",
+          "passed": false,
+          "message": "Login failed (Status: 403)"
+        },
+        {
+          "name": "Trainer Authentication",
+          "passed": false,
+          "message": "Login failed (Status: 429)"
+        },
+        {
+          "name": "User Authentication",
+          "passed": false,
+          "message": "Login failed (Status: 429)"
+        }
+      ]
+    },
+    "API Functionality": {
+      "total": 6,
+      "passed": 3,
+      "tests": [
+        {
+          "name": "Trainers API",
+          "passed": false,
+          "message": "Failed to load trainers"
+        },
+        {
+          "name": "Appointments API",
+          "passed": false,
+          "message": "Failed to load appointments"
+        },
+        {
+          "name": "Bulk Auto-Complete API",
+          "passed": false,
+          "message": "Bulk auto-complete failed (Status: 401)"
+        },
+        {
+          "name": "File Structure: Bulk auto-complete API",
+          "passed": true,
+          "message": "File exists (4041 bytes)"
+        },
+        {
+          "name": "File Structure: Appointments API",
+          "passed": true,
+          "message": "File exists (12391 bytes)"
+        },
+        {
+          "name": "Auto-Complete API Implementation",
+          "passed": true,
+          "message": "Auto-complete API properly implemented with logging"
+        }
+      ]
+    },
+    "New Features": {
+      "total": 10,
+      "passed": 9,
+      "tests": [
+        {
+          "name": "No-Show Status Support",
+          "passed": true,
+          "message": "Database supports no_show status (found 0 no-show appointments)"
+        },
+        {
+          "name": "Bulk Auto-Complete API",
+          "passed": false,
+          "message": "Bulk auto-complete failed (Status: 401)"
+        },
+        {
+          "name": "File Structure: Settlement page",
+          "passed": true,
+          "message": "File exists (26183 bytes)"
+        },
+        {
+          "name": "File Structure: Navigation drawer component",
+          "passed": true,
+          "message": "File exists (6263 bytes)"
+        },
+        {
+          "name": "Navigation Menu Order",
+          "passed": true,
+          "message": "포인트 구매 appears after 예약 스케줄"
+        },
+        {
+          "name": "Trainer No-Show Functions",
+          "passed": true,
+          "message": "markAsNoShow function and buttons implemented"
+        },
+        {
+          "name": "Schedule No-Show Display",
+          "passed": true,
+          "message": "No-show appointments properly displayed"
+        },
+        {
+          "name": "Schedule No-Show Legend",
+          "passed": true,
+          "message": "Legend includes no-show explanation"
+        },
+        {
+          "name": "Settlement Dynamic Trainers",
+          "passed": true,
+          "message": "Settlement page loads trainers from database"
+        },
+        {
+          "name": "Auto-Complete API Implementation",
+          "passed": true,
+          "message": "Auto-complete API properly implemented with logging"
+        }
+      ]
+    }
+  },
+  "allResults": [
+    {
+      "name": "Development Server Status",
+      "passed": true,
+      "message": "Server is running on localhost:3000",
+      "details": {
+        "port": 3000,
+        "url": "http://localhost:3000"
+      },
+      "timestamp": "2025-08-10T09:39:21.923Z"
+    },
+    {
+      "name": "Admin Authentication",
+      "passed": false,
+      "message": "Login failed (Status: 403)",
+      "details": {
+        "email": "admin@studiovit.com",
+        "statusCode": 403,
+        "hasCookie": false,
+        "error": null
+      },
+      "timestamp": "2025-08-10T09:39:21.943Z"
+    },
+    {
+      "name": "Trainer Authentication",
+      "passed": false,
+      "message": "Login failed (Status: 429)",
+      "details": {
+        "email": "gb@studiovit.com",
+        "statusCode": 429,
+        "hasCookie": false,
+        "error": null
+      },
+      "timestamp": "2025-08-10T09:39:21.989Z"
+    },
+    {
+      "name": "User Authentication",
+      "passed": false,
+      "message": "Login failed (Status: 429)",
+      "details": {
+        "email": "d@d.com",
+        "statusCode": 429,
+        "hasCookie": false,
+        "error": null
+      },
+      "timestamp": "2025-08-10T09:39:22.005Z"
+    },
+    {
+      "name": "Trainers API",
+      "passed": false,
+      "message": "Failed to load trainers",
+      "details": {
+        "statusCode": 401,
+        "trainerCount": 0,
+        "hasDatabase": false,
+        "error": null
+      },
+      "timestamp": "2025-08-10T09:39:22.021Z"
+    },
+    {
+      "name": "Appointments API",
+      "passed": false,
+      "message": "Failed to load appointments",
+      "details": {
+        "statusCode": 401,
+        "appointments": {
+          "scheduled": 0,
+          "completed": 0,
+          "no_show": 0,
+          "cancelled": 0,
+          "total": 0
+        },
+        "error": null
+      },
+      "timestamp": "2025-08-10T09:39:22.037Z"
+    },
+    {
+      "name": "No-Show Status Support",
+      "passed": true,
+      "message": "Database supports no_show status (found 0 no-show appointments)",
+      "details": {
+        "noShowCount": 0,
+        "allStatuses": {
+          "scheduled": 0,
+          "completed": 0,
+          "no_show": 0,
+          "cancelled": 0,
+          "total": 0
+        }
+      },
+      "timestamp": "2025-08-10T09:39:22.037Z"
+    },
+    {
+      "name": "Bulk Auto-Complete API",
+      "passed": false,
+      "message": "Bulk auto-complete failed (Status: 401)",
+      "details": {
+        "statusCode": 401,
+        "updatedCount": 0,
+        "hasLogging": true,
+        "error": null
+      },
+      "timestamp": "2025-08-10T09:39:22.054Z"
+    },
+    {
+      "name": "File Structure: Trainer dashboard page",
+      "passed": true,
+      "message": "File exists (16692 bytes)",
+      "details": {
+        "path": "src/app/dashboard/trainer/page.tsx",
+        "exists": true,
+        "size": 16692
+      },
+      "timestamp": "2025-08-10T09:39:22.054Z"
+    },
+    {
+      "name": "File Structure: User schedule page",
+      "passed": true,
+      "message": "File exists (36492 bytes)",
+      "details": {
+        "path": "src/app/dashboard/schedule/page.tsx",
+        "exists": true,
+        "size": 36492
+      },
+      "timestamp": "2025-08-10T09:39:22.054Z"
+    },
+    {
+      "name": "File Structure: Settlement page",
+      "passed": true,
+      "message": "File exists (26183 bytes)",
+      "details": {
+        "path": "src/app/dashboard/settlement/page.tsx",
+        "exists": true,
+        "size": 26183
+      },
+      "timestamp": "2025-08-10T09:39:22.054Z"
+    },
+    {
+      "name": "File Structure: Bulk auto-complete API",
+      "passed": true,
+      "message": "File exists (4041 bytes)",
+      "details": {
+        "path": "src/app/api/appointments/auto-complete/route.ts",
+        "exists": true,
+        "size": 4041
+      },
+      "timestamp": "2025-08-10T09:39:22.054Z"
+    },
+    {
+      "name": "File Structure: Appointments API",
+      "passed": true,
+      "message": "File exists (12391 bytes)",
+      "details": {
+        "path": "src/app/api/appointments/route.ts",
+        "exists": true,
+        "size": 12391
+      },
+      "timestamp": "2025-08-10T09:39:22.054Z"
+    },
+    {
+      "name": "File Structure: Navigation drawer component",
+      "passed": true,
+      "message": "File exists (6263 bytes)",
+      "details": {
+        "path": "src/components/NavDrawer.tsx",
+        "exists": true,
+        "size": 6263
+      },
+      "timestamp": "2025-08-10T09:39:22.054Z"
+    },
+    {
+      "name": "Navigation Menu Order",
+      "passed": true,
+      "message": "포인트 구매 appears after 예약 스케줄",
+      "details": {
+        "scheduleIndex": 1004,
+        "pointsIndex": 1124,
+        "correctOrder": true,
+        "hasScheduleItem": true,
+        "hasPointsItem": true
+      },
+      "timestamp": "2025-08-10T09:39:22.055Z"
+    },
+    {
+      "name": "Trainer No-Show Functions",
+      "passed": true,
+      "message": "markAsNoShow function and buttons implemented",
+      "details": {
+        "hasMarkAsNoShow": true,
+        "hasNoShowButton": true,
+        "hasNoShowStatus": true,
+        "functionsFound": [
+          "markAsNoShow",
+          "noShowButton"
+        ]
+      },
+      "timestamp": "2025-08-10T09:39:22.055Z"
+    },
+    {
+      "name": "Complete-to-NoShow Feature",
+      "passed": true,
+      "message": "Trainers can change completed appointments to no-show",
+      "details": {
+        "hasCompleteToNoShow": true,
+        "searchText": "노쇼로 변경"
+      },
+      "timestamp": "2025-08-10T09:39:22.055Z"
+    },
+    {
+      "name": "Schedule No-Show Display",
+      "passed": true,
+      "message": "No-show appointments properly displayed",
+      "details": {
+        "hasNoShowStatus": true,
+        "hasNoShowAppointment": true,
+        "hasOrangeBackground": true,
+        "statusTypeUpdated": true
+      },
+      "timestamp": "2025-08-10T09:39:22.056Z"
+    },
+    {
+      "name": "Schedule No-Show Legend",
+      "passed": true,
+      "message": "Legend includes no-show explanation",
+      "details": {
+        "hasNoShowLegend": true,
+        "searchText": "노쇼 처리된 예약"
+      },
+      "timestamp": "2025-08-10T09:39:22.056Z"
+    },
+    {
+      "name": "Settlement Dynamic Trainers",
+      "passed": true,
+      "message": "Settlement page loads trainers from database",
+      "details": {
+        "hasFetchTrainers": true,
+        "hasApiCall": true,
+        "hasBulkComplete": true,
+        "usesDatabase": true
+      },
+      "timestamp": "2025-08-10T09:39:22.056Z"
+    },
+    {
+      "name": "Auto-Complete API Implementation",
+      "passed": true,
+      "message": "Auto-complete API properly implemented with logging",
+      "details": {
+        "hasLogging": true,
+        "hasProperFields": true,
+        "hasErrorHandling": true,
+        "implementationComplete": true
+      },
+      "timestamp": "2025-08-10T09:39:22.056Z"
+    }
+  ],
+  "recommendations": {
+    "serverRunning": true,
+    "hasApiIssues": true,
+    "hasFileIssues": false,
+    "hasFeatureIssues": false
+  }
+}

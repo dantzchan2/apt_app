@@ -23,7 +23,7 @@ interface Appointment {
   userId: string;
   userName: string;
   userEmail?: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
   usedPointBatchId?: string;
   purchaseItemId?: string;
 }
@@ -183,6 +183,40 @@ export default function TrainerDashboard() {
     }
   };
 
+  const markAsNoShow = async (appointmentId: string) => {
+    if (!confirm('정말로 이 예약을 노쇼로 처리하시겠습니까? 고객에게 포인트는 환불되지 않습니다.')) {
+      return;
+    }
+
+    try {
+      // Call API to mark appointment as no-show
+      const response = await fetch('/api/appointments', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: appointmentId,
+          status: 'no_show'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to mark appointment as no-show');
+      }
+
+      // Refresh appointments from server
+      await fetchAppointments();
+
+      alert('예약이 노쇼로 처리되었습니다. 고객에게 포인트는 환불되지 않습니다.');
+    } catch (error) {
+      console.error('Mark no-show error:', error);
+      alert(`노쇼 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'}`);
+    }
+  };
+
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -275,8 +309,23 @@ export default function TrainerDashboard() {
                       </p>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                        {appointment.status === 'scheduled' ? '예약됨' : appointment.status === 'completed' ? '완료됨' : '취소됨'}
+                      <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                        appointment.status === 'scheduled' 
+                          ? 'bg-green-100 text-green-800'
+                          : appointment.status === 'completed'
+                          ? 'bg-blue-100 text-blue-800'
+                          : appointment.status === 'no_show'
+                          ? 'bg-orange-100 text-orange-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {appointment.status === 'scheduled' 
+                          ? '예약됨' 
+                          : appointment.status === 'completed' 
+                          ? '완료됨' 
+                          : appointment.status === 'no_show'
+                          ? '노쇼'
+                          : '취소됨'
+                        }
                       </span>
                       {canCancelAppointment(appointment.date, appointment.time) && (
                         <button
@@ -287,12 +336,20 @@ export default function TrainerDashboard() {
                         </button>
                       )}
                       {new Date(`${appointment.date}T${appointment.time}:00`) <= new Date() && appointment.status === 'scheduled' && (
-                        <button
-                          onClick={() => markAsCompleted(appointment.id)}
-                          className="px-3 py-1 text-xs font-medium text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-md transition-colors"
-                        >
-                          완료 처리
-                        </button>
+                        <>
+                          <button
+                            onClick={() => markAsCompleted(appointment.id)}
+                            className="px-3 py-1 text-xs font-medium text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 rounded-md transition-colors"
+                          >
+                            완료 처리
+                          </button>
+                          <button
+                            onClick={() => markAsNoShow(appointment.id)}
+                            className="px-3 py-1 text-xs font-medium text-gray-600 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-md transition-colors"
+                          >
+                            노쇼 처리
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -337,13 +394,30 @@ export default function TrainerDashboard() {
                     <div className="flex items-center space-x-3">
                       <span className={`px-3 py-1 text-xs font-medium rounded-full ${
                         appointment.status === 'completed' 
-                          ? 'bg-orange-100 text-orange-800'
+                          ? 'bg-blue-100 text-blue-800'
                           : appointment.status === 'cancelled'
                           ? 'bg-red-100 text-red-800'
+                          : appointment.status === 'no_show'
+                          ? 'bg-orange-100 text-orange-800'
                           : 'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {appointment.status === 'scheduled' ? '미참석' : appointment.status === 'completed' ? '완료됨' : '취소됨'}
+                        {appointment.status === 'scheduled' 
+                          ? '미참석' 
+                          : appointment.status === 'completed' 
+                          ? '완료됨' 
+                          : appointment.status === 'no_show'
+                          ? '노쇼'
+                          : '취소됨'
+                        }
                       </span>
+                      {appointment.status === 'completed' && (
+                        <button
+                          onClick={() => markAsNoShow(appointment.id)}
+                          className="px-3 py-1 text-xs font-medium text-gray-600 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-md transition-colors"
+                        >
+                          노쇼로 변경
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
