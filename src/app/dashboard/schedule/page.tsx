@@ -723,9 +723,9 @@ export default function Schedule() {
           </div>
         ) : (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          {/* Days Header */}
-          <div className="grid grid-cols-8 border-b border-gray-200">
-            <div className="px-1 py-3 text-xs font-medium text-gray-500 text-center bg-gray-50">
+          {/* Sticky Days Header */}
+          <div className="sticky top-0 z-10 grid grid-cols-8 border-b border-gray-200 bg-white shadow-sm">
+            <div className="sticky left-0 z-20 px-1 py-3 text-xs font-medium text-gray-500 text-center bg-gray-50 border-r border-gray-200">
               시간
             </div>
             {getWeekDays().map((day, index) => {
@@ -749,12 +749,12 @@ export default function Schedule() {
             })}
           </div>
 
-          {/* Time Slots Grid */}
-          <div className="relative">
+          {/* Scrollable Time Slots Grid */}
+          <div className="relative max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             {generateTimeSlots().map((timeSlot, timeIndex) => (
               <div key={timeSlot} className="grid grid-cols-8 border-b border-gray-100">
-                {/* Time Label */}
-                <div className="px-2 py-3 text-xs text-gray-500 bg-gray-50 border-r border-gray-200 text-center font-medium">
+                {/* Sticky Time Label */}
+                <div className="sticky left-0 z-5 px-2 py-3 text-xs text-gray-500 bg-gray-50 border-r border-gray-200 text-center font-medium">
                   {timeSlot}
                 </div>
                 
