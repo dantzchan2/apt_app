@@ -33,11 +33,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, email, phone, password } = await request.json();
+    const { name, email, phone, password, assignedTrainerId } = await request.json();
 
-    if (!name || !email || !phone || !password) {
+    if (!name || !email || !phone || !password || !assignedTrainerId) {
       return NextResponse.json(
-        { error: 'All fields are required' },
+        { error: 'All fields including trainer selection are required' },
         { status: 400 }
       );
     }
@@ -72,10 +72,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate that the assigned trainer exists and is active
+    const { data: trainer, error: trainerError } = await supabaseAdmin
+      .from('users')
+      .select('id, name, trainer_type')
+      .eq('id', assignedTrainerId)
+      .eq('role', 'trainer')
+      .eq('is_active', true)
+      .single();
+
+    if (trainerError || !trainer) {
+      console.error('Trainer validation error:', trainerError);
+      return NextResponse.json(
+        { error: 'Invalid trainer selection' },
+        { status: 400 }
+      );
+    }
+
     // Hash password
     const passwordHash = await hashPassword(password);
 
-    // Create user
+    // Create user with trainer assignment
     const { data: user, error: createError } = await supabaseAdmin
       .from('users')
       .insert({
@@ -84,10 +101,11 @@ export async function POST(request: NextRequest) {
         phone,
         password_hash: passwordHash,
         role: 'user',
+        assigned_trainer_id: assignedTrainerId,
         total_points: 0,
         is_active: true
       })
-      .select('id, name, email, phone, role, total_points')
+      .select('id, name, email, phone, role, total_points, assigned_trainer_id')
       .single();
 
     if (createError || !user) {
@@ -109,7 +127,13 @@ export async function POST(request: NextRequest) {
         email: user.email,
         role: user.role,
         phone: user.phone,
-        total_points: user.total_points
+        total_points: user.total_points,
+        assigned_trainer_id: user.assigned_trainer_id
+      },
+      trainer: {
+        id: trainer.id,
+        name: trainer.name,
+        trainer_type: trainer.trainer_type
       }
     });
 

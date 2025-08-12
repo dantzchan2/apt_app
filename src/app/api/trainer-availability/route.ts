@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     // Build the query to get appointments for the trainer in the date range
     let query = supabase
       .from('appointments')
-      .select('appointment_date, appointment_time, status')
+      .select('appointment_date, appointment_time, duration_minutes, status')
       .eq('trainer_id', trainerId)
       .eq('status', 'scheduled'); // Only show confirmed appointments as unavailable
 
@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
     const unavailableSlots = (appointments || []).map(apt => ({
       date: apt.appointment_date,
       time: apt.appointment_time?.substring(0, 5), // Remove seconds: HH:MM:SS -> HH:MM
+      duration_minutes: apt.duration_minutes || 60,
       status: 'unavailable' // Generic status, no user details
     }));
 

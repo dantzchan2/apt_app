@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
       .select(`
         id, user_id, user_name, user_email, 
         trainer_id, trainer_name, appointment_date, 
-        appointment_time, status, product_id, notes,
-        products (name, points)
+        appointment_time, duration_minutes, status, product_id, notes,
+        products (name, points, duration_minutes)
       `);
 
     // Apply user-based filtering based on role
@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
       trainerId, 
       date, 
       time, 
+      productId,
       notes 
     } = await request.json();
 
@@ -98,6 +99,16 @@ export async function POST(request: NextRequest) {
         { error: 'Can only create appointments for yourself' },
         { status: 403 }
       );
+    }
+
+    // For regular users, validate they can only book with their assigned trainer
+    if (authenticatedUser.role === 'user') {
+      if (authenticatedUser.assigned_trainer_id !== trainerId) {
+        return NextResponse.json(
+          { error: 'You can only book appointments with your assigned trainer' },
+          { status: 400 }
+        );
+      }
     }
 
     // Look up trainer name from database
@@ -117,10 +128,13 @@ export async function POST(request: NextRequest) {
 
     const trainerName = trainer.name;
 
-    // Get user's available point batches (FIFO - oldest first)
+    // Get user's available point batches with product duration info (FIFO - oldest first)
     const { data: pointBatches, error: batchError } = await supabase
       .from('point_batches')
-      .select('id, product_id, remaining_points, purchase_date')
+      .select(`
+        id, product_id, remaining_points, purchase_date,
+        products (duration_minutes)
+      `)
       .eq('user_id', userId)
       .eq('is_active', true)
       .gt('remaining_points', 0)
@@ -141,13 +155,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use the oldest available batch (FIFO)
-    const oldestBatch = pointBatches[0];
-    const usedPointBatchId = oldestBatch.id;
-    const productId = oldestBatch.product_id;
+    // Find a batch that matches the requested product (if specified)
+    let selectedBatch;
+    if (productId) {
+      // Look for a batch with matching product ID first
+      selectedBatch = pointBatches.find(batch => batch.product_id === productId);
+      
+      if (!selectedBatch) {
+        return NextResponse.json(
+          { error: 'No available points for the requested session type' },
+          { status: 400 }
+        );
+      }
+    } else {
+      // Fallback: Use the oldest available batch (FIFO)
+      selectedBatch = pointBatches[0];
+    }
 
-    // Deduct 1 point from the oldest batch
-    const newRemainingPoints = oldestBatch.remaining_points - 1;
+    const usedPointBatchId = selectedBatch.id;
+    const usedProductId = selectedBatch.product_id;
+    const durationMinutes = (selectedBatch as { products?: { duration_minutes?: number } }).products?.duration_minutes || 60;
+
+    // Deduct 1 point from the selected batch
+    const newRemainingPoints = selectedBatch.remaining_points - 1;
     
     const { error: updateError } = await supabase
       .from('point_batches')
@@ -164,13 +194,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for existing appointments at this time slot
+    // Check for existing appointments at this time slot (including duration conflicts)
     const { data: existingAppointments, error: checkError } = await supabase
       .from('appointments')
-      .select('id, status, user_id')
+      .select('id, status, user_id, appointment_time, duration_minutes')
       .eq('trainer_id', trainerId)
-      .eq('appointment_date', date)
-      .eq('appointment_time', time);
+      .eq('appointment_date', date);
+      
+    // Helper function to convert time string to minutes since midnight
+    const timeToMinutes = (timeStr: string) => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+    
+    // Check for time range conflicts with proper duration consideration
+    const conflictingAppointments = existingAppointments?.filter(apt => {
+      if (apt.status !== 'scheduled') return false;
+      
+      const existingStart = timeToMinutes(apt.appointment_time);
+      const existingEnd = existingStart + (apt.duration_minutes || 60);
+      const newStart = timeToMinutes(time);
+      const newEnd = newStart + durationMinutes;
+      
+      // Check for any overlap between time ranges
+      return !(newEnd <= existingStart || newStart >= existingEnd);
+    }) || [];
 
     if (checkError) {
       console.error('Error checking existing appointment:', checkError);
@@ -180,11 +228,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if there's an active appointment
-    const activeAppointment = existingAppointments?.find(apt => apt.status === 'scheduled');
-    if (activeAppointment) {
+    // Check if there's a conflicting appointment
+    if (conflictingAppointments && conflictingAppointments.length > 0) {
+      const conflictingApt = conflictingAppointments[0];
+      const conflictStart = conflictingApt.appointment_time;
+      const conflictDuration = conflictingApt.duration_minutes || 60;
       return NextResponse.json(
-        { error: 'This time slot is already booked' },
+        { error: `Time slot conflicts with existing ${conflictDuration}min appointment at ${conflictStart}` },
         { status: 409 }
       );
     }
@@ -203,7 +253,8 @@ export async function POST(request: NextRequest) {
           user_name: userName,
           user_email: userEmail,
           status: 'scheduled',
-          product_id: productId,
+          duration_minutes: durationMinutes,
+          product_id: usedProductId,
           used_point_batch_id: usedPointBatchId,
           notes: notes,
           updated_at: new Date().toISOString()
@@ -226,8 +277,9 @@ export async function POST(request: NextRequest) {
           trainer_name: trainerName,
           appointment_date: date,
           appointment_time: time,
+          duration_minutes: durationMinutes,
           status: 'scheduled',
-          product_id: productId,
+          product_id: usedProductId,
           used_point_batch_id: usedPointBatchId,
           notes: notes
         })
@@ -256,7 +308,7 @@ export async function POST(request: NextRequest) {
         user_id: userId,
         user_name: userName,
         user_email: userEmail,
-        product_id: productId,
+        product_id: usedProductId,
         used_point_batch_id: usedPointBatchId
       });
 
@@ -269,7 +321,7 @@ export async function POST(request: NextRequest) {
       success: true, 
       appointmentId: appointmentId,
       usedPointBatchId: usedPointBatchId,
-      productId: productId,
+      productId: usedProductId,
       trainerName: trainerName,
       pointsDeducted: 1
     });

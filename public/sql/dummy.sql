@@ -14,13 +14,13 @@ INSERT INTO users (id, name, email, phone, role, specialization, total_points, p
 ('44444444-4444-4444-a444-444444444444'::UUID, 'Alex Thompson', 'alex.thompson@studiovit.com', '010-4567-8901', 'trainer', 'CrossFit', 0, '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
 ('55555555-5555-4555-a555-555555555555'::UUID, 'Lisa Park', 'lisa.park@studiovit.com', '010-5678-9012', 'trainer', 'Pilates', 0, '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
--- Insert default products (point packages)
-INSERT INTO products (id, name, description, points, price, sale_rate, recv_rate, display_order) VALUES
-('aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'::UUID, '스타터 패키지', '첫 고객을 위한 기본 패키지', 5, 25000.00, 0.1000, 0.0500, 1),
-('bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb'::UUID, '베이직 패키지', '가장 인기 있는 표준 패키지', 10, 45000.00, 0.1200, 0.0600, 2),
-('cccccccc-cccc-4ccc-cccc-cccccccccccc'::UUID, '프리미엄 패키지', '더 많은 가치를 원하는 고객을 위한 패키지', 20, 85000.00, 0.1500, 0.0750, 3),
-('dddddddd-dddd-4ddd-dddd-dddddddddddd'::UUID, '프로 패키지', '전문 트레이닝을 원하는 고객을 위한 최고급 패키지', 50, 200000.00, 0.2000, 0.1000, 4),
-('eeeeeeee-eeee-4eee-eeee-eeeeeeeeeeee'::UUID, '레거시 패키지', '기존 고객용 호환성 패키지', 1, 5000.00, 0.0500, 0.0250, 99);
+-- Insert default products (point packages with session durations)
+INSERT INTO products (id, name, description, points, price, duration_minutes, sale_rate, recv_rate, display_order) VALUES
+('aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'::UUID, '스타터 패키지', '첫 고객을 위한 기본 패키지 (30분 세션)', 5, 25000.00, 30, 0.1000, 0.0500, 1),
+('bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb'::UUID, '베이직 패키지', '가장 인기 있는 표준 패키지 (30분 세션)', 10, 45000.00, 30, 0.1200, 0.0600, 2),
+('cccccccc-cccc-4ccc-cccc-cccccccccccc'::UUID, '프리미엄 패키지', '더 많은 가치를 원하는 고객을 위한 패키지 (60분 세션)', 20, 85000.00, 60, 0.1500, 0.0750, 3),
+('dddddddd-dddd-4ddd-dddd-dddddddddddd'::UUID, '프로 패키지', '전문 트레이닝을 원하는 고객을 위한 최고급 패키지 (60분 세션)', 50, 200000.00, 60, 0.2000, 0.1000, 4),
+('eeeeeeee-eeee-4eee-eeee-eeeeeeeeeeee'::UUID, '레거시 패키지', '기존 고객용 호환성 패키지 (60분 세션)', 1, 5000.00, 60, 0.0500, 0.0250, 99);
 
 -- Insert default admin user
 INSERT INTO users (id, name, email, phone, role, total_points, password_hash) VALUES

@@ -201,6 +201,69 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Demo Section */}
+        <div className="py-16 bg-orange-50">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-3xl font-bold text-black sm:text-4xl mb-4">
+              🎯 데모 시스템 체험해보기
+            </h2>
+            <p className="text-lg text-gray-700 mb-8">
+              다양한 역할의 테스트 계정으로 시스템을 체험해보세요
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-red-500">
+                <h3 className="font-semibold text-red-700 mb-2">👑 관리자</h3>
+                <p className="text-sm text-gray-600">전체 시스템 관리 및 모든 기능 접근</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
+                <h3 className="font-semibold text-blue-700 mb-2">💎 헤드 트레이너</h3>
+                <p className="text-sm text-gray-600">프리미엄 트레이닝 서비스 제공</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
+                <h3 className="font-semibold text-green-700 mb-2">🏃 일반 트레이너</h3>
+                <p className="text-sm text-gray-600">표준 트레이닝 서비스 제공</p>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
+              <h3 className="text-lg font-semibold text-yellow-800 mb-3">
+                ✨ 트레이너 배정 시스템 특징
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-yellow-700">
+                <div className="flex items-start">
+                  <span className="text-yellow-600 mr-2">👥</span>
+                  <span>각 고객은 전담 트레이너 배정</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-yellow-600 mr-2">💰</span>
+                  <span>트레이너 타입별 차별화된 가격</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-yellow-600 mr-2">🎯</span>
+                  <span>개인 맞춤형 트레이닝 경험</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-yellow-600 mr-2">🔒</span>
+                  <span>배정된 트레이너와만 예약 가능</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <Link
+                href="/login"
+                className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 transition-colors"
+              >
+                🚀 로그인 페이지에서 테스트 계정 확인하기
+              </Link>
+              <div className="text-sm text-gray-600">
+                7개의 테스트 계정으로 다양한 사용자 경험을 체험해보세요
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
 
       <footer className="bg-white border-t border-gray-200">

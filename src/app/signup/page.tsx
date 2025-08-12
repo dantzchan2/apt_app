@@ -1,8 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
+interface Trainer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  specialization: string;
+  trainer_type: 'trainer' | 'head_trainer';
+  is_active: boolean;
+  created_at: string;
+}
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -10,11 +21,48 @@ export default function SignUp() {
     email: '',
     phone: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    assignedTrainerId: ''
   });
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
+  const [trainersLoading, setTrainersLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    fetchTrainers();
+  }, []);
+
+  const fetchTrainers = async () => {
+    try {
+      const response = await fetch('/api/trainers', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Filter only active trainers and sort by trainer_type (head_trainer first)
+        const activeTrainers = (data.trainers || [])
+          .filter((trainer: { is_active: boolean }) => trainer.is_active)
+          .sort((a: Trainer, b: Trainer) => {
+            // Head trainers first, then regular trainers, then by name
+            if (a.trainer_type === 'head_trainer' && b.trainer_type !== 'head_trainer') return -1;
+            if (b.trainer_type === 'head_trainer' && a.trainer_type !== 'head_trainer') return 1;
+            return a.name.localeCompare(b.name);
+          });
+        setTrainers(activeTrainers);
+      } else {
+        console.error('Failed to fetch trainers');
+        setError('트레이너 정보를 불러오는데 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error fetching trainers:', error);
+      setError('트레이너 정보를 불러오는데 실패했습니다.');
+    } finally {
+      setTrainersLoading(false);
+    }
+  };
 
   const sanitizePhoneNumber = (phone: string): string => {
     // Remove all non-digit characters except leading +
@@ -40,6 +88,12 @@ export default function SignUp() {
 
     if (!formData.phone.trim()) {
       setError('전화번호를 입력해주세요');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.assignedTrainerId) {
+      setError('트레이너를 선택해주세요');
       setIsLoading(false);
       return;
     }
@@ -79,6 +133,7 @@ export default function SignUp() {
           email: formData.email,
           phone: sanitizedPhone,
           password: formData.password,
+          assignedTrainerId: formData.assignedTrainerId,
         }),
       });
 
@@ -118,8 +173,22 @@ export default function SignUp() {
             계정 만들기
           </h2>
           <p className="mt-2 text-center text-sm text-black">
-            트레이너와 예약을 잡기 위해 플랫폼에 가입하세요
+            전담 트레이너와 1:1 예약 시스템
           </p>
+          <div className="mt-4 p-4 bg-orange-50 rounded-lg">
+            <h3 className="text-sm font-medium text-orange-800 mb-2">트레이너 타입 안내</h3>
+            <div className="space-y-2 text-xs text-orange-700">
+              <div className="flex items-start space-x-2">
+                <span className="font-medium">• 헤드 트레이너:</span>
+                <span>프리미엄 전문 트레이너, 높은 가격대</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="font-medium">• 일반 트레이너:</span>
+                <span>기본 전문 트레이너, 표준 가격대</span>
+              </div>
+              <p className="mt-2 italic">가입 후 트레이너 변경은 어려우니 신중히 선택해주세요.</p>
+            </div>
+          </div>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -170,6 +239,40 @@ export default function SignUp() {
               />
             </div>
             <div>
+              <label htmlFor="assignedTrainerId" className="block text-sm font-medium text-black">
+                담당 트레이너 선택
+              </label>
+              {trainersLoading ? (
+                <div className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
+                  트레이너 정보를 불러오는 중...
+                </div>
+              ) : trainers.length === 0 ? (
+                <div className="mt-1 block w-full px-3 py-2 border border-red-300 rounded-md bg-red-50 text-red-600">
+                  현재 사용 가능한 트레이너가 없습니다.
+                </div>
+              ) : (
+                <select
+                  id="assignedTrainerId"
+                  name="assignedTrainerId"
+                  required
+                  value={formData.assignedTrainerId}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 bg-white text-black"
+                >
+                  <option value="">트레이너를 선택해주세요</option>
+                  {trainers.map((trainer) => (
+                    <option key={trainer.id} value={trainer.id}>
+                      {trainer.name} - {trainer.specialization} 
+                      {trainer.trainer_type === 'head_trainer' ? ' (헤드 트레이너)' : ' (일반 트레이너)'}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <p className="mt-2 text-xs text-gray-600">
+                선택한 트레이너와만 예약을 잡을 수 있습니다. 헤드 트레이너는 프리미엄 서비스를 제공합니다.
+              </p>
+            </div>
+            <div>
               <label htmlFor="password" className="block text-sm font-medium text-black">
                 비밀번호
               </label>
@@ -210,10 +313,10 @@ export default function SignUp() {
           <div>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || trainersLoading || trainers.length === 0}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? '계정 생성 중...' : '계정 만들기'}
+              {isLoading ? '계정 생성 중...' : trainersLoading ? '트레이너 로딩 중...' : trainers.length === 0 ? '트레이너 없음' : '계정 만들기'}
             </button>
           </div>
 

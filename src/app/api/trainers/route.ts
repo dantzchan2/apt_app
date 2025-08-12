@@ -15,7 +15,7 @@ export async function GET() {
 
     const { data: trainers, error } = await supabase
       .from('users')
-      .select('id, name, email, phone, specialization, is_active, created_at')
+      .select('id, name, email, phone, specialization, trainer_type, is_active, created_at')
       .eq('role', 'trainer')
       .eq('is_active', true)
       .order('name');

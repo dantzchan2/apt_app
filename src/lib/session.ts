@@ -9,6 +9,7 @@ export interface SessionUser {
   role: 'user' | 'trainer' | 'admin';
   phone: string;
   specialization?: string;
+  assigned_trainer_id?: string;
   total_points: number;
   memo?: string;
   is_active: boolean;
@@ -27,7 +28,7 @@ export async function createSession(userId: string) {
     const { error } = await supabaseAdmin
       .from('sessions')
       .insert({
-        token,
+        session_token: token,
         user_id: userId,
         expires_at: expiresAt.toISOString()
       });
@@ -71,7 +72,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       const { data: sessions, error } = await supabaseAdmin
         .from('sessions')
         .select(`
-          token,
+          session_token,
           expires_at,
           user_id,
           users!inner (
@@ -81,13 +82,14 @@ export async function getSessionUser(): Promise<SessionUser | null> {
             role,
             phone,
             specialization,
+            assigned_trainer_id,
             total_points,
             memo,
             is_active,
             created_at
           )
         `)
-        .eq('token', sessionToken)
+        .eq('session_token', sessionToken)
         .eq('users.is_active', true)
         .gt('expires_at', new Date().toISOString())
         .limit(1);
@@ -126,7 +128,7 @@ export async function clearSession() {
       await supabaseAdmin
         .from('sessions')
         .delete()
-        .eq('token', sessionToken);
+        .eq('session_token', sessionToken);
     }
     
     cookieStore.delete('session');

@@ -23,10 +23,41 @@ interface UserData {
   id: string;
 }
 
+interface UserPointsData {
+  totalPoints: number;
+  pointsByDuration: {
+    30: number;
+    60: number;
+  };
+  batchesByDuration: {
+    30: { id: string; product_id: string; remaining_points: number; [key: string]: unknown }[];
+    60: { id: string; product_id: string; remaining_points: number; [key: string]: unknown }[];
+  };
+  expiringPoints: {
+    total: number;
+    byDuration: {
+      30: number;
+      60: number;
+    };
+    earliestExpiry?: string;
+  };
+}
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  points: number;
+  price: number;
+  duration_minutes: number;
+  display_order: number;
+}
+
 interface Appointment {
   id: string;
   date: string;
   time: string;
+  duration_minutes?: number;
   trainerId: string;
   trainerName: string;
   userId: string;
@@ -68,6 +99,7 @@ interface Trainer {
   email: string;
   phone: string;
   specialization: string;
+  trainer_type: 'trainer' | 'head_trainer';
   is_active: boolean;
   created_at: string;
 }
@@ -116,15 +148,21 @@ const isAppointmentCompleted = (date: string, time: string) => {
 export default function Schedule() {
   const { user, isLoading } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [userPoints, setUserPoints] = useState<UserPointsData | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [selectedTrainer, setSelectedTrainer] = useState('');
   const [currentWeekStart, setCurrentWeekStart] = useState(new Date());
   const [isBooking, setIsBooking] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{date: string, time: string} | null>(null);
+  const [, setSelectedDuration] = useState<number | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showDurationSelection, setShowDurationSelection] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [trainerAppointments, setTrainerAppointments] = useState<Appointment[]>([]);
   const [userAppointments, setUserAppointments] = useState<Appointment[]>([]);
-  const [unavailableSlots, setUnavailableSlots] = useState<{date: string, time: string}[]>([]);
+  const [unavailableSlots, setUnavailableSlots] = useState<{date: string, time: string, duration_minutes?: number}[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -138,9 +176,11 @@ export default function Schedule() {
     
     setUserData(parsedUserData);
     
-    // Load trainers and appointments from API
+    // Load trainers, appointments, user points, and products from API
     fetchTrainers();
     fetchAllAppointments();
+    fetchUserPoints();
+    fetchProducts();
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -149,6 +189,40 @@ export default function Schedule() {
       fetchAllAppointments();
     }
   }, [selectedTrainer, currentWeekStart, userData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const fetchUserPoints = async () => {
+    try {
+      const response = await fetch('/api/user-points', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserPoints(data);
+      } else {
+        console.error('Failed to fetch user points');
+      }
+    } catch (error) {
+      console.error('Error fetching user points:', error);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data.products || []);
+      } else {
+        console.error('Failed to fetch products');
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
 
   const fetchTrainers = async () => {
     try {
@@ -159,14 +233,35 @@ export default function Schedule() {
       if (response.ok) {
         const data = await response.json();
         const fetchedTrainers = data.trainers || [];
-        setTrainers(fetchedTrainers);
         
-        // Set the first trainer as default if none selected
-        if (fetchedTrainers.length > 0 && !selectedTrainer) {
-          setSelectedTrainer(fetchedTrainers[0].id);
+        // Filter trainers based on user role
+        let availableTrainers = fetchedTrainers;
+        if (userData?.role === 'user' && user?.assigned_trainer_id) {
+          // For regular users, only show their assigned trainer
+          availableTrainers = fetchedTrainers.filter((trainer: Trainer) => trainer.id === user.assigned_trainer_id);
+        } else {
+          // For admins/trainers, sort by trainer_type (head_trainer first)
+          availableTrainers = fetchedTrainers.sort((a: Trainer, b: Trainer) => {
+            if (a.trainer_type === 'head_trainer' && b.trainer_type !== 'head_trainer') return -1;
+            if (b.trainer_type === 'head_trainer' && a.trainer_type !== 'head_trainer') return 1;
+            return a.name.localeCompare(b.name);
+          });
         }
         
-        console.log('Loaded trainers:', fetchedTrainers);
+        setTrainers(availableTrainers);
+        
+        // Set the appropriate trainer as default
+        if (availableTrainers.length > 0 && !selectedTrainer) {
+          if (userData?.role === 'user' && user?.assigned_trainer_id) {
+            // For regular users, automatically select their assigned trainer
+            setSelectedTrainer(user.assigned_trainer_id);
+          } else {
+            // For admins/trainers, select the first available trainer
+            setSelectedTrainer(availableTrainers[0].id);
+          }
+        }
+        
+        console.log('Loaded trainers:', availableTrainers);
       } else {
         console.error('Failed to fetch trainers:', response.status, await response.text());
       }
@@ -200,6 +295,7 @@ export default function Schedule() {
           trainerName: apt.trainer_name,
           date: apt.appointment_date || apt.date,
           time: (apt.appointment_time || apt.time)?.toString().substring(0, 5), // Remove seconds: HH:MM:SS -> HH:MM
+          duration_minutes: apt.duration_minutes || 60,
           status: apt.status,
           usedPointBatchId: apt.used_point_batch_id,
           purchaseItemId: apt.purchase_item_id
@@ -220,7 +316,7 @@ export default function Schedule() {
       
       let trainerAppts: Appointment[] = [];
       
-      let unavailableSlotsList: {date: string, time: string}[] = [];
+      let unavailableSlotsList: {date: string, time: string, duration_minutes?: number}[] = [];
       
       // Fetch trainer availability for all users (shows unavailable slots without details)
       if (userData.role === 'admin' || userData.role === 'trainer') {
@@ -241,6 +337,7 @@ export default function Schedule() {
             trainerName: apt.trainer_name,
             date: apt.appointment_date || apt.date,
             time: (apt.appointment_time || apt.time)?.toString().substring(0, 5), // Remove seconds: HH:MM:SS -> HH:MM
+            duration_minutes: apt.duration_minutes || 60,
             status: apt.status,
             usedPointBatchId: apt.used_point_batch_id,
             purchaseItemId: apt.purchase_item_id
@@ -302,25 +399,27 @@ export default function Schedule() {
   };
 
   const isTimeSlotAvailable = (date: string, time: string) => {
-    // Function to check if an appointment time falls within a 30-minute slot
-    const isTimeInSlot = (appointmentTime: string, slotTime: string) => {
+    // Function to check if an appointment time conflicts with a time slot
+    const isTimeInSlot = (appointmentTime: string, slotTime: string, appointmentDuration: number = 60) => {
       if (appointmentTime === slotTime) return true;
       
-      // Check if appointment falls within the 30-minute slot window
+      // Check if appointment overlaps with the 30-minute slot window
       const [slotHour, slotMin] = slotTime.split(':').map(Number);
       const [aptHour, aptMin] = appointmentTime.split(':').map(Number);
       
       const slotStart = slotHour * 60 + slotMin;
-      const slotEnd = slotStart + 30;
-      const aptMinutes = aptHour * 60 + aptMin;
+      const slotEnd = slotStart + 30; // Calendar slots are always 30 minutes
+      const aptStart = aptHour * 60 + aptMin;
+      const aptEnd = aptStart + appointmentDuration; // Appointment duration varies
       
-      return aptMinutes >= slotStart && aptMinutes < slotEnd;
+      // Check for any overlap between appointment time range and slot time range
+      return !(aptEnd <= slotStart || aptStart >= slotEnd);
     };
     
     // Check if user has conflict at this time (any trainer) - always prevent this
     const hasUserConflict = userAppointments.some(apt => 
       apt.date === date && 
-      isTimeInSlot(apt.time, time) && 
+      isTimeInSlot(apt.time, time, apt.duration_minutes || 60) && 
       apt.userId === userData?.id &&
       apt.status !== 'cancelled'
     );
@@ -332,7 +431,7 @@ export default function Schedule() {
       // Admins and trainers check full appointment details
       const isTrainerBooked = trainerAppointments.some(apt => 
         apt.date === date && 
-        isTimeInSlot(apt.time, time) && 
+        isTimeInSlot(apt.time, time, apt.duration_minutes || 60) && 
         apt.trainerId === selectedTrainer &&
         apt.status !== 'cancelled'
       );
@@ -342,7 +441,7 @@ export default function Schedule() {
       // Regular users check unavailable slots
       const isSlotUnavailable = unavailableSlots.some(slot => 
         slot.date === date && 
-        isTimeInSlot(slot.time, time)
+        isTimeInSlot(slot.time, time, slot.duration_minutes || 60)
       );
       
       if (isSlotUnavailable) return false;
@@ -363,19 +462,21 @@ export default function Schedule() {
   };
 
   const getSlotAppointment = (date: string, time: string) => {
-    // Function to check if an appointment time falls within a 30-minute slot
-    const isTimeInSlot = (appointmentTime: string, slotTime: string) => {
+    // Function to check if an appointment time conflicts with a time slot
+    const isTimeInSlot = (appointmentTime: string, slotTime: string, appointmentDuration: number = 60) => {
       if (appointmentTime === slotTime) return true;
       
-      // Check if appointment falls within the 30-minute slot window
+      // Check if appointment overlaps with the 30-minute slot window
       const [slotHour, slotMin] = slotTime.split(':').map(Number);
       const [aptHour, aptMin] = appointmentTime.split(':').map(Number);
       
       const slotStart = slotHour * 60 + slotMin;
-      const slotEnd = slotStart + 30;
-      const aptMinutes = aptHour * 60 + aptMin;
+      const slotEnd = slotStart + 30; // Calendar slots are always 30 minutes
+      const aptStart = aptHour * 60 + aptMin;
+      const aptEnd = aptStart + appointmentDuration; // Appointment duration varies
       
-      return aptMinutes >= slotStart && aptMinutes < slotEnd;
+      // Check for any overlap between appointment time range and slot time range
+      return !(aptEnd <= slotStart || aptStart >= slotEnd);
     };
     
     // Debug: log what we're searching for
@@ -388,14 +489,14 @@ export default function Schedule() {
         userId: apt.userId,
         currentUserId: userData?.id,
         matchesDate: apt.date === date,
-        matchesTime: isTimeInSlot(apt.time, time)
+        matchesTime: isTimeInSlot(apt.time, time, apt.duration_minutes || 60)
       })));
     }
     
     // Always check for user's appointment first (any trainer)
     const userApt = userAppointments.find(apt => 
       apt.date === date && 
-      isTimeInSlot(apt.time, time) && 
+      isTimeInSlot(apt.time, time, apt.duration_minutes || 60) && 
       apt.userId === userData?.id &&
       apt.status !== 'cancelled'
     );
@@ -420,7 +521,7 @@ export default function Schedule() {
       // Admins and trainers see full appointment details
       const trainerApt = trainerAppointments.find(apt => 
         apt.date === date && 
-        isTimeInSlot(apt.time, time) && 
+        isTimeInSlot(apt.time, time, apt.duration_minutes || 60) && 
         apt.trainerId === selectedTrainer &&
         apt.status !== 'cancelled'
       );
@@ -433,7 +534,7 @@ export default function Schedule() {
       // Regular users only see unavailable slots (no details)
       const unavailableSlot = unavailableSlots.find(slot => 
         slot.date === date && 
-        isTimeInSlot(slot.time, time)
+        isTimeInSlot(slot.time, time, slot.duration_minutes || 60)
       );
       
       if (unavailableSlot) {
@@ -449,6 +550,7 @@ export default function Schedule() {
             trainerName: 'Unknown',
             date: date,
             time: time,
+            duration_minutes: 60,
             status: 'unavailable' as const,
             usedPointBatchId: '',
             purchaseItemId: ''
@@ -500,35 +602,108 @@ export default function Schedule() {
       return;
     }
     
-    // Available slot - confirm before booking appointment
+    // Available slot - check available points and show appropriate popup
     if (isTimeSlotAvailable(date, time)) {
-      // Get trainer name for confirmation
-      const trainer = trainers.find(t => t.id === selectedTrainer);
-      const trainerName = trainer?.name || 'Unknown Trainer';
-      const formattedDate = new Date(date).toLocaleDateString('ko-KR', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric',
-        weekday: 'long'
-      });
-      
-      const confirmMessage = `${trainerName} 트레이너와 ${formattedDate} ${time}에 예약하시겠습니까?\n\n• 1포인트가 사용됩니다\n• 예약은 1시간 전까지 취소 가능합니다`;
-      
-      if (confirm(confirmMessage)) {
-        setSelectedSlot({ date, time });
-        handleBookAppointment(date, time);
-      }
+      setSelectedSlot({ date, time });
+      checkPointsAndShowBookingPopup();
     }
   };
 
-  const handleBookAppointment = async (date: string, time: string) => {
-    if (!userData || !selectedTrainer) return;
-    
-    if ((userData.points || 0) < 1) {
-      alert('예약하려면 최소 1포인트가 필요합니다!');
+  const checkPointsAndShowBookingPopup = () => {
+    if (!userPoints) {
+      alert('포인트 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
       return;
     }
 
+    const { pointsByDuration } = userPoints;
+    const has30MinPoints = pointsByDuration[30] > 0;
+    const has60MinPoints = pointsByDuration[60] > 0;
+
+    // If no points at all
+    if (!has30MinPoints && !has60MinPoints) {
+      alert('예약하려면 포인트가 필요합니다!');
+      return;
+    }
+
+    // Find products that match user's available point batches
+    const getAvailableProductForDuration = (duration: number) => {
+      if (!userPoints?.batchesByDuration) return null;
+      
+      const batches = userPoints.batchesByDuration[duration as 30 | 60];
+      if (!batches || batches.length === 0) return null;
+      
+      // Get the product ID from the first available batch
+      const productId = batches[0].product_id;
+      return products.find(p => p.id === productId) || null;
+    };
+
+    // If only one type of points available, skip duration selection
+    if (has30MinPoints && !has60MinPoints) {
+      const product = getAvailableProductForDuration(30);
+      if (product) {
+        setSelectedDuration(30);
+        setSelectedProduct(product);
+        setShowConfirmation(true);
+      } else {
+        alert('30분 세션 상품 정보를 찾을 수 없습니다.');
+      }
+    } else if (has60MinPoints && !has30MinPoints) {
+      const product = getAvailableProductForDuration(60);
+      if (product) {
+        setSelectedDuration(60);
+        setSelectedProduct(product);
+        setShowConfirmation(true);
+      } else {
+        alert('60분 세션 상품 정보를 찾을 수 없습니다.');
+      }
+    } else {
+      // Both types of points available - show duration selection
+      setShowDurationSelection(true);
+    }
+  };
+
+  const handleDurationSelect = (duration: number) => {
+    // Find the product that matches user's available point batches for this duration
+    const getAvailableProductForDuration = (duration: number) => {
+      if (!userPoints?.batchesByDuration) return null;
+      
+      const batches = userPoints.batchesByDuration[duration as 30 | 60];
+      if (!batches || batches.length === 0) return null;
+      
+      // Get the product ID from the first available batch
+      const productId = batches[0].product_id;
+      return products.find(p => p.id === productId) || null;
+    };
+    
+    const product = getAvailableProductForDuration(duration);
+    if (product) {
+      setSelectedDuration(duration);
+      setSelectedProduct(product);
+      setShowDurationSelection(false);
+      setShowConfirmation(true);
+    } else {
+      alert(`${duration}분 세션 상품 정보를 찾을 수 없습니다.`);
+    }
+  };
+
+  const handleConfirmBooking = () => {
+    if (selectedSlot && selectedProduct) {
+      setShowConfirmation(false);
+      handleBookAppointment(selectedSlot.date, selectedSlot.time, selectedProduct.id);
+    }
+  };
+
+  const handleCancelBooking = () => {
+    setShowDurationSelection(false);
+    setShowConfirmation(false);
+    setSelectedSlot(null);
+    setSelectedDuration(null);
+    setSelectedProduct(null);
+  };
+
+  const handleBookAppointment = async (date: string, time: string, productId: string) => {
+    if (!userData || !selectedTrainer) return;
+    
     setIsBooking(true);
     
     try {
@@ -546,6 +721,7 @@ export default function Schedule() {
           trainerId: selectedTrainer,
           date: date,
           time: time,
+          productId: productId,
           notes: 'Calendar booking'
         })
       });
@@ -555,15 +731,9 @@ export default function Schedule() {
         throw new Error(errorData.error || 'Failed to create appointment');
       }
 
-      // Refresh appointments from server
+      // Refresh appointments and user points from server
       await fetchAllAppointments();
-
-      // Update user points in local state (subtract 1 point)
-      const updatedUserData = {
-        ...userData,
-        points: (userData.points || 0) - 1
-      };
-      setUserData(updatedUserData);
+      await fetchUserPoints();
 
       alert('예약이 성공적으로 완료되었습니다!');
     } catch (error) {
@@ -655,39 +825,54 @@ export default function Schedule() {
         userData={userData} 
         title="예약 관리" 
         currentPage="/dashboard/schedule" 
-        customUserInfo={
-          <>
-            포인트: 
-            <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
-              {userData.points || 0}
-            </span>
-          </>
-        }
+        showPoints={true}
       />
 
       <main className="max-w-7xl mx-auto px-1 sm:px-4 py-4">
-        {/* Trainer Selection */}
-        <div className="bg-white rounded-lg shadow-sm mb-4 p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            트레이너 선택
-          </label>
-          <select
-            value={selectedTrainer}
-            onChange={(e) => setSelectedTrainer(e.target.value)}
-            disabled={trainers.length === 0}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {trainers.length === 0 ? (
-              <option value="">트레이너 로딩 중...</option>
-            ) : (
-              trainers.map(trainer => (
-                <option key={trainer.id} value={trainer.id}>
-                  {trainer.name} - {trainer.specialization}
-                </option>
-              ))
-            )}
-          </select>
-        </div>
+        {/* Trainer Selection - Hidden for regular users */}
+        {userData && userData.role !== 'user' && (
+          <div className="bg-white rounded-lg shadow-sm mb-4 p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              트레이너 선택
+            </label>
+            <select
+              value={selectedTrainer}
+              onChange={(e) => setSelectedTrainer(e.target.value)}
+              disabled={trainers.length === 0}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {trainers.length === 0 ? (
+                <option value="">트레이너 로딩 중...</option>
+              ) : (
+                trainers.map(trainer => (
+                  <option key={trainer.id} value={trainer.id}>
+                    {trainer.name} - {trainer.specialization}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+        )}
+        
+        {/* Assigned Trainer Display - Show for regular users */}
+        {userData && userData.role === 'user' && trainers.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm mb-4 p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              담당 트레이너
+            </label>
+            <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-semibold">
+                  {trainers[0]?.name?.charAt(0) || 'T'}
+                </span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">{trainers[0]?.name}</h3>
+                <p className="text-sm text-gray-600">{trainers[0]?.specialization}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Week Navigation */}
         <div className="bg-white rounded-lg shadow-sm mb-4 p-4">
@@ -808,14 +993,14 @@ export default function Schedule() {
                             : 'bg-gray-600 text-white'
                         }`}>
                           {isCompletedAppointment
-                            ? '완료됨'
+                            ? `완료 (${slotData.appointment.duration_minutes || 60}분)`
                             : isNoShowAppointment
-                            ? '노쇼'
+                            ? `노쇼 (${slotData.appointment.duration_minutes || 60}분)`
                             : isUserAppointment
-                              ? `${slotData.appointment.trainerName} 트레이너`
+                              ? `${slotData.appointment.trainerName} (${slotData.appointment.duration_minutes || 60}분)`
                             : isUnavailable
                             ? '예약됨'
-                                : slotData?.appointment.userName?.split(' ')[0] || '예약됨'
+                                : `${slotData?.appointment.userName?.split(' ')[0] || '예약됨'} (${slotData?.appointment.duration_minutes || 60}분)`
                           }
                         </div>
                       )}
@@ -955,6 +1140,148 @@ export default function Schedule() {
           )}
         </div>
       </main>
+
+      {/* Duration Selection Popup */}
+      {showDurationSelection && selectedSlot && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              세션 시간을 선택하세요
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              {new Date(selectedSlot.date).toLocaleDateString('ko-KR', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                weekday: 'long'
+              })} {selectedSlot.time}
+            </p>
+            
+            <div className="space-y-3">
+              {userPoints && userPoints.pointsByDuration[30] > 0 && (
+                <button
+                  onClick={() => handleDurationSelect(30)}
+                  className="w-full p-4 text-left border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-medium text-gray-900">30분 세션</div>
+                      <div className="text-sm text-gray-600">1포인트 사용</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-blue-600 font-medium">
+                        {userPoints.pointsByDuration[30]}개 보유
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              )}
+              
+              {userPoints && userPoints.pointsByDuration[60] > 0 && (
+                <button
+                  onClick={() => handleDurationSelect(60)}
+                  className="w-full p-4 text-left border border-gray-200 rounded-lg hover:bg-orange-50 hover:border-orange-300 transition-colors"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-medium text-gray-900">60분 세션</div>
+                      <div className="text-sm text-gray-600">1포인트 사용</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-orange-600 font-medium">
+                        {userPoints.pointsByDuration[60]}개 보유
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              )}
+            </div>
+            
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={handleCancelBooking}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Popup */}
+      {showConfirmation && selectedSlot && selectedProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              예약을 확인해주세요
+            </h3>
+            
+            <div className="space-y-3 mb-6">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">트레이너:</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {trainers.find(t => t.id === selectedTrainer)?.name || 'Unknown'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">날짜:</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {new Date(selectedSlot.date).toLocaleDateString('ko-KR', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        weekday: 'long'
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">시간:</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {selectedSlot.time}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">세션 시간:</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {selectedProduct.duration_minutes}분
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">사용 포인트:</span>
+                    <span className="text-sm font-medium text-orange-600">
+                      1포인트
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-xs text-gray-500 space-y-1">
+                <p>• 예약은 24시간 전까지 취소 가능합니다</p>
+                <p>• 취소 시 포인트가 환불됩니다</p>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={handleCancelBooking}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleConfirmBooking}
+                disabled={isBooking}
+                className="px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors"
+              >
+                {isBooking ? '예약 중...' : '예약 확인'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

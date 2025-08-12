@@ -11,6 +11,11 @@ export default function Login() {
   const [error, setError] = useState('');
   const router = useRouter();
 
+  const quickLogin = (testEmail: string) => {
+    setEmail(testEmail);
+    setPassword('password!');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -137,20 +142,104 @@ export default function Login() {
         </form>
         
         <div className="mt-6 p-4 bg-orange-50 rounded-lg">
-          <h3 className="text-sm font-medium text-black mb-3">데모 계정:</h3>
+          <h3 className="text-sm font-medium text-black mb-3">데모 계정 (비밀번호: password!):</h3>
           <div className="space-y-3 text-sm text-black">
-            <div className="border-l-4 border-red-500 pl-3">
-              <p><strong>관리자:</strong> admin@studiovit.com / password!</p>
-              <p className="text-xs">포인트 구매, 예약, 트레이닝 세션 관리, 모든 사용자 관리 가능</p>
+            {/* Admin Account */}
+            <div className="border-l-4 border-red-500 pl-3 flex justify-between items-center">
+              <div>
+                <p><strong>관리자:</strong> admin@ptvit.com</p>
+                <p className="text-xs">전체 시스템 관리, 모든 사용자/트레이너/예약 관리</p>
+              </div>
+              <button 
+                onClick={() => quickLogin('admin@ptvit.com')}
+                className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+              >
+                선택
+              </button>
             </div>
-            <div className="border-l-4 border-orange-500 pl-3">
-              <p><strong>트레이너:</strong> gb@studiovit.com / password!</p>
-              <p className="text-xs">자신의 트레이닝 예약을 조회하고 취소할 수 있음</p>
+            
+            {/* Trainer Accounts */}
+            <div className="border-l-4 border-blue-500 pl-3 flex justify-between items-center">
+              <div>
+                <p><strong>헤드 트레이너:</strong> head@ptvit.com</p>
+                <p className="text-xs">Head Trainer Kim - 프리미엄 개인 트레이닝</p>
+              </div>
+              <button 
+                onClick={() => quickLogin('head@ptvit.com')}
+                className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+              >
+                선택
+              </button>
             </div>
-            <div className="border-l-4 border-orange-500 pl-3">
-              <p><strong>사용자:</strong> d@d.com / password!</p>
-              <p className="text-xs">포인트 구매 및 예약 가능</p>
+            <div className="border-l-4 border-green-500 pl-3 flex justify-between items-center">
+              <div>
+                <p><strong>일반 트레이너:</strong> trainer@ptvit.com</p>
+                <p className="text-xs">Trainer Lee - 일반 피트니스</p>
+              </div>
+              <button 
+                onClick={() => quickLogin('trainer@ptvit.com')}
+                className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+              >
+                선택
+              </button>
             </div>
+            <div className="border-l-4 border-green-500 pl-3 flex justify-between items-center">
+              <div>
+                <p><strong>일반 트레이너:</strong> trainer2@ptvit.com</p>
+                <p className="text-xs">Trainer Park - 웨이트 트레이닝</p>
+              </div>
+              <button 
+                onClick={() => quickLogin('trainer2@ptvit.com')}
+                className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+              >
+                선택
+              </button>
+            </div>
+            
+            {/* User Accounts */}
+            <div className="border-l-4 border-purple-500 pl-3 flex justify-between items-center">
+              <div>
+                <p><strong>헤드 트레이너 고객:</strong> user-head@ptvit.com</p>
+                <p className="text-xs">Head Trainer Kim 전담 → 프리미엄 가격 상품만 구매 가능</p>
+              </div>
+              <button 
+                onClick={() => quickLogin('user-head@ptvit.com')}
+                className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
+              >
+                선택
+              </button>
+            </div>
+            <div className="border-l-4 border-orange-500 pl-3 flex justify-between items-center">
+              <div>
+                <p><strong>일반 고객 1:</strong> user1@ptvit.com</p>
+                <p className="text-xs">Trainer Lee 전담 → 일반 가격 상품만 구매 가능</p>
+              </div>
+              <button 
+                onClick={() => quickLogin('user1@ptvit.com')}
+                className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+              >
+                선택
+              </button>
+            </div>
+            <div className="border-l-4 border-orange-500 pl-3 flex justify-between items-center">
+              <div>
+                <p><strong>일반 고객 2:</strong> user2@ptvit.com</p>
+                <p className="text-xs">Trainer Park 전담 → 일반 가격 상품만 구매 가능</p>
+              </div>
+              <button 
+                onClick={() => quickLogin('user2@ptvit.com')}
+                className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+              >
+                선택
+              </button>
+            </div>
+          </div>
+          
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+            <p className="text-xs text-yellow-800">
+              <strong>💡 트레이너 배정 시스템:</strong> 각 사용자는 회원가입 시 배정받은 트레이너와만 예약할 수 있으며, 
+              해당 트레이너 타입(헤드/일반)에 맞는 상품만 구매 가능합니다.
+            </p>
           </div>
         </div>
       </div>

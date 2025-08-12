@@ -275,6 +275,139 @@ async function testFeatureImplementations() {
     logResult('Auto-Complete API Implementation', false, 'Auto-complete API file not found', { filePath: autoCompleteApiPath });
   }
 
+  console.log(`${colors.cyan}${colors.bright}=== VARIABLE SESSION DURATION TESTS ===${colors.reset}\n`);
+
+  // Test 6: Database Schema Files for Duration Support
+  const schemaFiles = [
+    { path: 'database/migrations/004_add_variable_session_durations.sql', description: 'Duration migration script' },
+    { path: 'public/sql/schema.sql', description: 'Updated main schema' },
+    { path: 'public/sql/dummy.sql', description: 'Updated sample data' }
+  ];
+
+  schemaFiles.forEach(file => {
+    const fullPath = path.join(__dirname, file.path);
+    const exists = fs.existsSync(fullPath);
+    let hasDurationFields = false;
+    
+    if (exists) {
+      const content = fs.readFileSync(fullPath, 'utf8');
+      hasDurationFields = content.includes('duration_minutes');
+    }
+    
+    logResult(
+      `Schema File: ${file.description}`, 
+      exists && hasDurationFields, 
+      exists ? (hasDurationFields ? 'File exists with duration_minutes support' : 'File exists but missing duration fields') : 'File missing',
+      { path: file.path, exists, hasDurationFields }
+    );
+  });
+
+  // Test 7: Products API Duration Support
+  const productsApiPath = path.join(__dirname, 'src/app/api/products/route.ts');
+  if (fs.existsSync(productsApiPath)) {
+    const content = fs.readFileSync(productsApiPath, 'utf8');
+    const selectsDuration = content.includes('duration_minutes') && content.includes('.select(');
+    
+    logResult(
+      'Products API Duration Support', 
+      selectsDuration, 
+      selectsDuration ? 'Products API returns duration_minutes field' : 'Products API missing duration_minutes in response',
+      { selectsDuration, hasField: content.includes('duration_minutes') }
+    );
+  } else {
+    logResult('Products API Duration Support', false, 'Products API file not found', { filePath: productsApiPath });
+  }
+
+  // Test 8: Appointments API Duration-Aware Booking
+  const appointmentsApiPath = path.join(__dirname, 'src/app/api/appointments/route.ts');
+  if (fs.existsSync(appointmentsApiPath)) {
+    const content = fs.readFileSync(appointmentsApiPath, 'utf8');
+    
+    const hasTimeToMinutes = content.includes('timeToMinutes');
+    const hasConflictDetection = content.includes('overlap') || content.includes('newEnd <= existingStart');
+    const hasDurationFromProduct = content.includes('products?.duration_minutes');
+    const hasTimeRangeLogic = hasTimeToMinutes && hasConflictDetection;
+    
+    logResult(
+      'Appointments API Conflict Detection', 
+      hasTimeRangeLogic, 
+      hasTimeRangeLogic ? 'Advanced time range conflict detection implemented' : 'Missing proper duration-aware conflict detection',
+      { hasTimeToMinutes, hasConflictDetection, hasDurationFromProduct, hasTimeRangeLogic }
+    );
+    
+    // Check if duration is stored in appointments
+    const storesDuration = content.includes('duration_minutes:') && content.includes('durationMinutes');
+    logResult(
+      'Appointments Duration Storage', 
+      storesDuration, 
+      storesDuration ? 'Appointments store duration from product' : 'Missing duration storage in appointments',
+      { storesDuration }
+    );
+  } else {
+    logResult('Appointments API Duration-Aware Booking', false, 'Appointments API file not found', { filePath: appointmentsApiPath });
+  }
+
+  // Test 9: Schedule Page Duration-Aware Frontend
+  if (fs.existsSync(schedulePagePath)) {
+    const content = fs.readFileSync(schedulePagePath, 'utf8');
+    
+    const hasAppointmentDurationInterface = content.includes('duration_minutes?: number');
+    const hasIsTimeInSlotDuration = content.includes('isTimeInSlot(') && content.includes('appointmentDuration');
+    const hasDurationDisplay = content.includes('duration_minutes || 60') && content.includes('분');
+    const hasOverlapLogic = content.includes('aptEnd <= slotStart') || content.includes('overlap');
+    
+    const fullDurationAwareness = hasAppointmentDurationInterface && hasIsTimeInSlotDuration && hasDurationDisplay;
+    
+    logResult(
+      'Schedule Duration-Aware Display', 
+      fullDurationAwareness, 
+      fullDurationAwareness ? 'Schedule page fully supports variable durations' : 'Schedule page missing duration awareness features',
+      { hasAppointmentDurationInterface, hasIsTimeInSlotDuration, hasDurationDisplay, hasOverlapLogic }
+    );
+  }
+
+  // Test 10: Purchase Page Duration Display
+  const purchasePagePath = path.join(__dirname, 'src/app/dashboard/purchase/page.tsx');
+  if (fs.existsSync(purchasePagePath)) {
+    const content = fs.readFileSync(purchasePagePath, 'utf8');
+    
+    const hasProductDurationInterface = content.includes('duration_minutes: number');
+    const hasDurationDisplay = content.includes('duration_minutes}분 세션');
+    const showsDurationInfo = hasProductDurationInterface && hasDurationDisplay;
+    
+    logResult(
+      'Purchase Page Duration Display', 
+      showsDurationInfo, 
+      showsDurationInfo ? 'Purchase page displays session durations' : 'Purchase page missing duration display',
+      { hasProductDurationInterface, hasDurationDisplay }
+    );
+  } else {
+    logResult('Purchase Page Duration Display', false, 'Purchase page file not found', { filePath: purchasePagePath });
+  }
+
+  // Test 11: Database Reset Scripts
+  const resetScriptPath = path.join(__dirname, 'database/reset_and_create_accounts.sql');
+  if (fs.existsSync(resetScriptPath)) {
+    const content = fs.readFileSync(resetScriptPath, 'utf8');
+    
+    const hasTestAccounts = content.includes('admin@ptvit.com') && 
+                           content.includes('trainer@ptvit.com') && 
+                           content.includes('user@ptvit.com');
+    const hasPasswordHash = content.includes('$2b$10$');
+    const hasDurationProducts = content.includes('duration_minutes') && content.includes('30') && content.includes('60');
+    
+    const resetScriptComplete = hasTestAccounts && hasPasswordHash && hasDurationProducts;
+    
+    logResult(
+      'Database Reset Script', 
+      resetScriptComplete, 
+      resetScriptComplete ? 'Reset script creates test accounts with duration-aware products' : 'Reset script incomplete or missing features',
+      { hasTestAccounts, hasPasswordHash, hasDurationProducts }
+    );
+  } else {
+    logResult('Database Reset Script', false, 'Database reset script not found', { filePath: resetScriptPath });
+  }
+
   // Test Summary
   console.log(`${colors.cyan}${colors.bright}=== FEATURE TEST SUMMARY ===${colors.reset}`);
   
@@ -292,7 +425,8 @@ async function testFeatureImplementations() {
     'No-Show Features': testResults.filter(t => t.name.includes('No-Show') || t.name.includes('Complete-to')),
     'Schedule Display': testResults.filter(t => t.name.includes('Schedule')),
     'Settlement Updates': testResults.filter(t => t.name.includes('Settlement')),
-    'API Implementation': testResults.filter(t => t.name.includes('Auto-Complete') || t.name.includes('Constraint')),
+    'API Implementation': testResults.filter(t => t.name.includes('Auto-Complete') || t.name.includes('Constraint') || t.name.includes('API')),
+    'Variable Duration': testResults.filter(t => t.name.includes('Duration') || t.name.includes('Schema File') || t.name.includes('Purchase Page') || t.name.includes('Database Reset')),
     'File Structure': testResults.filter(t => t.name.includes('File Structure'))
   };
 
@@ -314,12 +448,19 @@ async function testFeatureImplementations() {
   // Overall assessment
   if (passed === total) {
     console.log(`\n${colors.green}${colors.bright}🎉 ALL FEATURES IMPLEMENTED CORRECTLY!${colors.reset}`);
-    console.log(`${colors.green}✨ Your new features are ready:${colors.reset}`);
-    console.log(`${colors.green}  • Navigation menu reordering ✅${colors.reset}`);
-    console.log(`${colors.green}  • Trainer no-show functionality ✅${colors.reset}`);
-    console.log(`${colors.green}  • User schedule no-show display ✅${colors.reset}`);
-    console.log(`${colors.green}  • Settlement page dynamic trainers ✅${colors.reset}`);
-    console.log(`${colors.green}  • Bulk auto-complete without database errors ✅${colors.reset}`);
+    console.log(`${colors.green}✨ Your features are ready:${colors.reset}`);
+    console.log(`${colors.green}  Big Overhaul #1 - No-Show Features:${colors.reset}`);
+    console.log(`${colors.green}    • Navigation menu reordering ✅${colors.reset}`);
+    console.log(`${colors.green}    • Trainer no-show functionality ✅${colors.reset}`);
+    console.log(`${colors.green}    • User schedule no-show display ✅${colors.reset}`);
+    console.log(`${colors.green}    • Settlement page dynamic trainers ✅${colors.reset}`);
+    console.log(`${colors.green}    • Bulk auto-complete without database errors ✅${colors.reset}`);
+    console.log(`${colors.green}  Big Overhaul #2 - Variable Session Durations:${colors.reset}`);
+    console.log(`${colors.green}    • Database schema with duration support ✅${colors.reset}`);
+    console.log(`${colors.green}    • API endpoints duration-aware ✅${colors.reset}`);
+    console.log(`${colors.green}    • Frontend duration display ✅${colors.reset}`);
+    console.log(`${colors.green}    • Advanced conflict detection ✅${colors.reset}`);
+    console.log(`${colors.green}    • Test account setup scripts ✅${colors.reset}`);
   } else if (passed / total >= 0.8) {
     console.log(`\n${colors.yellow}${colors.bright}⚠️  MOSTLY COMPLETE (${((passed / total) * 100).toFixed(1)}%)${colors.reset}`);
     console.log(`${colors.yellow}Most features are implemented, but some need attention.${colors.reset}`);

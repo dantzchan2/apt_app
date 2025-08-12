@@ -115,10 +115,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get product details
+    // Get product details including trainer_type
     const { data: product, error: productError } = await supabase
       .from('products')
-      .select('id, name, points, price')
+      .select('id, name, points, price, trainer_type')
       .eq('id', productId)
       .eq('is_active', true)
       .single();
@@ -128,6 +128,33 @@ export async function POST(request: NextRequest) {
         { error: 'Product not found or inactive' },
         { status: 404 }
       );
+    }
+
+    // For regular users, validate they can only purchase products for their assigned trainer type
+    if (authenticatedUser.role === 'user') {
+      // Get user's assigned trainer type
+      const { data: assignedTrainer, error: trainerError } = await supabase
+        .from('users')
+        .select('trainer_type')
+        .eq('id', authenticatedUser.assigned_trainer_id)
+        .eq('role', 'trainer')
+        .eq('is_active', true)
+        .single();
+
+      if (trainerError || !assignedTrainer) {
+        return NextResponse.json(
+          { error: 'Unable to find assigned trainer information' },
+          { status: 400 }
+        );
+      }
+
+      // Validate trainer type matches
+      if (product.trainer_type !== assignedTrainer.trainer_type) {
+        return NextResponse.json(
+          { error: 'You can only purchase products for your assigned trainer type' },
+          { status: 400 }
+        );
+      }
     }
 
     // Create purchase log

@@ -20,6 +20,8 @@ CREATE TABLE products (
     description TEXT,
     points INTEGER NOT NULL CHECK (points > 0),
     price DECIMAL(10,2) NOT NULL CHECK (price > 0),
+    duration_minutes INTEGER NOT NULL DEFAULT 60 CHECK (duration_minutes IN (30, 60)),
+    trainer_type VARCHAR(20) NOT NULL CHECK (trainer_type IN ('trainer', 'head_trainer')) DEFAULT 'trainer',
     sale_rate DECIMAL(5,4) DEFAULT 0.0000, -- Percentage that goes to sales team (0.0000 to 1.0000)
     recv_rate DECIMAL(5,4) DEFAULT 0.0000, -- Percentage that goes to trainers for monthly settlement (0.0000 to 1.0000)
     is_active BOOLEAN DEFAULT true,
@@ -38,13 +40,19 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(20),
     role VARCHAR(10) CHECK (role IN ('user', 'trainer', 'admin')) NOT NULL DEFAULT 'user',
+    trainer_type VARCHAR(20) CHECK (trainer_type IN ('trainer', 'head_trainer')), -- Only for users with role='trainer'
+    assigned_trainer_id UUID REFERENCES users(id) ON DELETE SET NULL, -- For users: which trainer they're assigned to
     password_hash VARCHAR(255), -- For future authentication implementation
     total_points INTEGER DEFAULT 0,
     specialization VARCHAR(100), -- For trainers: their specialization area
     memo TEXT,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraints to ensure data integrity
+    CHECK ((role = 'trainer' AND trainer_type IS NOT NULL) OR (role != 'trainer' AND trainer_type IS NULL)),
+    CHECK ((role = 'user' AND assigned_trainer_id IS NOT NULL) OR (role != 'user'))
 );
 
 -- Create sessions table (for HTTP-only cookie authentication)
@@ -103,6 +111,7 @@ CREATE TABLE appointments (
     trainer_name VARCHAR(100) NOT NULL,
     appointment_date DATE NOT NULL,
     appointment_time TIME NOT NULL,
+    duration_minutes INTEGER NOT NULL DEFAULT 60 CHECK (duration_minutes IN (30, 60)),
     status VARCHAR(20) CHECK (status IN ('scheduled', 'completed', 'cancelled', 'no_show')) NOT NULL DEFAULT 'scheduled',
     used_point_batch_id UUID REFERENCES point_batches(id),
     product_id UUID REFERENCES products(id), -- Which product the used points came from
@@ -113,7 +122,7 @@ CREATE TABLE appointments (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
-    -- Ensure no double booking for same trainer at same time
+    -- Ensure no double booking for same trainer at same time (considering duration)
     UNIQUE(trainer_id, appointment_date, appointment_time)
 );
 
@@ -143,6 +152,8 @@ CREATE TABLE appointment_logs (
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_active ON users(is_active);
+CREATE INDEX idx_users_trainer_type ON users(trainer_type);
+CREATE INDEX idx_users_assigned_trainer ON users(assigned_trainer_id);
 
 CREATE INDEX idx_sessions_token ON sessions(session_token);
 CREATE INDEX idx_sessions_user_id ON sessions(user_id);
@@ -151,6 +162,8 @@ CREATE INDEX idx_sessions_active ON sessions(is_active);
 
 CREATE INDEX idx_products_active ON products(is_active);
 CREATE INDEX idx_products_display_order ON products(display_order);
+CREATE INDEX idx_products_duration ON products(duration_minutes);
+CREATE INDEX idx_products_trainer_type ON products(trainer_type);
 
 CREATE INDEX idx_point_batches_user_id ON point_batches(user_id);
 CREATE INDEX idx_point_batches_product_id ON point_batches(product_id);
@@ -167,12 +180,50 @@ CREATE INDEX idx_appointments_product_id ON appointments(product_id);
 CREATE INDEX idx_appointments_date ON appointments(appointment_date);
 CREATE INDEX idx_appointments_datetime ON appointments(appointment_date, appointment_time);
 CREATE INDEX idx_appointments_status ON appointments(status);
+CREATE INDEX idx_appointments_duration ON appointments(duration_minutes);
+CREATE INDEX idx_appointments_time_range ON appointments(appointment_date, appointment_time, duration_minutes);
 
 CREATE INDEX idx_appointment_logs_appointment_id ON appointment_logs(appointment_id);
 CREATE INDEX idx_appointment_logs_action_by ON appointment_logs(action_by);
 CREATE INDEX idx_appointment_logs_product_id ON appointment_logs(product_id);
 CREATE INDEX idx_appointment_logs_timestamp ON appointment_logs(timestamp);
 CREATE INDEX idx_appointment_logs_date ON appointment_logs(appointment_date);
+
+-- Add constraint function to ensure users can only book with their assigned trainer
+CREATE OR REPLACE FUNCTION check_trainer_assignment()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Skip check for admins making appointments for others
+    IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+        -- Check if user is trying to book with their assigned trainer
+        IF NOT EXISTS (
+            SELECT 1 FROM users 
+            WHERE id = NEW.user_id 
+            AND assigned_trainer_id = NEW.trainer_id
+        ) THEN
+            RAISE EXCEPTION 'User can only book appointments with their assigned trainer';
+        END IF;
+        
+        -- Check if trainer type matches product trainer type
+        IF NOT EXISTS (
+            SELECT 1 FROM users u
+            JOIN products p ON p.id = NEW.product_id
+            WHERE u.id = NEW.trainer_id 
+            AND u.trainer_type = p.trainer_type
+        ) THEN
+            RAISE EXCEPTION 'Product trainer type must match trainer type';
+        END IF;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Add trigger to enforce trainer assignment constraint
+CREATE TRIGGER enforce_trainer_assignment
+    BEFORE INSERT OR UPDATE ON appointments
+    FOR EACH ROW
+    EXECUTE FUNCTION check_trainer_assignment();
 
 -- Create triggers for updating timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()

@@ -8,6 +8,7 @@ export interface AuthenticatedUser {
   role: 'user' | 'trainer' | 'admin';
   phone: string;
   specialization?: string;
+  assigned_trainer_id?: string;
   total_points: number;
   memo?: string;
   is_active: boolean;
@@ -41,7 +42,7 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
     const { data: sessions, error } = await supabaseAdmin
       .from('sessions')
       .select(`
-        token,
+        session_token,
         expires_at,
         users!inner (
           id,
@@ -50,13 +51,14 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
           phone,
           role,
           specialization,
+          assigned_trainer_id,
           total_points,
           memo,
           is_active,
           created_at
         )
       `)
-      .eq('token', sessionToken)
+      .eq('session_token', sessionToken)
       .eq('users.is_active', true)
       .gt('expires_at', new Date().toISOString())
       .limit(1);

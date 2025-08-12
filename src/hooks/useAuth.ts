@@ -10,6 +10,7 @@ interface User {
   role: 'user' | 'trainer' | 'admin';
   phone: string;
   specialization?: string;
+  assigned_trainer_id?: string;
   total_points: number;
 }
 

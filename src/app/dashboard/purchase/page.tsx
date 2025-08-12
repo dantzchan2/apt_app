@@ -24,12 +24,29 @@ interface UserData {
   id: string;
 }
 
+interface UserPointsData {
+  totalPoints: number;
+  pointsByDuration: {
+    30: number;
+    60: number;
+  };
+  expiringPoints: {
+    total: number;
+    byDuration: {
+      30: number;
+      60: number;
+    };
+    earliestExpiry?: string;
+  };
+}
+
 interface Product {
   id: string;
   name: string;
   description: string;
   points: number;
   price: number;
+  duration_minutes: number;
   display_order: number;
 }
 
@@ -47,11 +64,13 @@ interface PurchaseLog {
 export default function Purchase() {
   const { user, isLoading: authLoading } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [userPoints, setUserPoints] = useState<UserPointsData | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [purchaseLogs, setPurchaseLogs] = useState<PurchaseLog[]>([]);
   const [showLogs, setShowLogs] = useState(false);
+  const [pointsLoading, setPointsLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -69,10 +88,33 @@ export default function Purchase() {
     };
     setUserData(userData);
     
-    // Load purchase logs and products from API
+    // Load purchase logs, products, and user points from API
     fetchPurchaseLogs();
     fetchProducts();
-  }, [user, router]);
+    fetchUserPoints();
+  }, [user, router]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const fetchUserPoints = async () => {
+    if (pointsLoading) return;
+    
+    setPointsLoading(true);
+    try {
+      const response = await fetch('/api/user-points', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserPoints(data);
+      } else {
+        console.error('Failed to fetch user points');
+      }
+    } catch (error) {
+      console.error('Error fetching user points:', error);
+    } finally {
+      setPointsLoading(false);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -147,8 +189,9 @@ export default function Purchase() {
       // Show success message
       alert(`${product.points} 포인트를 성공적으로 구매했습니다!`);
       
-      // Refresh purchase logs from API
+      // Refresh purchase logs and user points from API
       await fetchPurchaseLogs();
+      await fetchUserPoints();
 
     } catch (error) {
       console.error('Purchase error:', error);
@@ -269,10 +312,34 @@ export default function Purchase() {
         currentPage="/dashboard/purchase" 
         customUserInfo={
           <>
-            보유 포인트: 
-            <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
-              {userData.points || 0}
-            </span>
+            보유 포인트:
+            {pointsLoading ? (
+              <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                로딩 중...
+              </span>
+            ) : userPoints ? (
+              <div className="ml-2 inline-flex gap-1">
+                {userPoints.pointsByDuration[30] > 0 && (
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                    30분 {userPoints.pointsByDuration[30]}pt
+                  </span>
+                )}
+                {userPoints.pointsByDuration[60] > 0 && (
+                  <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
+                    60분 {userPoints.pointsByDuration[60]}pt
+                  </span>
+                )}
+                {userPoints.totalPoints === 0 && (
+                  <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                    0pt
+                  </span>
+                )}
+              </div>
+            ) : (
+              <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
+                {userData.points || 0}pt
+              </span>
+            )}
           </>
         }
       />
@@ -283,7 +350,7 @@ export default function Purchase() {
             포인트 패키지를 선택하세요
           </h2>
           <p className="text-lg text-black">
-            1 포인트로 트레이너와 1시간 세션을 예약할 수 있습니다
+            포인트로 트레이너와 세션을 예약할 수 있습니다
           </p>
           <p className="text-sm text-amber-600 mt-2">
             ⚠️ 포인트는 구매일로부터 6개월 후 만료됩니다
@@ -337,6 +404,9 @@ export default function Purchase() {
                       {product.points}
                     </span>
                     <span className="text-black ml-1">포인트</span>
+                    <div className="text-sm text-orange-600 font-medium mt-1">
+                      {product.duration_minutes}분 세션
+                    </div>
                   </div>
                   <div className="mb-6">
                     <span className="text-2xl font-bold text-green-600">₩{product.price.toLocaleString()}</span>
@@ -372,7 +442,7 @@ export default function Purchase() {
           <div className="space-y-3 text-black">
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-              <p>각 포인트로 1시간 세션을 예약할 수 있습니다</p>
+              <p>각 포인트로 30분 또는 60분 세션을 예약할 수 있습니다</p>
             </div>
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 bg-amber-500 rounded-full mt-2"></div>

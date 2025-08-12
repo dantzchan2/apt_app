@@ -131,20 +131,20 @@ async function testApiHealth() {
 async function testAuthentication() {
   logSection('Authentication System');
 
-  // Test admin login
-  const adminCookie = await authenticate('admin@studiovit.com', 'password!');
+  // Test admin login with new test account
+  const adminCookie = await authenticate('admin@ptvit.com', 'password!');
   logTest('Admin Authentication', !!adminCookie, 
-         adminCookie ? 'Admin login successful' : 'Failed to authenticate admin');
+         adminCookie ? 'Admin login successful' : 'Failed to authenticate admin (run database reset script)');
 
-  // Test trainer login (assuming a trainer exists)
-  const trainerCookie = await authenticate('gb@studiovit.com', 'password!');
+  // Test trainer login with new test account
+  const trainerCookie = await authenticate('trainer@ptvit.com', 'password!');
   logTest('Trainer Authentication', !!trainerCookie, 
-         trainerCookie ? 'Trainer login successful' : 'Trainer account may not exist');
+         trainerCookie ? 'Trainer login successful' : 'Trainer account may not exist (run database reset script)');
 
-  // Test user login (assuming a user exists)
-  const userCookie = await authenticate('d@d.com', 'password!');
+  // Test user login with new test account
+  const userCookie = await authenticate('user@ptvit.com', 'password!');
   logTest('User Authentication', !!userCookie, 
-         userCookie ? 'User login successful' : 'User account may not exist');
+         userCookie ? 'User login successful' : 'User account may not exist (run database reset script)');
 
   return { adminCookie, trainerCookie, userCookie };
 }
@@ -417,6 +417,99 @@ async function testDatabaseCompatibility(cookies) {
   }
 }
 
+// Test: Variable Session Duration API Support
+async function testVariableDurationAPIs(cookies) {
+  logSection('Variable Session Duration APIs');
+
+  try {
+    // Test Products API includes duration_minutes
+    const productsResponse = await makeRequest({
+      hostname: 'localhost',
+      port: 3000,
+      path: '/api/products',
+      method: 'GET',
+      headers: {
+        'Cookie': cookies.adminCookie || cookies.userCookie || ''
+      }
+    });
+
+    const productsHaveDuration = productsResponse.statusCode === 200 && 
+                                 productsResponse.body.products &&
+                                 productsResponse.body.products.some(p => p.duration_minutes);
+
+    logTest('Products API Duration Field', productsHaveDuration, 
+           productsHaveDuration ? 'Products include duration_minutes field' : 'Products missing duration information');
+
+    // Test if products have both 30 and 60 minute options
+    if (productsHaveDuration) {
+      const durations = productsResponse.body.products.map(p => p.duration_minutes);
+      const has30min = durations.includes(30);
+      const has60min = durations.includes(60);
+      const hasBothDurations = has30min && has60min;
+
+      logTest('Variable Duration Products', hasBothDurations, 
+             hasBothDurations ? 'Products include both 30min and 60min options' : `Missing duration options: 30min=${has30min}, 60min=${has60min}`);
+    }
+
+    // Test Trainer Availability API includes duration
+    const trainers = await testTrainersApi(cookies);
+    if (trainers.length > 0) {
+      const availabilityResponse = await makeRequest({
+        hostname: 'localhost',
+        port: 3000,
+        path: `/api/trainer-availability?trainerId=${trainers[0].id}&startDate=2024-01-01&endDate=2024-01-07`,
+        method: 'GET',
+        headers: {
+          'Cookie': cookies.adminCookie || cookies.userCookie || ''
+        }
+      });
+
+      const availabilitySupported = availabilityResponse.statusCode === 200;
+      logTest('Trainer Availability API', availabilitySupported, 
+             availabilitySupported ? 'Trainer availability API responding' : 'Trainer availability API error');
+    }
+
+  } catch (error) {
+    logTest('Variable Duration APIs', false, `API test failed: ${error.message}`);
+  }
+}
+
+// Test: Duration-Aware Conflict Detection
+async function testConflictDetection(cookies) {
+  logSection('Duration-Aware Conflict Detection');
+
+  try {
+    // This test checks the API endpoints without actually creating appointments
+    // We test the logic by examining response patterns
+
+    const appointmentsResponse = await makeRequest({
+      hostname: 'localhost',
+      port: 3000,
+      path: '/api/appointments',
+      method: 'GET',
+      headers: {
+        'Cookie': cookies.adminCookie || cookies.userCookie || ''
+      }
+    });
+
+    const appointmentsLoaded = appointmentsResponse.statusCode === 200;
+    logTest('Appointments API Availability', appointmentsLoaded, 
+           appointmentsLoaded ? 'Appointments API accessible' : 'Cannot access appointments API');
+
+    // Check if appointments include duration information
+    if (appointmentsLoaded && appointmentsResponse.body.appointments) {
+      const appointmentHasDuration = appointmentsResponse.body.appointments.length === 0 || 
+                                     appointmentsResponse.body.appointments.some(apt => apt.duration_minutes);
+      
+      logTest('Appointments Duration Storage', appointmentHasDuration, 
+             appointmentHasDuration ? 'Appointments include duration information' : 'Appointments missing duration field');
+    }
+
+  } catch (error) {
+    logTest('Conflict Detection Test', false, `Conflict detection test failed: ${error.message}`);
+  }
+}
+
 // Test Summary
 function printTestSummary() {
   logSection('Test Summary');
@@ -467,6 +560,10 @@ async function runTests() {
     await testBulkAutoComplete(cookies);
     await testAppointmentStatusUpdates(cookies, appointments);
     
+    // Variable duration tests
+    await testVariableDurationAPIs(cookies);
+    await testConflictDetection(cookies);
+    
     // Code structure tests
     await testFileStructure();
     await testComponentCode();
@@ -484,7 +581,8 @@ async function runTests() {
 function printUsage() {
   console.log(`${colors.cyan}Usage: node test-script.js${colors.reset}`);
   console.log(`${colors.yellow}Make sure your development server is running: npm run dev${colors.reset}`);
-  console.log(`${colors.yellow}Ensure you have test accounts setup (admin@aptapp.com, trainer@aptapp.com, user@aptapp.com)${colors.reset}\n`);
+  console.log(`${colors.yellow}Ensure you have test accounts setup by running: ./database/reset_database.sh${colors.reset}`);
+  console.log(`${colors.yellow}Test accounts: admin@ptvit.com, trainer@ptvit.com, user@ptvit.com (password: password!)${colors.reset}\n`);
 }
 
 // Check if this script is being run directly

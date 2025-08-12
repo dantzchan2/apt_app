@@ -50,7 +50,7 @@ export async function GET() {
       sessionsCount: sessions?.length || 0,
       sessionsData: sessions?.slice(0, 3).map(s => ({
         ...s,
-        token: s.token?.substring(0, 16) + '...' // Truncate tokens for security
+        session_token: s.session_token?.substring(0, 16) + '...' // Truncate tokens for security
       })), // Show first 3 sessions for debugging
       errors: {
         tableError: tablesError,

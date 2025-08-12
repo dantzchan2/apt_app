@@ -1,8 +1,8 @@
 {
-  "timestamp": "2025-08-10T09:47:07.464Z",
+  "timestamp": "2025-08-12T11:28:35.722Z",
   "summary": {
-    "totalTests": 14,
-    "passedTests": 14,
+    "totalTests": 23,
+    "passedTests": 23,
     "failedTests": 0,
     "successRate": 100
   },
@@ -45,8 +45,8 @@
       ]
     },
     "Schedule Display": {
-      "total": 2,
-      "passed": 2,
+      "total": 3,
+      "passed": 3,
       "tests": [
         {
           "name": "Schedule No-Show Display",
@@ -57,6 +57,11 @@
           "name": "Schedule Legend Update",
           "passed": true,
           "message": "Legend updated to accommodate no-show color indicator"
+        },
+        {
+          "name": "Schedule Duration-Aware Display",
+          "passed": true,
+          "message": "Schedule page fully supports variable durations"
         }
       ]
     },
@@ -77,9 +82,19 @@
       ]
     },
     "API Implementation": {
-      "total": 2,
-      "passed": 2,
+      "total": 6,
+      "passed": 6,
       "tests": [
+        {
+          "name": "File Structure: Bulk auto-complete API",
+          "passed": true,
+          "message": "File exists (4041 bytes)"
+        },
+        {
+          "name": "File Structure: Appointments API",
+          "passed": true,
+          "message": "File exists (14284 bytes)"
+        },
         {
           "name": "Auto-Complete API Implementation",
           "passed": true,
@@ -89,6 +104,62 @@
           "name": "Database Constraint Fix",
           "passed": true,
           "message": "Database logging no longer uses null values for required fields"
+        },
+        {
+          "name": "Products API Duration Support",
+          "passed": true,
+          "message": "Products API returns duration_minutes field"
+        },
+        {
+          "name": "Appointments API Conflict Detection",
+          "passed": true,
+          "message": "Advanced time range conflict detection implemented"
+        }
+      ]
+    },
+    "Variable Duration": {
+      "total": 8,
+      "passed": 8,
+      "tests": [
+        {
+          "name": "Schema File: Duration migration script",
+          "passed": true,
+          "message": "File exists with duration_minutes support"
+        },
+        {
+          "name": "Schema File: Updated main schema",
+          "passed": true,
+          "message": "File exists with duration_minutes support"
+        },
+        {
+          "name": "Schema File: Updated sample data",
+          "passed": true,
+          "message": "File exists with duration_minutes support"
+        },
+        {
+          "name": "Products API Duration Support",
+          "passed": true,
+          "message": "Products API returns duration_minutes field"
+        },
+        {
+          "name": "Appointments Duration Storage",
+          "passed": true,
+          "message": "Appointments store duration from product"
+        },
+        {
+          "name": "Schedule Duration-Aware Display",
+          "passed": true,
+          "message": "Schedule page fully supports variable durations"
+        },
+        {
+          "name": "Purchase Page Duration Display",
+          "passed": true,
+          "message": "Purchase page displays session durations"
+        },
+        {
+          "name": "Database Reset Script",
+          "passed": true,
+          "message": "Reset script creates test accounts with duration-aware products"
         }
       ]
     },
@@ -104,7 +175,7 @@
         {
           "name": "File Structure: User schedule page",
           "passed": true,
-          "message": "File exists (36492 bytes)"
+          "message": "File exists (48412 bytes)"
         },
         {
           "name": "File Structure: Settlement page",
@@ -119,7 +190,7 @@
         {
           "name": "File Structure: Appointments API",
           "passed": true,
-          "message": "File exists (12391 bytes)"
+          "message": "File exists (14284 bytes)"
         },
         {
           "name": "File Structure: Navigation drawer component",
@@ -139,18 +210,18 @@
         "exists": true,
         "size": 16692
       },
-      "timestamp": "2025-08-10T09:47:07.461Z"
+      "timestamp": "2025-08-12T11:28:35.718Z"
     },
     {
       "name": "File Structure: User schedule page",
       "passed": true,
-      "message": "File exists (36492 bytes)",
+      "message": "File exists (48412 bytes)",
       "details": {
         "path": "src/app/dashboard/schedule/page.tsx",
         "exists": true,
-        "size": 36492
+        "size": 48412
       },
-      "timestamp": "2025-08-10T09:47:07.461Z"
+      "timestamp": "2025-08-12T11:28:35.719Z"
     },
     {
       "name": "File Structure: Settlement page",
@@ -161,7 +232,7 @@
         "exists": true,
         "size": 26183
       },
-      "timestamp": "2025-08-10T09:47:07.462Z"
+      "timestamp": "2025-08-12T11:28:35.720Z"
     },
     {
       "name": "File Structure: Bulk auto-complete API",
@@ -172,18 +243,18 @@
         "exists": true,
         "size": 4041
       },
-      "timestamp": "2025-08-10T09:47:07.462Z"
+      "timestamp": "2025-08-12T11:28:35.720Z"
     },
     {
       "name": "File Structure: Appointments API",
       "passed": true,
-      "message": "File exists (12391 bytes)",
+      "message": "File exists (14284 bytes)",
       "details": {
         "path": "src/app/api/appointments/route.ts",
         "exists": true,
-        "size": 12391
+        "size": 14284
       },
-      "timestamp": "2025-08-10T09:47:07.462Z"
+      "timestamp": "2025-08-12T11:28:35.720Z"
     },
     {
       "name": "File Structure: Navigation drawer component",
@@ -194,7 +265,7 @@
         "exists": true,
         "size": 6263
       },
-      "timestamp": "2025-08-10T09:47:07.462Z"
+      "timestamp": "2025-08-12T11:28:35.720Z"
     },
     {
       "name": "Navigation Menu Order",
@@ -207,7 +278,7 @@
         "schedulePosition": 140,
         "pointsPosition": 260
       },
-      "timestamp": "2025-08-10T09:47:07.462Z"
+      "timestamp": "2025-08-12T11:28:35.720Z"
     },
     {
       "name": "Trainer No-Show Functions",
@@ -220,7 +291,7 @@
         "hasNoShowInterface": true,
         "coreImplementation": true
       },
-      "timestamp": "2025-08-10T09:47:07.463Z"
+      "timestamp": "2025-08-12T11:28:35.720Z"
     },
     {
       "name": "Complete-to-NoShow Feature",
@@ -231,7 +302,7 @@
         "hasCompleteToNoShowButton": true,
         "implementationComplete": true
       },
-      "timestamp": "2025-08-10T09:47:07.463Z"
+      "timestamp": "2025-08-12T11:28:35.720Z"
     },
     {
       "name": "Schedule No-Show Display",
@@ -245,7 +316,7 @@
         "hasNoShowHandling": true,
         "implementationComplete": true
       },
-      "timestamp": "2025-08-10T09:47:07.463Z"
+      "timestamp": "2025-08-12T11:28:35.720Z"
     },
     {
       "name": "Schedule Legend Update",
@@ -255,7 +326,7 @@
         "hasUpdatedLegend": true,
         "expectedColumns": 6
       },
-      "timestamp": "2025-08-10T09:47:07.463Z"
+      "timestamp": "2025-08-12T11:28:35.720Z"
     },
     {
       "name": "Settlement Dynamic Trainers",
@@ -269,7 +340,7 @@
         "hasDebugInfo": true,
         "usesDatabase": true
       },
-      "timestamp": "2025-08-10T09:47:07.464Z"
+      "timestamp": "2025-08-12T11:28:35.720Z"
     },
     {
       "name": "Auto-Complete API Implementation",
@@ -284,7 +355,7 @@
         "hasSelectFields": true,
         "implementationComplete": true
       },
-      "timestamp": "2025-08-10T09:47:07.464Z"
+      "timestamp": "2025-08-12T11:28:35.720Z"
     },
     {
       "name": "Database Constraint Fix",
@@ -294,7 +365,104 @@
         "hasConstraintFix": true,
         "fixImplemented": true
       },
-      "timestamp": "2025-08-10T09:47:07.464Z"
+      "timestamp": "2025-08-12T11:28:35.720Z"
+    },
+    {
+      "name": "Schema File: Duration migration script",
+      "passed": true,
+      "message": "File exists with duration_minutes support",
+      "details": {
+        "path": "database/migrations/004_add_variable_session_durations.sql",
+        "exists": true,
+        "hasDurationFields": true
+      },
+      "timestamp": "2025-08-12T11:28:35.720Z"
+    },
+    {
+      "name": "Schema File: Updated main schema",
+      "passed": true,
+      "message": "File exists with duration_minutes support",
+      "details": {
+        "path": "public/sql/schema.sql",
+        "exists": true,
+        "hasDurationFields": true
+      },
+      "timestamp": "2025-08-12T11:28:35.721Z"
+    },
+    {
+      "name": "Schema File: Updated sample data",
+      "passed": true,
+      "message": "File exists with duration_minutes support",
+      "details": {
+        "path": "public/sql/dummy.sql",
+        "exists": true,
+        "hasDurationFields": true
+      },
+      "timestamp": "2025-08-12T11:28:35.721Z"
+    },
+    {
+      "name": "Products API Duration Support",
+      "passed": true,
+      "message": "Products API returns duration_minutes field",
+      "details": {
+        "selectsDuration": true,
+        "hasField": true
+      },
+      "timestamp": "2025-08-12T11:28:35.721Z"
+    },
+    {
+      "name": "Appointments API Conflict Detection",
+      "passed": true,
+      "message": "Advanced time range conflict detection implemented",
+      "details": {
+        "hasTimeToMinutes": true,
+        "hasConflictDetection": true,
+        "hasDurationFromProduct": true,
+        "hasTimeRangeLogic": true
+      },
+      "timestamp": "2025-08-12T11:28:35.721Z"
+    },
+    {
+      "name": "Appointments Duration Storage",
+      "passed": true,
+      "message": "Appointments store duration from product",
+      "details": {
+        "storesDuration": true
+      },
+      "timestamp": "2025-08-12T11:28:35.721Z"
+    },
+    {
+      "name": "Schedule Duration-Aware Display",
+      "passed": true,
+      "message": "Schedule page fully supports variable durations",
+      "details": {
+        "hasAppointmentDurationInterface": true,
+        "hasIsTimeInSlotDuration": true,
+        "hasDurationDisplay": true,
+        "hasOverlapLogic": true
+      },
+      "timestamp": "2025-08-12T11:28:35.721Z"
+    },
+    {
+      "name": "Purchase Page Duration Display",
+      "passed": true,
+      "message": "Purchase page displays session durations",
+      "details": {
+        "hasProductDurationInterface": true,
+        "hasDurationDisplay": true
+      },
+      "timestamp": "2025-08-12T11:28:35.721Z"
+    },
+    {
+      "name": "Database Reset Script",
+      "passed": true,
+      "message": "Reset script creates test accounts with duration-aware products",
+      "details": {
+        "hasTestAccounts": true,
+        "hasPasswordHash": true,
+        "hasDurationProducts": true
+      },
+      "timestamp": "2025-08-12T11:28:35.721Z"
     }
   ],
   "note": "This test focuses on code implementation without requiring authentication"
