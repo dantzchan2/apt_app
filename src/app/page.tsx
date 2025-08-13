@@ -32,10 +32,10 @@ export default function Home() {
         {/* Welcome Section */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-black sm:text-5xl md:text-6xl mb-8">
+            {/* <h1 className="text-4xl font-bold text-black sm:text-5xl md:text-6xl mb-8">
               <span className="text-orange-600">PT Studio Vit</span>에
               오신 것을 환영합니다
-            </h1>
+            </h1> */}
             
             <div className="relative w-full mb-8">
               <Image
@@ -69,7 +69,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div id="features" className="py-12 bg-gray-50">
+        {/* <div id="features" className="py-12 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-black sm:text-4xl">
@@ -106,7 +106,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Meet Our Trainers Section */}
         <div className="py-16 bg-white">
@@ -269,7 +269,7 @@ export default function Home() {
       <footer className="bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center text-gray-500">
-            <p>&copy; 2024 Studio Vit. All rights reserved.</p>
+            <p>&copy; 2025 Studio Vit. All rights reserved.</p>
           </div>
         </div>
       </footer>
