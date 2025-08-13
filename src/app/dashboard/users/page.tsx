@@ -25,12 +25,32 @@ interface UserData {
   memo?: string;
 }
 
+interface Product {
+  id: string;
+  name: string;
+  duration_minutes: number;
+  trainer_type: 'trainer' | 'head_trainer';
+  points: number;
+  price: number;
+}
+
+interface UserPointBatch {
+  id: string;
+  product_id: string;
+  remaining_points: number;
+  original_points: number;
+  purchase_date: string;
+  expiry_date: string;
+}
+
 
 export default function UsersManagement() {
   const { user, isLoading: authLoading } = useAuth();
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
   const [allUsers, setAllUsers] = useState<UserData[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [userPointBatches, setUserPointBatches] = useState<{ [userId: string]: UserPointBatch[] }>({});
   const [isLoading, setIsLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'trainer' | 'admin'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,8 +74,9 @@ export default function UsersManagement() {
     };
     setCurrentUser(userData);
     
-    // Load users from database via API
+    // Load users, products, and point data from database via API
     fetchUsers();
+    fetchProducts();
     
     setIsLoading(false);
   }, [user, router]);
@@ -184,6 +205,49 @@ export default function UsersManagement() {
     }
   };
 
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const fetchedProducts = data.products || [];
+        setProducts(fetchedProducts);
+      } else {
+        console.error('Failed to fetch products:', response.status, await response.text());
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
+  const fetchUserPointBatches = async (userId: string) => {
+    try {
+      // For admin view, we'll call a different endpoint that gets all user point batches
+      const response = await fetch('/api/admin/user-point-batches', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ userId })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.pointBatches || [];
+      } else {
+        console.error('Failed to fetch user point batches:', response.status, await response.text());
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching user point batches:', error);
+      return [];
+    }
+  };
+
   useEffect(() => {
     let filtered = allUsers;
 
@@ -201,6 +265,31 @@ export default function UsersManagement() {
 
     setFilteredUsers(filtered);
   }, [allUsers, roleFilter, searchQuery]);
+
+  // Fetch point batches for all users when products and users are loaded
+  useEffect(() => {
+    const loadUserPointBatches = async () => {
+      if (products.length === 0 || allUsers.length === 0) return;
+      
+      const batchPromises = allUsers
+        .filter(user => user.role === 'user')
+        .map(async (user) => {
+          const batches = await fetchUserPointBatches(user.id);
+          return { userId: user.id, batches };
+        });
+      
+      const results = await Promise.all(batchPromises);
+      const batchMap: { [userId: string]: UserPointBatch[] } = {};
+      
+      results.forEach(result => {
+        batchMap[result.userId] = result.batches;
+      });
+      
+      setUserPointBatches(batchMap);
+    };
+
+    loadUserPointBatches();
+  }, [products, allUsers]);
 
   const handleRoleChange = (userId: string, newRole: 'user' | 'trainer' | 'admin') => {
     if (userId === currentUser?.id && newRole !== 'admin') {
@@ -294,6 +383,70 @@ export default function UsersManagement() {
 
   const getRoleCount = (role: 'user' | 'trainer' | 'admin') => {
     return allUsers.filter(user => user.role === role).length;
+  };
+
+  const getProductDisplayName = (itemId: string | undefined) => {
+    if (!itemId) return '미확인';
+    
+    // Find the actual product by ID
+    const product = products.find(p => p.id === itemId);
+    
+    if (product) {
+      const trainerTypeText = product.trainer_type === 'head_trainer' ? '헤드 트레이너' : '일반 트레이너';
+      const durationText = product.duration_minutes === 30 ? '30분' : '60분';
+      return `${trainerTypeText} ${durationText} (${product.points}포인트)`;
+    }
+    
+    // Fallback to old mapping for legacy data
+    const productNames: { [key: string]: string } = {
+      'starter': '스타터 (5포인트)',
+      'basic': '베이직 (10포인트)',
+      'premium': '프리미엄 (20포인트)',
+      'pro': '프로 (50포인트)',
+      'legacy': '레거시',
+      'unknown': '미확인'
+    };
+    return productNames[itemId] || itemId.charAt(0).toUpperCase() + itemId.slice(1);
+  };
+
+  const renderUserPoints = (user: UserData) => {
+    if (user.role === 'trainer') {
+      return <span className="text-gray-500">N/A</span>;
+    }
+
+    const userBatches = userPointBatches[user.id] || [];
+    const totalPoints = userBatches.reduce((sum, batch) => sum + batch.remaining_points, 0);
+
+    if (userBatches.length === 0) {
+      return <span className="text-gray-500">0</span>;
+    }
+
+    // Group batches by product for display
+    const batchesByProduct: { [productId: string]: { points: number; count: number } } = {};
+    
+    userBatches.forEach(batch => {
+      if (!batchesByProduct[batch.product_id]) {
+        batchesByProduct[batch.product_id] = { points: 0, count: 0 };
+      }
+      batchesByProduct[batch.product_id].points += batch.remaining_points;
+      batchesByProduct[batch.product_id].count += 1;
+    });
+
+    return (
+      <div className="space-y-1">
+        <div className="font-medium text-black">{totalPoints} 포인트</div>
+        <div className="text-xs space-y-1">
+          {Object.entries(batchesByProduct).map(([productId, data]) => (
+            <div key={productId} className="flex items-center space-x-1">
+              <span className="inline-flex px-1 py-0.5 text-xs font-semibold rounded bg-blue-100 text-blue-800">
+                {getProductDisplayName(productId)}
+              </span>
+              <span className="text-blue-600 font-medium text-xs">{data.points}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   if (authLoading || isLoading) {
@@ -487,7 +640,7 @@ export default function UsersManagement() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                      {user.role === 'trainer' ? 'N/A' : (user.points || 0)}
+                      {renderUserPoints(user)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <select
