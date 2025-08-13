@@ -259,7 +259,7 @@ export default function Dashboard() {
             </Link>
           )}
 
-          {(user.role === 'user' || user.role === 'admin') && (
+          {user.role === 'user' && (
             <Link href="/dashboard/purchase" className="block">
               <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">
@@ -277,7 +277,7 @@ export default function Dashboard() {
             </Link>
           )}
 
-          {(user.role === 'trainer' || user.role === 'admin') && (
+          {user.role === 'trainer' && (
             <Link href="/dashboard/trainer" className="block">
               <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-center">

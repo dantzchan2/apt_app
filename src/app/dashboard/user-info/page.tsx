@@ -234,45 +234,47 @@ export default function UserInfo() {
           </form>
         </div>
 
-        {/* Delete Account Section */}
-        <div className="bg-white rounded-lg shadow-sm border-l-4 border-red-400 p-6">
-          <h2 className="text-lg font-semibold text-red-900 mb-2">계정 삭제</h2>
-          <p className="text-sm text-red-700 mb-4">
-            계정을 삭제하면 구매한 포인트를 사용할 수 없습니다. 
-            이 작업은 되돌릴 수 없으니 신중하게 결정해주세요.
-          </p>
-          
-          {!showDeleteConfirm ? (
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-            >
-              계정 삭제
-            </button>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-red-800">
-                정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
-              </p>
-              <div className="flex space-x-3">
-                <button
-                  onClick={handleDeleteAccount}
-                  disabled={isDeletingAccount}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isDeletingAccount ? '삭제 중...' : '예, 삭제합니다'}
-                </button>
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  disabled={isDeletingAccount}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  취소
-                </button>
+        {/* Delete Account Section - Hidden for Admin */}
+        {userData.role !== 'admin' && (
+          <div className="bg-white rounded-lg shadow-sm border-l-4 border-red-400 p-6">
+            <h2 className="text-lg font-semibold text-red-900 mb-2">계정 삭제</h2>
+            <p className="text-sm text-red-700 mb-4">
+              계정을 삭제하면 구매한 포인트를 사용할 수 없습니다. 
+              이 작업은 되돌릴 수 없으니 신중하게 결정해주세요.
+            </p>
+            
+            {!showDeleteConfirm ? (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              >
+                계정 삭제
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-red-800">
+                  정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+                </p>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={isDeletingAccount}
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isDeletingAccount ? '삭제 중...' : '예, 삭제합니다'}
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeletingAccount}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    취소
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );

@@ -563,8 +563,39 @@ export default function Schedule() {
     return null;
   };
 
+  const isSecondHalfOf60MinuteSlot = (date: string, time: string) => {
+    // Check if this slot is the second half of a 60-minute appointment
+    const [hours, minutes] = time.split(':').map(Number);
+    const currentSlotMinutes = hours * 60 + minutes;
+    
+    // Check if there's a 60-minute appointment that started 30 minutes earlier
+    const earlierSlotMinutes = currentSlotMinutes - 30;
+    const earlierHours = Math.floor(earlierSlotMinutes / 60);
+    const earlierMinutes = earlierSlotMinutes % 60;
+    const earlierTime = `${earlierHours.toString().padStart(2, '0')}:${earlierMinutes.toString().padStart(2, '0')}`;
+    
+    const earlierSlot = getSlotAppointment(date, earlierTime);
+    return earlierSlot && 
+           (earlierSlot.appointment.duration_minutes === 60) && 
+           (earlierSlot.appointment.time === earlierTime);
+  };
+
   const handleSlotClick = (date: string, time: string) => {
     if (!userData) return;
+    
+    // Block booking for admin users - they can only view appointments
+    if (userData.role === 'admin') {
+      const slot = getSlotAppointment(date, time);
+      if (slot && (slot.type === 'user' || slot.type === 'trainer')) {
+        // Show appointment details for admin viewing only
+        const appointment = slot.appointment;
+        const statusText = appointment.status === 'completed' ? '완료됨' : 
+                          appointment.status === 'cancelled' ? '취소됨' : 
+                          appointment.status === 'no_show' ? '노쇼' : '예약됨';
+        alert(`${appointment.userName}님의 ${appointment.trainerName} 트레이너와의 예약\n상태: ${statusText}\n시간: ${appointment.time} (${appointment.duration_minutes || 60}분)`);
+      }
+      return;
+    }
     
     const slot = getSlotAppointment(date, time);
     
@@ -955,6 +986,22 @@ export default function Schedule() {
                   const isTrainerBusy = slotData?.type === 'trainer';
                   const isUnavailable = slotData?.type === 'unavailable';
                   const isSlotBooking = selectedSlot?.date === dateStr && selectedSlot?.time === timeSlot;
+                  
+                  // Check if this is the second half of a 60-minute slot
+                  const isSecondHalf = isSecondHalfOf60MinuteSlot(dateStr, timeSlot);
+                  
+                  // For second half slots, show only background color but no content
+                  if (isSecondHalf) {
+                    return (
+                      <div
+                        key={`${dayIndex}-${timeIndex}`}
+                        className="relative px-1 py-3 border-l border-gray-200 transition-colors min-h-[48px] bg-gray-300 cursor-not-allowed"
+                      >
+                        {/* Empty - this is part of a 60-minute appointment above */}
+                      </div>
+                    );
+                  }
+                  
                   
                   return (
                     <div

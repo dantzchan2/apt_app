@@ -54,7 +54,7 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
       name: '포인트 구매',
       href: '/dashboard/purchase',
       icon: '$',
-      roles: ['user', 'admin'],
+      roles: ['user'],
     },
     {
       name: '사용자 정보',
@@ -66,7 +66,7 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
       name: '내 트레이닝 세션',
       href: '/dashboard/trainer',
       icon: '💪',
-      roles: ['trainer', 'admin'],
+      roles: ['trainer'],
     },
     {
       name: '사용자 관리',
