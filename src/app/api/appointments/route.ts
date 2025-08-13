@@ -176,21 +176,27 @@ export async function POST(request: NextRequest) {
     const usedProductId = selectedBatch.product_id;
     const durationMinutes = (selectedBatch as { products?: { duration_minutes?: number } }).products?.duration_minutes || 60;
 
-    // Deduct 1 point from the selected batch
-    const newRemainingPoints = selectedBatch.remaining_points - 1;
-    
-    const { error: updateError } = await supabase
-      .from('point_batches')
-      .update({ 
-        remaining_points: newRemainingPoints,
-        is_active: newRemainingPoints > 0 // Mark as inactive if fully used
-      })
-      .eq('id', usedPointBatchId);
+    // Deduct 1 point from the selected batch atomically
+    const { data: updatedBatch, error: updateError } = await supabase.rpc(
+      'decrement_point_batch',
+      {
+        batch_id: usedPointBatchId,
+        decrement_amount: 1
+      }
+    );
 
     if (updateError) {
+      console.error('Failed to deduct point for booking:', updateError);
       return NextResponse.json(
-        { error: 'Failed to deduct points' },
+        { error: 'Failed to deduct points: ' + updateError.message },
         { status: 500 }
+      );
+    }
+
+    if (!updatedBatch || updatedBatch.length === 0) {
+      return NextResponse.json(
+        { error: 'Point batch not found or insufficient points' },
+        { status: 400 }
       );
     }
 
@@ -385,29 +391,37 @@ export async function PUT(request: NextRequest) {
 
     // If cancelling, refund the point by updating the point batch
     if (status === 'cancelled' && appointment.used_point_batch_id) {
-      // First get current remaining points
-      const { data: pointBatch, error: getBatchError } = await supabase
-        .from('point_batches')
-        .select('remaining_points')
-        .eq('id', appointment.used_point_batch_id)
-        .single();
-
-      if (!getBatchError && pointBatch) {
-        const newRemainingPoints = pointBatch.remaining_points + 1;
-        
-        const { error: refundError } = await supabase
-          .from('point_batches')
-          .update({ 
-            remaining_points: newRemainingPoints,
-            is_active: true // Reactivate the batch if it was depleted
-          })
-          .eq('id', appointment.used_point_batch_id);
-
-        if (refundError) {
-          console.error('Failed to refund point:', refundError);
-          // Don't fail the whole request if refund fails
+      // Use atomic increment to avoid race conditions
+      const { data: updatedBatch, error: refundError } = await supabase.rpc(
+        'increment_point_batch', 
+        { 
+          batch_id: appointment.used_point_batch_id,
+          increment_amount: 1
         }
+      );
+
+      if (refundError) {
+        console.error('Critical: Failed to refund point for appointment', appointment.id, ':', refundError);
+        // Fail the entire operation if point refund fails
+        return NextResponse.json(
+          { error: 'Failed to refund points. Cancellation aborted.' },
+          { status: 500 }
+        );
       }
+
+      if (!updatedBatch || updatedBatch.length === 0) {
+        console.error('Critical: Point batch not found for refund:', appointment.used_point_batch_id);
+        return NextResponse.json(
+          { error: 'Point batch not found. Cancellation aborted.' },
+          { status: 404 }
+        );
+      }
+
+      console.log('Point refund successful:', {
+        appointmentId: appointment.id,
+        batchId: appointment.used_point_batch_id,
+        newRemainingPoints: updatedBatch[0].remaining_points
+      });
     }
 
     // Log the cancellation action
