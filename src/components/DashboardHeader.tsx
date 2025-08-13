@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import NavDrawer from './NavDrawer';
 
 interface PointBatch {
@@ -45,12 +45,16 @@ interface DashboardHeaderProps {
   customUserInfo?: React.ReactNode;
 }
 
-export default function DashboardHeader({ 
+export interface DashboardHeaderRef {
+  refreshPoints: () => Promise<void>;
+}
+
+const DashboardHeader = forwardRef<DashboardHeaderRef, DashboardHeaderProps>(({ 
   userData, 
   currentPage, 
   showPoints = false,
   customUserInfo 
-}: DashboardHeaderProps) {
+}, ref) => {
   const [userPoints, setUserPoints] = useState<UserPointsData | null>(null);
   const [pointsLoading, setPointsLoading] = useState(false);
 
@@ -81,6 +85,11 @@ export default function DashboardHeader({
       setPointsLoading(false);
     }
   };
+
+  // Expose refresh function to parent components
+  useImperativeHandle(ref, () => ({
+    refreshPoints: fetchUserPoints
+  }));
 
   const getExpiringPointsWarning = () => {
     if (!userPoints?.expiringPoints || userData.role === 'trainer') return null;
@@ -181,4 +190,8 @@ export default function DashboardHeader({
       </div>
     </nav>
   );
-}
+});
+
+DashboardHeader.displayName = 'DashboardHeader';
+
+export default DashboardHeader;

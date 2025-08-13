@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import DashboardHeader from '../../../components/DashboardHeader';
+import DashboardHeader, { DashboardHeaderRef } from '../../../components/DashboardHeader';
 import { exportToCSV } from '../../../lib/csv-export';
 import { useAuth } from '../../../hooks/useAuth';
 
@@ -63,6 +63,7 @@ interface PurchaseLog {
 
 export default function Purchase() {
   const { user, isLoading: authLoading } = useAuth();
+  const headerRef = useRef<DashboardHeaderRef>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [userPoints, setUserPoints] = useState<UserPointsData | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -192,6 +193,9 @@ export default function Purchase() {
       // Refresh purchase logs and user points from API
       await fetchPurchaseLogs();
       await fetchUserPoints();
+      
+      // Refresh header points display
+      await headerRef.current?.refreshPoints();
 
     } catch (error) {
       console.error('Purchase error:', error);
@@ -307,6 +311,7 @@ export default function Purchase() {
   return (
     <div className="min-h-screen bg-white">
       <DashboardHeader 
+        ref={headerRef}
         userData={userData} 
         title="포인트 구매" 
         currentPage="/dashboard/purchase" 

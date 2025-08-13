@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import DashboardHeader from '../../../components/DashboardHeader';
+import DashboardHeader, { DashboardHeaderRef } from '../../../components/DashboardHeader';
 import { useAuth } from '../../../hooks/useAuth';
 
 interface PointBatch {
@@ -147,6 +147,7 @@ const isAppointmentCompleted = (date: string, time: string) => {
 
 export default function Schedule() {
   const { user, isLoading } = useAuth();
+  const headerRef = useRef<DashboardHeaderRef>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [userPoints, setUserPoints] = useState<UserPointsData | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -615,14 +616,9 @@ export default function Schedule() {
       return;
     }
 
-    console.log('DEBUG: userPoints:', userPoints);
-    console.log('DEBUG: products loaded:', products);
-
     const { pointsByDuration } = userPoints;
     const has30MinPoints = pointsByDuration[30] > 0;
     const has60MinPoints = pointsByDuration[60] > 0;
-    
-    console.log('DEBUG: has30MinPoints:', has30MinPoints, 'has60MinPoints:', has60MinPoints);
 
     // If no points at all
     if (!has30MinPoints && !has60MinPoints) {
@@ -635,15 +631,11 @@ export default function Schedule() {
       if (!userPoints?.batchesByDuration) return null;
       
       const batches = userPoints.batchesByDuration[duration as 30 | 60];
-      console.log(`DEBUG: batches for ${duration}min:`, batches);
       if (!batches || batches.length === 0) return null;
       
       // Get the product ID from the first available batch
       const productId = batches[0].product_id;
-      console.log(`DEBUG: looking for product ID:`, productId);
-      const product = products.find(p => p.id === productId);
-      console.log(`DEBUG: found product:`, product);
-      return product || null;
+      return products.find(p => p.id === productId) || null;
     };
 
     // If only one type of points available, skip duration selection
@@ -677,17 +669,11 @@ export default function Schedule() {
       if (!userPoints?.batchesByDuration) return null;
       
       const batches = userPoints.batchesByDuration[duration as 30 | 60];
-      console.log(`DEBUG: handleDurationSelect batches for ${duration}min:`, batches);
-      console.log(`DEBUG: first batch details:`, batches?.[0]);
       if (!batches || batches.length === 0) return null;
       
       // Get the product ID from the first available batch
       const productId = batches[0].product_id;
-      console.log(`DEBUG: handleDurationSelect looking for product ID:`, productId);
-      console.log(`DEBUG: handleDurationSelect available products:`, products.map(p => ({id: p.id, name: p.name})));
-      const product = products.find(p => p.id === productId);
-      console.log(`DEBUG: handleDurationSelect found product:`, product);
-      return product || null;
+      return products.find(p => p.id === productId) || null;
     };
     
     const product = getAvailableProductForDuration(duration);
@@ -697,7 +683,6 @@ export default function Schedule() {
       setShowDurationSelection(false);
       setShowConfirmation(true);
     } else {
-      console.error(`No product found for ${duration}min duration`);
       alert(`${duration}분 세션 상품 정보를 찾을 수 없습니다.`);
     }
   };
@@ -750,6 +735,9 @@ export default function Schedule() {
       // Refresh appointments and user points from server
       await fetchAllAppointments();
       await fetchUserPoints();
+      
+      // Refresh header points display
+      await headerRef.current?.refreshPoints();
 
       alert('예약이 성공적으로 완료되었습니다!');
     } catch (error) {
@@ -803,15 +791,10 @@ export default function Schedule() {
 
       // Refresh appointments from server
       await fetchAllAppointments();
-
-      // Refund the point in local state (add 1 point back)
-      if (userData) {
-        const updatedUserData = {
-          ...userData,
-          points: (userData.points || 0) + 1
-        };
-        setUserData(updatedUserData);
-      }
+      
+      // Refresh user points and header display
+      await fetchUserPoints();
+      await headerRef.current?.refreshPoints();
 
       alert('예약이 성공적으로 취소되었습니다. 포인트가 환불되었습니다.');
     } catch (error) {
@@ -838,6 +821,7 @@ export default function Schedule() {
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader 
+        ref={headerRef}
         userData={userData} 
         title="예약 관리" 
         currentPage="/dashboard/schedule" 
@@ -1020,11 +1004,6 @@ export default function Schedule() {
                           }
                         </div>
                       )}
-                      {(isSlotBooking || isBooking) && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -1156,6 +1135,17 @@ export default function Schedule() {
           )}
         </div>
       </main>
+
+      {/* Full Page Loading Overlay */}
+      {isBooking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-orange-600 mx-auto mb-4"></div>
+            <p className="text-lg font-medium text-gray-900">예약 처리 중...</p>
+            <p className="text-sm text-gray-600 mt-2">잠시만 기다려주세요</p>
+          </div>
+        </div>
+      )}
 
       {/* Duration Selection Popup */}
       {showDurationSelection && selectedSlot && (
