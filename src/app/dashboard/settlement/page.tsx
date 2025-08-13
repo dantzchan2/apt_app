@@ -25,7 +25,7 @@ interface Appointment {
   time: string;
   status: 'scheduled' | 'completed' | 'cancelled';
   usedPointBatchId?: string;
-  purchaseItemId?: string;
+  purchaseItemId?: string; // This is actually the product_id from the database
 }
 
 interface TrainerStats {
@@ -40,6 +40,15 @@ interface TrainerStats {
   cancelledByProduct: {
     [purchaseItemId: string]: number;
   };
+}
+
+interface Product {
+  id: string;
+  name: string;
+  duration_minutes: number;
+  trainer_type: 'trainer' | 'head_trainer';
+  points: number;
+  price: number;
 }
 
 interface Trainer {
@@ -57,6 +66,7 @@ export default function MonthlySettlement() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [trainers, setTrainers] = useState<Trainer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [trainerStats, setTrainerStats] = useState<TrainerStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,6 +125,25 @@ export default function MonthlySettlement() {
     }
   };
 
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const fetchedProducts = data.products || [];
+        setProducts(fetchedProducts);
+        console.log('Loaded products for settlement:', fetchedProducts);
+      } else {
+        console.error('Failed to fetch products:', response.status, await response.text());
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
   const fetchAppointments = async () => {
     try {
       const response = await fetch('/api/appointments', { credentials: 'include' });
@@ -132,7 +161,7 @@ export default function MonthlySettlement() {
           time: (apt.appointment_time || apt.time)?.toString().substring(0, 5), // Remove seconds
           status: apt.status,
           usedPointBatchId: apt.used_point_batch_id,
-          purchaseItemId: apt.purchase_item_id
+          purchaseItemId: apt.product_id // Fixed: use product_id instead of purchase_item_id
         }));
         console.log('Settlement page - transformed appointments:', transformedAppointments);
         setAppointments(transformedAppointments);
@@ -159,8 +188,9 @@ export default function MonthlySettlement() {
     };
     setUserData(userData);
 
-    // Load trainers and appointments
+    // Load trainers, products, and appointments
     fetchTrainers();
+    fetchProducts();
     fetchAppointments(); // Use API instead of CSV
 
     setIsLoading(false);
@@ -334,6 +364,16 @@ export default function MonthlySettlement() {
   const getProductDisplayName = (itemId: string | undefined) => {
     if (!itemId) return '미확인';
     
+    // Find the actual product by ID
+    const product = products.find(p => p.id === itemId);
+    
+    if (product) {
+      const trainerTypeText = product.trainer_type === 'head_trainer' ? '헤드 트레이너' : '일반 트레이너';
+      const durationText = product.duration_minutes === 30 ? '30분' : '60분';
+      return `${trainerTypeText} ${durationText} (${product.points}포인트)`;
+    }
+    
+    // Fallback to old mapping for legacy data
     const productNames: { [key: string]: string } = {
       'starter': '스타터 (5포인트)',
       'basic': '베이직 (10포인트)',
@@ -393,6 +433,7 @@ export default function MonthlySettlement() {
             <div className="text-xs space-y-1 text-yellow-700">
               <p>User: {userData?.name} ({userData?.email}) - Role: {userData?.role}</p>
               <p>Total Trainers Loaded: {trainers.length}</p>
+              <p>Total Products Loaded: {products.length}</p>
               <p>Total Appointments Loaded: {appointments.length}</p>
               <p>Current Month: {formatMonthYear(currentDate)}</p>
               <p>Trainer Stats Calculated: {trainerStats.length}</p>
@@ -402,6 +443,14 @@ export default function MonthlySettlement() {
                 <summary className="text-xs font-medium text-yellow-800 cursor-pointer">View Loaded Trainers</summary>
                 <pre className="text-xs mt-1 bg-yellow-100 p-2 rounded overflow-auto">
                   {JSON.stringify(trainers, null, 2)}
+                </pre>
+              </details>
+            )}
+            {products.length > 0 && (
+              <details className="mt-2">
+                <summary className="text-xs font-medium text-yellow-800 cursor-pointer">View Loaded Products</summary>
+                <pre className="text-xs mt-1 bg-yellow-100 p-2 rounded overflow-auto">
+                  {JSON.stringify(products, null, 2)}
                 </pre>
               </details>
             )}
