@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
       .from('point_batches')
       .select(`
         id,
+        product_id,
         remaining_points,
         original_points,
         purchase_date,

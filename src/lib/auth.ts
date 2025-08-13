@@ -8,6 +8,7 @@ export interface User {
   phone: string;
   role: 'user' | 'trainer' | 'admin';
   specialization?: string;
+  assigned_trainer_id?: string;
   total_points: number;
   memo?: string;
   is_active: boolean;
@@ -27,7 +28,7 @@ export const authenticateUser = async (email: string, password: string): Promise
   try {
     const { data: users, error } = await supabaseAdmin
       .from('users')
-      .select('id, name, email, phone, role, specialization, total_points, memo, is_active, created_at, password_hash')
+      .select('id, name, email, phone, role, specialization, assigned_trainer_id, total_points, memo, is_active, created_at, password_hash')
       .eq('email', email)
       .eq('is_active', true)
       .limit(1);
@@ -65,7 +66,7 @@ export const getUserById = async (id: string): Promise<User | null> => {
   try {
     const { data: users, error } = await supabaseAdmin
       .from('users')
-      .select('id, name, email, phone, role, specialization, total_points, memo, is_active, created_at')
+      .select('id, name, email, phone, role, specialization, assigned_trainer_id, total_points, memo, is_active, created_at')
       .eq('id', id)
       .eq('is_active', true)
       .limit(1);

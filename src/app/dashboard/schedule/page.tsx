@@ -615,9 +615,14 @@ export default function Schedule() {
       return;
     }
 
+    console.log('DEBUG: userPoints:', userPoints);
+    console.log('DEBUG: products loaded:', products);
+
     const { pointsByDuration } = userPoints;
     const has30MinPoints = pointsByDuration[30] > 0;
     const has60MinPoints = pointsByDuration[60] > 0;
+    
+    console.log('DEBUG: has30MinPoints:', has30MinPoints, 'has60MinPoints:', has60MinPoints);
 
     // If no points at all
     if (!has30MinPoints && !has60MinPoints) {
@@ -630,11 +635,15 @@ export default function Schedule() {
       if (!userPoints?.batchesByDuration) return null;
       
       const batches = userPoints.batchesByDuration[duration as 30 | 60];
+      console.log(`DEBUG: batches for ${duration}min:`, batches);
       if (!batches || batches.length === 0) return null;
       
       // Get the product ID from the first available batch
       const productId = batches[0].product_id;
-      return products.find(p => p.id === productId) || null;
+      console.log(`DEBUG: looking for product ID:`, productId);
+      const product = products.find(p => p.id === productId);
+      console.log(`DEBUG: found product:`, product);
+      return product || null;
     };
 
     // If only one type of points available, skip duration selection
@@ -668,11 +677,17 @@ export default function Schedule() {
       if (!userPoints?.batchesByDuration) return null;
       
       const batches = userPoints.batchesByDuration[duration as 30 | 60];
+      console.log(`DEBUG: handleDurationSelect batches for ${duration}min:`, batches);
+      console.log(`DEBUG: first batch details:`, batches?.[0]);
       if (!batches || batches.length === 0) return null;
       
       // Get the product ID from the first available batch
       const productId = batches[0].product_id;
-      return products.find(p => p.id === productId) || null;
+      console.log(`DEBUG: handleDurationSelect looking for product ID:`, productId);
+      console.log(`DEBUG: handleDurationSelect available products:`, products.map(p => ({id: p.id, name: p.name})));
+      const product = products.find(p => p.id === productId);
+      console.log(`DEBUG: handleDurationSelect found product:`, product);
+      return product || null;
     };
     
     const product = getAvailableProductForDuration(duration);
@@ -682,6 +697,7 @@ export default function Schedule() {
       setShowDurationSelection(false);
       setShowConfirmation(true);
     } else {
+      console.error(`No product found for ${duration}min duration`);
       alert(`${duration}분 세션 상품 정보를 찾을 수 없습니다.`);
     }
   };

@@ -430,3 +430,143 @@ node test-script.js
 - **Fix**: Updated session management code to use correct `session_token` column name
 - **Files Updated**: `src/lib/session.ts`, `src/lib/auth-middleware.ts`
 - **Status**: ✅ Authentication working correctly
+
+## Appointment Booking System - Technical Implementation
+
+### Point-Based Booking Flow
+The appointment booking system uses a sophisticated point-based architecture with trainer type restrictions and duration-aware scheduling. Here's the detailed technical flow:
+
+#### 1. User Points Architecture
+```typescript
+interface UserPointsData {
+  totalPoints: number;
+  pointsByDuration: {
+    30: number;  // 30-minute session points
+    60: number;  // 60-minute session points  
+  };
+  batchesByDuration: {
+    30: PointBatch[];  // Point batches for 30min sessions
+    60: PointBatch[];  // Point batches for 60min sessions
+  };
+}
+
+interface PointBatch {
+  id: string;
+  product_id: string;           // Links to specific product
+  remaining_points: number;
+  original_points: number;
+  purchase_date: string;
+  expiry_date: string;
+  is_active: boolean;
+}
+```
+
+#### 2. Booking Process Flow
+1. **Authentication Check**: User must be logged in with valid session
+2. **Trainer Assignment Validation**: Users can only book with their assigned trainer
+3. **Point Availability Check**: 
+   - Frontend calls `/api/user-points` to get available points
+   - Points filtered by assigned trainer type (head_trainer vs trainer)
+   - Returns duration-specific point counts (30min/60min)
+4. **Time Slot Validation**: 
+   - Checks for conflicts with existing appointments
+   - Considers appointment duration for overlap detection
+   - Validates 1-hour advance booking requirement
+5. **Product Matching**: 
+   - Matches available point batches with compatible products
+   - Uses FIFO (First In, First Out) for point batch consumption
+6. **Duration Selection**: 
+   - If user has both 30min and 60min points: Shows duration selection popup
+   - If user has only one type: Skips directly to confirmation
+7. **Appointment Creation**: 
+   - Deducts 1 point from selected batch
+   - Creates appointment record with proper duration
+   - Logs action in appointment_logs table
+
+#### 3. Key API Endpoints
+
+**`/api/user-points`**
+- **Purpose**: Returns user's available points grouped by duration
+- **Trainer Type Filtering**: Only returns points for products matching assigned trainer type
+- **Critical Field**: Must include `product_id` in SELECT query for frontend product matching
+- **Response Structure**: Duration-separated points with batch details
+
+**`/api/appointments` (POST)**
+- **Authentication**: Requires valid session cookie
+- **Validation Steps**:
+  1. Verifies user can only book with assigned trainer (role !== 'admin')
+  2. Finds available point batches with matching product_id
+  3. Checks for time slot conflicts with duration consideration
+  4. Deducts point and creates appointment
+- **FIFO Point Consumption**: Uses oldest point batch first (`ORDER BY purchase_date ASC`)
+
+**`/api/products`**
+- **Trainer Type Filtering**: Regular users only see products for their trainer type
+- **Admin/Trainer Access**: Can see all products
+- **Used For**: Frontend product matching during booking confirmation
+
+#### 4. Frontend Booking Logic (`/dashboard/schedule`)
+
+**Time Slot Click Handler**:
+```typescript
+const handleSlotClick = (date: string, time: string) => {
+  // 1. Check if slot has existing appointment
+  // 2. If available, call checkPointsAndShowBookingPopup()
+  // 3. Show appropriate popup based on available points
+}
+```
+
+**Points Validation**:
+```typescript
+const checkPointsAndShowBookingPopup = () => {
+  // 1. Verify userPoints loaded
+  // 2. Check pointsByDuration for available points
+  // 3. Match point batches with loaded products via product_id
+  // 4. Show duration selection or direct confirmation
+}
+```
+
+**Product Matching Logic**:
+```typescript
+const getAvailableProductForDuration = (duration: number) => {
+  // 1. Get point batches for requested duration
+  // 2. Extract product_id from first available batch
+  // 3. Find matching product in loaded products array
+  // 4. Return product for booking confirmation
+}
+```
+
+#### 5. Critical Bug Fix (August 2025)
+**Issue**: Booking failed with "세션 상품 정보를 찾을 수 없습니다" (Session product information not found)
+**Root Cause**: `/api/user-points` was not selecting `product_id` field from point_batches table
+**Solution**: Added `product_id` to SELECT query in user-points API endpoint
+**Files Modified**: 
+- `src/app/api/user-points/route.ts` - Added `product_id` to SELECT statement
+- `src/app/api/auth/me/route.ts` - Added `assigned_trainer_id` to user response
+- `src/app/api/auth/login/route.ts` - Added `assigned_trainer_id` to login response
+- `src/lib/auth.ts` - Updated User interface and database queries
+
+#### 6. Database Schema Dependencies
+```sql
+-- Point batches link to products for trainer type filtering
+point_batches.product_id → products.id
+products.trainer_type → users.trainer_type (for trainers)
+users.assigned_trainer_id → users.id (trainer assignment)
+
+-- Appointment booking validation
+appointments.trainer_id = user.assigned_trainer_id (enforced by API)
+appointments.product_id = point_batch.product_id (links consumed points)
+```
+
+#### 7. Error Handling & User Experience
+- **No Points**: "예약하려면 포인트가 필요합니다!" 
+- **Product Not Found**: "X분 세션 상품 정보를 찾을 수 없습니다."
+- **Authentication Required**: Redirects to login page
+- **Trainer Assignment**: Validates during booking attempt
+- **Time Conflicts**: Shows specific conflict details with duration
+
+#### 8. Testing & Validation
+- **Test Account**: `user-head@ptvit.com` / `password!` (assigned to Head Trainer Kim)
+- **Available Points**: 10x 30min points + 10x 60min points (head trainer products)
+- **Debug Logging**: Console logs show point loading, product matching, and booking flow
+- **Status**: ✅ Fully functional booking system with all validations working

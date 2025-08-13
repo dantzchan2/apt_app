@@ -20,6 +20,7 @@ export async function GET() {
         role: user.role,
         phone: user.phone,
         specialization: user.specialization,
+        assigned_trainer_id: user.assigned_trainer_id,
         total_points: user.total_points
       }
     });
