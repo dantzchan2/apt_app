@@ -1,4 +1,4 @@
--- Studio Vit PT Scheduling App - PostgreSQL Schema
+-- P.T. VIT PT Scheduling App - PostgreSQL Schema
 -- Description: Complete database schema for the fitness appointment scheduling system
 
 -- Enable UUID extension

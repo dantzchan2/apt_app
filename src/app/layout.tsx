@@ -9,7 +9,7 @@ const rokafFont = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Studio Vit",
+  title: "P.T. VIT",
   description: "Point-based appointment scheduling system for fitness trainers",
 };
 

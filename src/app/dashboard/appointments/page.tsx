@@ -315,20 +315,6 @@ export default function AppointmentLogs() {
               </div>
             </div>
           </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">📋</span>
-                </div>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-black">필터링됨</h3>
-                <p className="text-2xl font-bold text-purple-600">{filteredLogs.length}</p>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Appointment Logs Table */}

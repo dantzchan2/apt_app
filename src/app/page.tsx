@@ -8,7 +8,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-black">Studio Vit</h1>
+              <h1 className="text-2xl font-bold text-black">P.T. VIT</h1>
             </div>
             <nav className="flex items-center space-x-4">
               <Link
@@ -33,14 +33,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             {/* <h1 className="text-4xl font-bold text-black sm:text-5xl md:text-6xl mb-8">
-              <span className="text-orange-600">PT Studio Vit</span>에
+              <span className="text-orange-600">PT P.T. VIT</span>에
               오신 것을 환영합니다
             </h1> */}
             
             <div className="relative w-full mb-8">
               <Image
                 src="/images/image_1.png"
-                alt="Studio Vit Hero"
+                alt="P.T. VIT Hero"
                 width={1200}
                 height={600}
                 className="w-full h-auto rounded-lg shadow-lg"
@@ -177,7 +177,7 @@ export default function Home() {
               <div className="mb-8">
                 <Image
                   src="/images/image_2.png"
-                  alt="Studio Vit Running Crew"
+                  alt="P.T. VIT Running Crew"
                   width={800}
                   height={500}
                   className="w-full h-auto rounded-lg shadow-lg mx-auto"
@@ -269,7 +269,7 @@ export default function Home() {
       <footer className="bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center text-gray-500">
-            <p>&copy; 2025 Studio Vit. All rights reserved.</p>
+            <p>&copy; 2025 P.T. VIT. All rights reserved.</p>
           </div>
         </div>
       </footer>

@@ -108,7 +108,10 @@ interface Trainer {
 const getDaysOfWeek = (startDate: Date) => {
   const days = [];
   const start = new Date(startDate);
-  start.setDate(start.getDate() - start.getDay()); // Start from Sunday
+  // Start from Monday (getDay() returns 0 for Sunday, 1 for Monday, etc.)
+  const dayOfWeek = start.getDay();
+  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // If Sunday (0), go back 6 days to Monday
+  start.setDate(start.getDate() - daysFromMonday);
   
   for (let i = 0; i < 7; i++) {
     const day = new Date(start);
@@ -946,18 +949,33 @@ export default function Schedule() {
             </div>
             {getWeekDays().map((day, index) => {
               const isToday = day.toDateString() === new Date().toDateString();
+              const dayOfWeek = day.getDay(); // 0 = Sunday, 6 = Saturday
+              const isSaturday = dayOfWeek === 6;
+              const isSunday = dayOfWeek === 0;
+              
+              // Determine colors based on day of week
+              let dayNameColor = 'text-gray-700';
+              let dayNumberColor = 'text-gray-900';
+              
+              if (isToday) {
+                dayNameColor = 'text-orange-600';
+                dayNumberColor = 'text-orange-600';
+              } else if (isSaturday) {
+                dayNameColor = 'text-blue-600';
+                dayNumberColor = 'text-blue-600';
+              } else if (isSunday) {
+                dayNameColor = 'text-red-600';
+                dayNumberColor = 'text-red-600';
+              }
+              
               return (
                 <div key={index} className={`px-1 py-3 text-center border-l border-gray-200 ${
                   isToday ? 'bg-orange-50' : 'bg-gray-50'
                 }`}>
-                  <div className={`text-xs font-medium ${
-                    isToday ? 'text-orange-600' : 'text-gray-700'
-                  }`}>
+                  <div className={`text-xs font-medium ${dayNameColor}`}>
                     {formatDayName(day)}
                   </div>
-                  <div className={`text-sm font-bold mt-1 ${
-                    isToday ? 'text-orange-600' : 'text-gray-900'
-                  }`}>
+                  <div className={`text-sm font-bold mt-1 ${dayNumberColor}`}>
                     {formatDayNumber(day)}
                   </div>
                 </div>

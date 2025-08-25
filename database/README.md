@@ -1,6 +1,6 @@
 # Database Scripts
 
-This directory contains database management scripts for the Studio Vit appointment scheduling application.
+This directory contains database management scripts for the P.T. VIT appointment scheduling application.
 
 ## Reset Database Script
 

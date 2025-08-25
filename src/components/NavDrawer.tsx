@@ -51,6 +51,12 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
       roles: ['user', 'admin'],
     },
     {
+      name: '세션 기록',
+      href: '/dashboard/sessions',
+      icon: '📋',
+      roles: ['user'],
+    },
+    {
       name: '포인트 구매',
       href: '/dashboard/purchase',
       icon: '$',
@@ -149,7 +155,7 @@ export default function NavDrawer({ userData, currentPage }: NavDrawerProps) {
                   <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs capitalize">
                     {userData.role}
                   </span>
-                  {(userData.role === 'user' || userData.role === 'admin') && (
+                  {userData.role === 'user' && (
                     <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
                       {userData.points || 0} 포인트
                     </span>

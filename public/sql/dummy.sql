@@ -1,4 +1,4 @@
--- Studio Vit PT Scheduling App - Dummy Data  
+-- P.T. VIT PT Scheduling App - Dummy Data  
 -- Description: Sample data for testing and development (no localStorage - fully database-backed)
 
 -- This file contains all the dummy/sample data for the fitness appointment scheduling system

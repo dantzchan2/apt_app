@@ -59,7 +59,7 @@ const DashboardHeader = forwardRef<DashboardHeaderRef, DashboardHeaderProps>(({
   const [pointsLoading, setPointsLoading] = useState(false);
 
   useEffect(() => {
-    if (showPoints && (userData.role === 'user' || userData.role === 'admin')) {
+    if (showPoints && userData.role === 'user') {
       fetchUserPoints();
     }
   }, [showPoints, userData.role, userData.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -106,7 +106,7 @@ const DashboardHeader = forwardRef<DashboardHeaderRef, DashboardHeaderProps>(({
   const expiringWarning = getExpiringPointsWarning();
 
   const renderPointsDisplay = () => {
-    if (!showPoints || (userData.role !== 'user' && userData.role !== 'admin')) {
+    if (!showPoints || userData.role !== 'user') {
       return null;
     }
 
